@@ -1,4 +1,5 @@
 var db = require('../database');
+var bcrypt = require('bcrypt');
 
 exports.showNewSellerForm = function (request, response) {
     response.render('new-seller-form', {
@@ -12,29 +13,33 @@ exports.showNewSellerForm = function (request, response) {
 };
 
 var createUser = exports.createUser = function (request, response, callback) {
-    var user = {
-        username: request.body.email,
-        password: request.body.password
-    };
+    bcrypt.genSalt(10, function (err, salt) {
+        bcrypt.hash(request.body.password, salt, function (err, hash) {
+            var user = {
+                username: request.body.email,
+                password: hash
+            };
 
-    db.query('INSERT INTO users SET ?', user, function (err, result) {
-        if (err && err.code === 'ER_DUP_ENTRY') {
-            response.render('new-seller-form', {
-                emailError: 'Email address already registered.',
-                email: request.body.email,
-                password: request.body.password,
-                firstname: request.body.firstname,
-                surname: request.body.surname,
-                telephone: request.body.telephone,
-                cellphone: request.body.cellphone
+            db.query('INSERT INTO users SET ?', user, function (err, result) {
+                if (err && err.code === 'ER_DUP_ENTRY') {
+                    response.render('new-seller-form', {
+                        emailError: 'Email address already registered.',
+                        email: request.body.email,
+                        password: request.body.password,
+                        firstname: request.body.firstname,
+                        surname: request.body.surname,
+                        telephone: request.body.telephone,
+                        cellphone: request.body.cellphone
+                    });
+                }
+                else if (err) {
+                    throw err;
+                }
+                else if (callback && typeof(callback) === "function") {
+                    callback(result.insertId);
+                }
             });
-        }
-        else if (err) {
-            throw err;
-        }
-        else if (callback && typeof(callback) === "function") {
-            callback(result.insertId);
-        }
+        });
     });
 };
 
