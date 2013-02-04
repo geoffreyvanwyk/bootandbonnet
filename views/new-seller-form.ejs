@@ -50,7 +50,10 @@ var controlClass = 'control-group error';
 
     <fieldset>
         <legend>Contact information</legend>
-
+        <div id="phonesAlert" class="alert alert-error" style="display: none;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            Please supply either a telephone or a cellphone number, or both.
+        </div>
         <div class="row">
             <div class="span6">
                 <div class="control-group">
@@ -71,11 +74,6 @@ var controlClass = 'control-group error';
             </div>
 
             <div class="span6">
-                <div id="phones" class="alert alert-info" style="display: none;">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    Please supply either a telephone or a cellphone number, or both.
-                </div>
-
                 <div id="divTelephone" class="control-group">
                     <label class="control-label" for="telephone">Telephone</label>
                     <div class="controls">
@@ -97,15 +95,19 @@ var controlClass = 'control-group error';
 
     <fieldset>
         <legend>Seller type</legend>
+        <div id="sellerTypeAlert" class="alert alert-error" style="display: none;">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            Please specify which type of seller you are by clicking either the Private seller option button or the Dealership option button.
+        </div>
         <div class="row">
             <div class="span3">
                 <label class="radio">
-                    <input type="radio" id="privateSeller" name="sellerType" value="privateSeller" required="required" />Private seller
+                    <input type="radio" id="privateSeller" name="sellerType" value="privateSeller" />Private seller
                 </label>
             </div>
             <div class="span3">
                 <label class="radio">
-                    <input type="radio" id="dealership"  name="sellerType" value="dealership" required="required"/>Dealership
+                    <input type="radio" id="dealership"  name="sellerType" value="dealership" />Dealership
                 </label>
             </div>
         </div>

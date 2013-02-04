@@ -31,7 +31,7 @@ window.onload = function () {
             setValidationState("Password", "success", "Good!");
         }
         else {
-             setValidationState("Password", "info", "Minimum 7 characters.");
+            setValidationState("Password", "info", "Minimum 7 characters.");
         }
 
         if (confirmPasswordBox.value.length > 0) {
@@ -57,7 +57,7 @@ window.onload = function () {
         }
     };
 
-     var confirmPasswordOnKeyUp = confirmPasswordBox.onkeyup = function () {
+    var confirmPasswordOnKeyUp = confirmPasswordBox.onkeyup = function () {
         if (!isPasswordValid()) {
             setValidationState("ConfirmPassword", "", "");
         }
@@ -103,13 +103,28 @@ window.onload = function () {
         var cellphoneBox = document.getElementById("cellphone");
 
         if (telephoneBox.value === "" && cellphoneBox.value === "") {
-            document.getElementById("phones").style.display = "";
+            document.getElementById("phonesAlert").style.display = "";
             return false;
+        }
+        else {
+            document.getElementById("phonesAlert").style.display = "none";
+        }
+
+        var privateSellerRadio = document.getElementById("privateSeller");
+        var dealershipRadio = document.getElementById("dealership");
+
+        if (!privateSellerRadio.checked && !dealershipRadio.checked) {
+            document.getElementById("sellerTypeAlert").style.display = "";
+            return false;
+        }
+        else {
+            document.getElementById("sellerTypeAlert").style.display = "none";
         }
 
         if (!isPasswordValid() || !isPasswordConfirmed()) {
             return false;
         }
+
         return true;
     };
 };
