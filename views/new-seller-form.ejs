@@ -1,0 +1,152 @@
+<% layout('layout') -%>
+<% script('public/javascripts/new-seller-form.js') -%>
+
+<%
+if (emailError === '') {
+var controlClass = 'control-group';
+}
+else {
+var controlClass = 'control-group error';
+}
+%>
+
+<form id="register" method="post" action="/private-seller">
+
+    <h2>New Seller</h2>
+
+    <fieldset>
+        <legend>Account credentials</legend>
+
+        <div class="row">
+            <div class="span6">
+                <div class="<%=controlClass%>">
+                    <label class="control-label" for="email">Email address</label>
+                    <div class="controls">
+                        <input type="email" id="email" name="email" required="required"/>
+                        <span class="help-inline"><%=emailError%></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="span6">
+                <div id="divPassword" class="control-group">
+                    <label class="control-label" for="password">Password</label>
+                    <div class="controls">
+                        <input type="password" id="password" name="password" required="required" value="<%=password%>"/>
+                        <span id="spanPassword" class="help-inline"></span>
+                    </div>
+                </div>
+
+                <div id="divConfirmPassword" class="control-group">
+                    <label class="control-label" for="confirmPassword">Confirm password</label>
+                    <div class="controls">
+                        <input type="password" id="confirmPassword" name="confirmPassword" required="required" value="<%=password%>"/>
+                        <span id="spanConfirmPassword" class="help-inline"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Contact information</legend>
+
+        <div class="row">
+            <div class="span6">
+                <div class="control-group">
+                    <label class="control-label" for="first_name">First name</label>
+                    <div class="controls">
+                        <input type="text" id="first_name" name="firstname" value="<%=firstname%>" />
+                        <span class="help-inline">&nbsp;</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label"  for="surname">Surname</label>
+                    <div class="controls">
+                        <input type="text" id="surname" name="surname" value="<%=surname%>" />
+                        <span class="help-inline">&nbsp;</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="span6">
+                <div id="phones" class="alert alert-info" style="display: none;">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    Please supply either a telephone or a cellphone number, or both.
+                </div>
+
+                <div id="divTelephone" class="control-group">
+                    <label class="control-label" for="telephone">Telephone</label>
+                    <div class="controls">
+                        <input type="tel" id="telephone" name="telephone" value="<%=telephone%>"/>
+                        <span class="help-inline">&nbsp;</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="cellphone">Cell phone</label>
+                    <div class="controls">
+                        <input type="tel" id="cellphone" name="cellphone" value="<%=cellphone%>"/>
+                        <span class="help-inline">&nbsp;</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Seller type</legend>
+        <div class="row">
+            <div class="span3">
+                <label class="radio">
+                    <input type="radio" id="privateSeller" name="sellerType" value="privateSeller" required="required" />Private seller
+                </label>
+            </div>
+            <div class="span3">
+                <label class="radio">
+                    <input type="radio" id="dealership"  name="sellerType" value="dealership" required="required"/>Dealership
+                </label>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset id="dealershipDetails" style="display: none;">
+        <!--        <legend>Dealership details</legend>
+                <div class="row">
+                    <div class="span6">
+
+                        <div class="control-group">
+                            <label class="control-label" for="dealershipName">Name</label>
+                            <div class="controls">
+                                <input type="text" id="dealershipName" name="deealershipName" required="required" />
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label class="control-label" for="streetAddress1">Street address</label>
+                            <div class="controls">
+                                <input type="text" id="streetAddress1" name="streetAddress1" required="required" /><br />
+                                <input type="text" id="streetAddress2" name="streetAddress2" required="required" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="span6">
+
+                        <label>Province</label>
+                        <select>
+                        </select>
+
+                        <label>Town</label>
+                        <select>
+                        </select>
+
+                    </div>
+                </div>-->
+    </fieldset>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Register</button>
+    </div>
+</form>
