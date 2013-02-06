@@ -1,18 +1,23 @@
-var db = require('../database');
 var bcrypt = require('bcrypt');
+var db = require('../database');
+var locations = require('./locations');
 
 exports.showNewSellerForm = function (request, response) {
-    response.render('new-seller-form', {
-        emailError: '',
-        password: '',
-        firstname: '',
-        surname: '',
-        telephone: '',
-        cellphone: ''
+    locations.read(function (provinces, locations) {
+        response.render('new-seller-form', {
+            emailError: '',
+            password: '',
+            firstname: '',
+            surname: '',
+            telephone: '',
+            cellphone: '',
+            locations: locations,
+            provinces: provinces
+        });
     });
 };
 
-var createUser = exports.createUser = function (request, response, callback) {
+var createUser = function (request, response, callback) {
     bcrypt.genSalt(10, function (err, salt) {
         bcrypt.hash(request.body.password, salt, function (err, hash) {
             var user = {
@@ -43,29 +48,57 @@ var createUser = exports.createUser = function (request, response, callback) {
     });
 };
 
+
+var createDealership = function (request, response, callback) {
+    var dealership = {
+        name: request.body.dealershipName,
+        streetAddress1: request.body.streetAddress1,
+        streetAddress2: request.body.streetAddress2,
+        locationId: request.body.townId
+    };
+
+    db.query('INSERT INTO dealerships SET ?', dealership, function (err, result) {
+        if (err) {
+            throw err;
+        }
+        else {
+            callback(result.insertId);
+        }
+    });
+};
+
 exports.createSeller = function (request, response) {
     createUser(request, response, function (userId) {
-        if (request.body.sellerType === 'privateSeller') {
-            var dealershipId = 1;
-        }
+        createDealership(request, response, function (dealershipId) {
+            var newDealershipId;
 
-        var seller = {
-            firstname: request.body.firstname,
-            surname: request.body.surname,
-            telephone: request.body.telephone,
-            cellphone: request.body.cellphone,
-            dealershipId: dealershipId,
-            userId: userId
-        };
+            switch (request.body.sellerType) {
+                case 'privateSeller':
+                    newDealershipId = 1;
+                    break;
+                case 'dealership':
+                    newDealershipId = dealershipId;
+                    break;
+            }
 
-        db.query('INSERT INTO sellers SET ?', seller, function (err, result) {
-            if (err) {
-                // Render error page here.
-                throw err;
-            }
-            else {
-                response.render('home', {});
-            }
+            var seller = {
+                firstname: request.body.firstname,
+                surname: request.body.surname,
+                telephone: request.body.telephone,
+                cellphone: request.body.cellphone,
+                dealershipId: newDealershipId,
+                userId: userId
+            };
+
+            db.query('INSERT INTO sellers SET ?', seller, function (err, result) {
+                if (err) {
+                    // Render error page here.
+                    throw err;
+                }
+                else {
+                    response.render('home', {});
+                }
+            });
         });
     });
 };

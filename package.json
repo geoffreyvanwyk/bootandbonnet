@@ -10,6 +10,7 @@
     "ejs": "0.8.x",
     "ejs-locals": "1.0.x",
     "mysql": "2.0.x",
-    "bcrypt": "0.7.x"
+    "bcrypt": "0.7.x",
+    "async": "0.2.x"
   }
 }

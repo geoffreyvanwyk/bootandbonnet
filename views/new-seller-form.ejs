@@ -2,6 +2,7 @@
 <% script('public/javascripts/new-seller-form.js') -%>
 
 <%
+var locations = JSON.stringify(locations);
 if (emailError === '') {
 var controlClass = 'control-group';
 }
@@ -114,38 +115,44 @@ var controlClass = 'control-group error';
     </fieldset>
 
     <fieldset id="dealershipDetails" style="display: none;">
-        <!--        <legend>Dealership details</legend>
-                <div class="row">
-                    <div class="span6">
+        <legend>Dealership details</legend>
+        <div class="row">
+            <div class="span6">
 
-                        <div class="control-group">
-                            <label class="control-label" for="dealershipName">Name</label>
-                            <div class="controls">
-                                <input type="text" id="dealershipName" name="deealershipName" required="required" />
-                            </div>
-                        </div>
-
-                        <div class="control-group">
-                            <label class="control-label" for="streetAddress1">Street address</label>
-                            <div class="controls">
-                                <input type="text" id="streetAddress1" name="streetAddress1" required="required" /><br />
-                                <input type="text" id="streetAddress2" name="streetAddress2" required="required" />
-                            </div>
-                        </div>
+                <div class="control-group">
+                    <label class="control-label" for="dealershipName">Name</label>
+                    <div class="controls">
+                        <input type="text" id="dealershipName" name="dealershipName" required="required" />
                     </div>
+                </div>
 
-                    <div class="span6">
-
-                        <label>Province</label>
-                        <select>
-                        </select>
-
-                        <label>Town</label>
-                        <select>
-                        </select>
-
+                <div class="control-group">
+                    <label class="control-label" for="streetAddress1">Street address</label>
+                    <div class="controls">
+                        <input type="text" id="streetAddress1" name="streetAddress1" required="required" /><br />
+                        <input type="text" id="streetAddress2" name="streetAddress2" required="required" />
                     </div>
-                </div>-->
+                </div>
+            </div>
+
+            <div class="span6">
+                <input type="hidden" id="locations" value="<%=locations%>" />
+                <label>Province</label>
+                <select id="provinces" >
+                    <option>Please select ...</option>
+                    <% for (p in provinces) { %>
+                    <option><%=provinces[p]%></option>
+                    <% } %>
+                </select>
+
+                <label>Town</label>
+                <select id="towns" >
+                    <option>Please select ...</option>
+                </select>
+                <input type="hidden" id="townId" name="townId" />
+
+            </div>
+        </div>
     </fieldset>
 
     <div class="form-actions">

@@ -5,7 +5,7 @@ window.onload = function () {
     var telephoneBox = document.getElementById("telephone");
 
     var isPasswordValid = function () {
-        return passwordBox.value.length >= 7;
+        return (passwordBox.value.length >= 7);
     };
 
     var isPasswordConfirmed = function () {
@@ -96,6 +96,43 @@ window.onload = function () {
         if (this.checked) {
             document.getElementById("dealershipDetails").style.display = "";
         };
+    };
+
+    document.getElementById("provinces").onchange = function () {
+        var townsSelect = document.getElementById("towns");
+        var selectedProvince = this.value;
+        var locations = JSON.parse(document.getElementById("locations").value);
+        townsSelect.innerHTML = "<option>Please select ...</option>";
+        for (p in locations) {
+            if (locations[p].province === selectedProvince) {
+                for (t in locations[p].towns) {
+                    var townOption = document.createElement("option");
+                    townOption.textContent = locations[p].towns[t].town;
+                    townsSelect.appendChild(townOption);
+                }
+                break;
+            }
+        }
+    }
+
+    document.getElementById("towns").onchange = function () {
+        var selectedProvince = document.getElementById("provinces").value;
+        var selectedTown = this.value;
+        var townIdHidden = document.getElementById("townId");
+        var locations = JSON.parse(document.getElementById("locations").value);
+        townIdHidden.value = "";
+        for (p in locations) {
+            if (locations[p].province === selectedProvince) {
+                for (t in locations[p].towns) {
+                    if (locations[p].towns[t].town === selectedTown) {
+                        townIdHidden.value = locations[p].towns[t].id;
+                        alert(townIdHidden.value);
+                        break;
+                    }
+                }
+                break;
+            }
+        }
     };
 
     document.getElementById("register").onsubmit = function () {
