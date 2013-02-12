@@ -4,8 +4,6 @@
  */
 
 var express = require('express')
-  , routes = require('./routes')
-  , user = require('./routes/user')
   , http = require('http')
   , path = require('path')
   , engine = require('ejs-locals');
@@ -26,6 +24,8 @@ app.configure(function(){
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.methodOverride());
+  app.use(express.cookieParser('xvrT4521ghqw0'));
+  app.use(express.cookieSession());
   app.use(app.router);
   app.use('/public', express.static(path.join(__dirname, 'public')));
 });
@@ -38,12 +38,13 @@ app.configure('development', function(){
  * Route requests.
  */
 
-var home = require('./routes/home');
-var users = require('./routes/users');
+var home = require('./routes/home'),
+    users = require('./routes/users'),
+    sellers = require('./routes/sellers');
 
 app.get('/', home.index);
-app.get('/new-seller-form', users.showNewSellerForm);
-app.post('/private-seller', users.createSeller);
+app.get('/new-seller', sellers.showSellerForm);
+app.post('/seller', sellers.create);
 
 /**
  * Start web server.
