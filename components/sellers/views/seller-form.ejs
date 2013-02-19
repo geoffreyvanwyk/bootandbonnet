@@ -1,0 +1,180 @@
+<!--For registering new sellers and editing the information of existing sellers.-->
+
+<% layout('../../../views/layout') -%>
+<% script('../assets/js/seller-form.js') -%>
+
+<%
+var provincesString = JSON.stringify(provinces);
+if (emailError === '') {
+var controlClass = 'control-group';
+}
+else {
+var controlClass = 'control-group error';
+}
+%>
+
+<form id="register" method="post" action="/seller">
+    <input type="hidden" name="_method" value="<%=method%>"/>
+    <h2><%=heading%></h2>
+
+    <fieldset>
+	<legend>Account credentials</legend>
+
+	<div class="row">
+	    <div class="span6">
+		<div class="<%=controlClass%>">
+		    <label class="control-label" for="email">Email address</label>
+		    <div class="controls">
+			<input type="email" id="email" name="email" value="<%=email%>" required="required"/>
+			<span class="help-inline"><%=emailError%></span>
+		    </div>
+		</div>
+	    </div>
+
+	    <div class="span6">
+		<div id="divPassword" class="control-group">
+		    <label class="control-label" for="password">Password</label>
+		    <div class="controls">
+			<input type="password" id="password" name="password" value="<%=password%>"/>
+			<span id="spanPassword" class="help-inline"></span>
+		    </div>
+		</div>
+
+		<div id="divConfirmPassword" class="control-group">
+		    <label class="control-label" for="confirmPassword">Confirm password</label>
+		    <div class="controls">
+			<input type="password" id="confirmPassword" name="confirmPassword" value="<%=password%>"/>
+			<span id="spanConfirmPassword" class="help-inline"></span>
+		    </div>
+		</div>
+	    </div>
+	</div>
+	<input type="hidden" id="loggedIn" value="<%=loggedIn%>" />
+    </fieldset>
+
+    <fieldset>
+	<legend>Contact information</legend>
+	<div id="phonesAlert" class="alert alert-error" style="display: none;">
+	    <button type="button" class="close" data-dismiss="alert">&times;</button>
+	    Please supply either a telephone or a cellphone number, or both.
+	</div>
+	<div class="row">
+	    <div class="span6">
+		<div class="control-group">
+		    <label class="control-label" for="first_name">First name</label>
+		    <div class="controls">
+			<input type="text" id="first_name" name="firstname" value="<%=firstname%>" />
+			<span class="help-inline">&nbsp;</span>
+		    </div>
+		</div>
+
+		<div class="control-group">
+		    <label class="control-label"  for="surname">Surname</label>
+		    <div class="controls">
+			<input type="text" id="surname" name="surname" value="<%=surname%>" />
+			<span class="help-inline">&nbsp;</span>
+		    </div>
+		</div>
+	    </div>
+
+	    <div class="span6">
+		<div id="divTelephone" class="control-group">
+		    <label class="control-label" for="telephone">Telephone</label>
+		    <div class="controls">
+			<input type="tel" id="telephone" name="telephone" value="<%=telephone%>"/>
+			<span class="help-inline">&nbsp;</span>
+		    </div>
+		</div>
+
+		<div class="control-group">
+		    <label class="control-label" for="cellphone">Cell phone</label>
+		    <div class="controls">
+			<input type="tel" id="cellphone" name="cellphone" value="<%=cellphone%>"/>
+			<span class="help-inline">&nbsp;</span>
+		    </div>
+		</div>
+	    </div>
+	</div>
+    </fieldset>
+
+    <fieldset>
+	<legend>Seller type</legend>
+	<div id="sellerTypeAlert" class="alert alert-error" style="display: none;">
+	    <button type="button" class="close" data-dismiss="alert">&times;</button>
+	    Please specify which type of seller you are by clicking either the Private seller option button or the 
+	    Dealership option button.
+	</div>
+	<div class="row">
+	    <div class="span3">
+		<label class="radio">
+		    <input type="radio" id="privateSeller" name="sellerType" value="privateSeller" />Private seller
+		</label>
+	    </div>
+	    <div class="span3">
+		<label class="radio">
+		    <input type="radio" id="dealership"  name="sellerType" value="dealership" />Dealership
+		</label>
+	    </div>
+	</div>
+	<input type="hidden" id="sellerType" value="<%=sellerType%>" />
+    </fieldset>
+
+    <fieldset id="dealershipDetails" style="display: none;">
+	<legend>Dealership details</legend>
+	<div id="locationAlert" class="alert alert-error" style="display: none;">
+	    <button type="button" class="close" data-dismiss="alert">&times;</button>
+	    Please specify the province and town.
+	</div>
+	<div class="row">
+	    <div class="span6">
+
+		<div class="control-group">
+		    <label class="control-label" for="dealershipName">Name</label>
+		    <div class="controls">
+			<input type="text" id="dealershipName" name="dealershipName" 
+			       value="<%=dealershipName%>" />
+		    </div>
+		</div>
+
+		<div class="control-group">
+		    <label class="control-label" for="streetAddress1">Street address</label>
+		    <div class="controls">
+			<input type="text" id="streetAddress1" name="streetAddress1" 
+			       value="<%=streetAddress1%>" /><br />
+			<input type="text" id="streetAddress2" name="streetAddress2" 
+			       value="<%=streetAddress2%>" />
+		    </div>
+		</div>
+	    </div>
+
+	    <div class="span6">
+		<input type="hidden" id="locations" value="<%=provincesString%>" />
+		<label>Province</label>
+		<select id="provinces" name="province">
+		    <% if (province) { %>
+		    <option selected="selected"><%=province%></option>
+		    <% } %>
+		    <option>Please select ...</option>
+		    <% for (p in provinces) { %>
+		    <option><%=provinces[p].name%></option>
+		    <% } %>
+		</select>
+
+		<label>Town</label>
+		<select id="towns" name="town">
+		    <% if (town) { %>
+		    <option selected="selected"><%=town%></option>
+		    <% } %>
+		    <option>Please select ...</option>
+		</select>
+		<input type="hidden" id="townId" name="townId" value="<%=townId%>"/>
+
+	    </div>
+	</div>
+    </fieldset>
+
+    <div class="form-actions">
+	<button type="submit" class="btn btn-primary" ><%=buttonCaption%></button>
+	<button type="button" class="btn" id="cancelButton" >Cancel</button>
+    </div>
+</form>
