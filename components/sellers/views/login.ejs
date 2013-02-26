@@ -1,0 +1,43 @@
+<% layout('../../../views/layout') -%>
+
+<% 
+if (emailError === '') {
+var emailAlertType = '';
+} else {
+var emailAlertType = 'error';
+}
+if (passwordError === '') {
+var passwordAlertType = '';
+} else {
+var passwordAlertType = 'error';
+}
+%>
+
+<form method="post" action="/seller/login">
+    <fieldset>
+        <legend>Log In</legend>
+		<div class="row">
+			<div class="span12">
+				<div class="control-group <%=emailAlertType%>">
+					<label class="control-label">Email</label>
+					<div class="controls">
+						<input type="email" name="seller[email]" value="<%=email%>" required="required" />
+						<span class="help-block" ><%=emailError%></span>
+					</div>
+				</div>
+
+				<div class="control-group <%=passwordAlertType%>">
+					 <label class="control-label">Password</label>
+					<div class="controls">
+						<input type="password" name="seller[password]" required="required" />
+						<span class="help-block" ><%=passwordError%></span>
+					</div>
+				</div>
+
+				<div class="controls" >
+					<button type="submit" class="btn btn-primary" >Log in</button>
+				</div>
+			</div>
+		</div>
+    </fieldset>
+</form>

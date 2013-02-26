@@ -1,13 +1,16 @@
+"use strict";
+
 /**
  * Import dependencies.
  */
 
-var engine = require('ejs-locals');
 var express = require('express');
-var http = require('http');
+var engine = require('ejs-locals');
 var path = require('path');
 var map = require('../../route-map');
-var seller = require('./routes/sellers').seller;
+var register = require('./routes/register').register;	// For working with the register.ejs view.
+var profile = require('./routes/profile').profile;		// For working with the profile.ejs view.
+var login = require('./routes/login').login;			// For working with the login.ejs view.
 
 /**
  * Configure application.
@@ -15,15 +18,15 @@ var seller = require('./routes/sellers').seller;
 
 var app = module.exports = express();
 
-app.configure(function(){
-    app.engine('ejs', engine);
-    app.set('views', __dirname + '/views');
-    app.set('view engine', 'ejs');
-    app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.configure(function() {
+	app.engine('ejs', engine);
+	app.set('views', __dirname + '/views');
+	app.set('view engine', 'ejs');
+	app.use('/assets', express.static(path.join(__dirname, 'assets')));
 });
 
-app.configure('development', function(){
-    app.use(express.errorHandler());
+app.configure('development', function() {
+	app.use(express.errorHandler());
 });
 
 /**
@@ -33,15 +36,21 @@ app.configure('development', function(){
 app.map = map;
 
 app.map(app, {
-    '/seller': {
-	get: seller.read,
-	post: seller.create,
-	put: seller.update,
-	'/new': {
-	    get: seller.showNewForm
-	},
-	'/edit': {
-	    get: seller.showEditForm
+	'/seller': {
+		'/add': {
+			get: register.add
+		},
+		'/edit': {
+			get: register.edit
+		},
+		'/view': {
+			get: profile.show,
+			post: profile.add,
+			put: profile.edit
+		},
+		'/login': {
+			get: login.show,
+			post: login.start
+		}
 	}
-    }
 });
