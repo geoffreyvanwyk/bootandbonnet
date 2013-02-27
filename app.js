@@ -6,7 +6,6 @@ var engine = require('ejs-locals');
 var express = require('express');
 var http = require('http');
 var path = require('path');
-var map = require('./route-map');
 
 /**
  * Configure application.
@@ -37,13 +36,26 @@ app.configure('development', function() {
  * Route requests.
  */
 
-var home = require('./routes/home').index;
-var sellers = require('./components/sellers');
-var login = require('./components/sellers/routes/login').login;
-
-app.use(sellers);
+var map = exports.map = function(app, a, route) {
+	route = route || '';
+	for (var key in a) {
+		switch (typeof a[key]) {
+			case 'object': // { '/path': { ... }}
+				app.map(app, a[key], route + key);
+				break;
+			case 'function': // get: function(){ ... }
+				app[key](route, a[key]);
+				break;
+		}
+	}
+};
 
 app.map = map;
+
+var home = require('./routes/home').index;
+var sellers = require('./components/sellers');
+
+app.use(sellers);
 
 app.map(app, {
 	'/': {

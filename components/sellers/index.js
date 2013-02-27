@@ -7,7 +7,7 @@
 var express = require('express');
 var engine = require('ejs-locals');
 var path = require('path');
-var map = require('../../route-map');
+var map = require('../../app').map;
 var register = require('./routes/register').register;	// For working with the register.ejs view.
 var profile = require('./routes/profile').profile;		// For working with the profile.ejs view.
 var login = require('./routes/login').login;			// For working with the login.ejs view.
