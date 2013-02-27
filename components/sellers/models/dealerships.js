@@ -8,20 +8,20 @@ var db = require('../../../database'); // For connecting to the database.
 
 exports.dealership = {
 	/**
-	 * Inserts a new row into the dealerships database table, and returns the newly inserted row, in the form of a 
-	 * dealership object, as the second argument to a callback function. The first argument to the callback function is 
+	 * Inserts a new row into the dealerships database table, and returns the newly inserted row, in the form of a
+	 * dealership object, as the second argument to a callback function. The first argument to the callback function is
 	 * an error object.
-	 * 
+	 *
 	 * @param	{string}	name			The name of the dealership.
 	 * @param	{string}	streetAddress1	Part 1 of the dealerships street address.
 	 * @param	{string}	streetAddress2	Part 2 of the dealerships street address.
-	 * @param	{string}	locationId		The id of the row in the locations database table with which the dealership is 
+	 * @param	{string}	locationId		The id of the row in the locations database table with which the dealership is
 	 *										associated.
-	 * @param	{function}	callback		Another function which is called as soon as this function has completed its 
+	 * @param	{function}	callback		Another function which is called as soon as this function has completed its
 	 *										execution.
-	 *										
-	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a 
-	 *                      dealership object as the second argument. When there is no error the first argument is null. 
+	 *
+	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a
+	 *                      dealership object as the second argument. When there is no error the first argument is null.
 	 *                      When there is an error, the second argument is undefined.
 	 */
 	create: function(name, streetAddress1, streetAddress2, locationId, callback) {
@@ -42,15 +42,15 @@ exports.dealership = {
 		});
 	},
 	/**
-	 * Returns a row from the dealerships database table, in the form of a dealership object, based on the id of the  
+	 * Returns a row from the dealerships database table, in the form of a dealership object, based on the id of the
 	 * dealership.
-	 * 
+	 *
 	 * @param   {number}    dealershipId	The id of the dealership.
-	 * @param   {function}  callback		Another function which is called as soon as this function has completed its 
+	 * @param   {function}  callback		Another function which is called as soon as this function has completed its
 	 *										execution.
-	 * 
-	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a 
-	 *                      dealership object as the second argument. When there is no error the first argument is null. 
+	 *
+	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a
+	 *                      dealership object as the second argument. When there is no error the first argument is null.
 	 *                      When there is an error, the second argument is undefined.
 	 */
 	read: function(dealershipId, callback) {
@@ -72,20 +72,20 @@ exports.dealership = {
 		});
 	},
 	/**
-	 * Updates a row in the dealerships database table, and returns that row, in the form of a dealership object, as the 
+	 * Updates a row in the dealerships database table, and returns that row, in the form of a dealership object, as the
 	 * second argument to a callback function. The first argument to the callback function is an error object.
-	 * 
+	 *
 	 * @param	{number}	dealershipId	The id of the row to be updated.
 	 * @param	{string}	name			The name of the dealership.
 	 * @param	{string}	streetAddress1	Part 1 of the dealerships street address.
 	 * @param	{string}	streetAddress2	Part 2 of the dealerships street address.
-	 * @param	{string}	locationId		The id of the row in the locations database table with which the dealership is 
+	 * @param	{string}	locationId		The id of the row in the locations database table with which the dealership is
 	 *										associated.
-	 * @param	{function}	callback		Another function which is called as soon as this function has completed its 
+	 * @param	{function}	callback		Another function which is called as soon as this function has completed its
 	 *										execution.
-	 *										
-	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a 
-	 *                      dealership object as the second argument. When there is no error the first argument is null. 
+	 *
+	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a
+	 *                      dealership object as the second argument. When there is no error the first argument is null.
 	 *                      When there is an error, the second argument is undefined.
 	 */
 	update: function(dealershipId, name, streetAddress1, streetAddress2, locationId, callback) {
@@ -104,5 +104,25 @@ exports.dealership = {
 				callback(null, theDealership);
 			}
 		});
+	},
+	/**
+	 * Deletes a row from the dealerships database table.
+	 *
+	 * @param	{number}	id			The id of the row.
+	 * @param	{function}	callback	Another function which is called as soon as this function has completed its
+	 *                                  execution.
+	 *
+	 * @return {void}		Returns an error object to a callback function. When there is no error the error is null.
+	 */
+	del: function(dealershipId, callback) {
+		if (dealershipId !== 1) {
+			db.query('DELETE FROM users WHERE id = ?', dealershipId, function(err) {
+				if (err) {
+					return callback(err);
+				}
+				return callback(null);
+			});
+		}
+		return callback(null);
 	}
 };

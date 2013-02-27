@@ -6,6 +6,7 @@
 
 var bcrypt = require('bcrypt');	// For hashing and comparing passwords.
 var dealership = require('../models/dealerships').dealership; // For working with the dealerships database table.
+var home = require('../../../routes/home').index;
 var location = require('../../../models/locations').location; // For working with the locations database table.
 var register = require('./register').register; // For working withe the register.ejs view.
 var sanitize = require('sanitizer').sanitize; // For removing scripts from user input.
@@ -91,6 +92,44 @@ var profile = exports.profile = {
 		});
 	},
 	/**
+	 * Creates a seller object as a property of the request.session object.
+	 *
+	 * @param   {object}    request			An HTTP request object received from the express.get() method.
+	 * @param   {object}    response		An HTTP response object received from the express.get() method.
+	 * @param	{object}	theUser			A user object.
+	 * @param	{object}	theSeller		A seller object.
+	 * @param	{object}	theDealership	A dealership object.
+	 * @param	{function}	callback		The function which is called as soon as this function completes execution.
+	 *
+	 * @return  {undefined}	Returns a call to its callback function with the HTTP request object as the first argument,
+	 *						and the HTTP response object as the second argument.
+	 */
+	createSessionSeller: function(request, response, theUser, theSeller, theDealership, callback) {
+		request.session.seller = {};
+		var ss = request.session.seller;
+		ss.sellerId = theSeller.id;
+		ss.userId = theUser.id;
+		ss.dealershipId = theDealership.id;
+		ss.email = theUser.username;
+		ss.firstname = theSeller.firstname;
+		ss.surname = theSeller.surname;
+		ss.telephone = theSeller.telephone;
+		ss.cellphone = theSeller.cellphone;
+		if (theDealership.id === 1) {
+			ss.type = 'privateSeller';
+		} else {
+			ss.type = 'dealership';
+		}
+		ss.dealershipName = theDealership.name;
+		ss.streetAddress1 = theDealership.streetAddress1;
+		ss.streetAddress2 = theDealership.streetAddress2;
+		ss.province = theDealership.province;
+		ss.town = theDealership.town;
+		ss.townId = theDealership.locationId;
+		ss.loggedIn = true;
+		return callback(request, response);
+	},
+	/**
 	 * Responds to HTTP PUT /seller/view. Edits the user profile.
 	 *
 	 * @param   {object}    request     An HTTP request object received from the express.get() method.
@@ -98,7 +137,7 @@ var profile = exports.profile = {
 	 *
 	 * @return  {void}		It returns nothing.
 	 */
-	edit: function (request, response) {
+	edit: function(request, response) {
 		var slr = request.body.seller;
 		var ss = request.session.seller;
 
@@ -179,58 +218,52 @@ var profile = exports.profile = {
 	 * @return  {void}		It returns nothing.
 	 */
 	show: function(request, response) {
-			var ss = request.session.seller;
-			response.render('profile', {
-				sellerType: ss.type,
-				email: ss.email,
-				fullname: ss.firstname.concat(' ').concat(ss.surname),
-				telephone: ss.telephone,
-				cellphone: ss.cellphone,
-				dealershipName: ss.dealershipName,
-				streetAddress1: ss.streetAddress1,
-				streetAddress2: ss.streetAddress2,
-				province: ss.province,
-				town: ss.town,
-				townId: ss.townId,
-				loggedIn: true
-			});
+		var ss = request.session.seller;
+		response.render('profile', {
+			method: 'delete',
+			sellerType: ss.type,
+			email: ss.email,
+			fullname: ss.firstname.concat(' ').concat(ss.surname),
+			telephone: ss.telephone,
+			cellphone: ss.cellphone,
+			dealershipName: ss.dealershipName,
+			streetAddress1: ss.streetAddress1,
+			streetAddress2: ss.streetAddress2,
+			province: ss.province,
+			town: ss.town,
+			townId: ss.townId,
+			loggedIn: true
+		});
 	},
 	/**
-	 * Creates a seller object as a property of the request.session object.
+	 * Responds to HTTP DELETE /seller/view. Deletes the seller profile and all related rows in the database.
 	 *
-	 * @param   {object}    request			An HTTP request object received from the express.get() method.
-	 * @param   {object}    response		An HTTP response object received from the express.get() method.
-	 * @param	{object}	theUser			A user object.
-	 * @param	{object}	theSeller		A seller object.
-	 * @param	{object}	theDealership	A dealership object.
-	 * @param	{function}	callback		The function which is called as soon as this function completes execution.
+	 * @param   {object}    request     An HTTP request object received from the express.get() method.
+	 * @param   {object}    response    An HTTP response object received from the express.get() method.
 	 *
-	 * @return  {undefined}	Returns a call to its callback function with the HTTP request object as the first argument,
-	 *						and the HTTP response object as the second argument.
+	 * @return  {void}		It returns nothing.
 	 */
-	createSessionSeller: function(request, response, theUser, theSeller, theDealership, callback) {
-		request.session.seller = {};
+	del: function(request, response) {
 		var ss = request.session.seller;
-		ss.sellerId = theSeller.id;
-		ss.userId = theUser.id;
-		ss.dealershipId = theDealership.id;
-		ss.email = theUser.username;
-		ss.firstname = theSeller.firstname;
-		ss.surname = theSeller.surname;
-		ss.telephone = theSeller.telephone;
-		ss.cellphone = theSeller.cellphone;
-		if (theDealership.id === 1) {
-			ss.type = 'privateSeller';
-		} else {
-			ss.type = 'dealership';
-		}
-		ss.dealershipName = theDealership.name;
-		ss.streetAddress1 = theDealership.streetAddress1;
-		ss.streetAddress2 = theDealership.streetAddress2;
-		ss.province = theDealership.province;
-		ss.town = theDealership.town;
-		ss.townId = theDealership.locationId;
-		ss.loggedIn = true;
-		return callback(request, response);
+		seller.del(ss.sellerId, function(err) {
+			if (err) {
+				throw err;
+			} else {
+				user.del(ss.userId, function(err) {
+					if (err) {
+						throw err;
+					} else {
+						dealership.del(ss.dealershipId, function(err) {
+							if (err) {
+								throw err;
+							} else {
+								request.session.seller = null;
+								home(request, response);
+							}
+						});
+					}
+				});
+			}
+		});
 	}
 };

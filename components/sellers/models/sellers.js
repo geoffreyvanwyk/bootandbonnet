@@ -8,23 +8,23 @@ var db = require('../../../database'); // For connecting to the database.
 
 exports.seller = {
 	/**
-	 * Inserts a new row into the sellers database table, and returns the newly inserted row, in the form of a seller 
+	 * Inserts a new row into the sellers database table, and returns the newly inserted row, in the form of a seller
 	 * object, as the second argument to a callback function. The first argument to the callback function is an error
 	 * object.
-	 * 
+	 *
 	 * @param   {string}    firstname       The firstname of the seller.
 	 * @param   {string}    surname         The surname of the seller.
 	 * @param   {string}    telephone       The telephone number (land line) of the seller.
 	 * @param   {string}    cellphone       The cellphone number of the seller.
-	 * @param   {number}    dealershipId    The id of the dealership in the dealerships database table with which the 
+	 * @param   {number}    dealershipId    The id of the dealership in the dealerships database table with which the
 	 *                                      seller is associated.
-	 * @param   {number}    userId          The id of the user in the users database table with which the seller is 
+	 * @param   {number}    userId          The id of the user in the users database table with which the seller is
 	 *                                      associated.
-	 * @param   {function}  callback        Another function which is called as soon as this function has completed its 
+	 * @param   {function}  callback        Another function which is called as soon as this function has completed its
 	 *                                      execution.
-	 * 
-	 * @return	{void}		Returns arguments to a callback function: an error object as the first argument, and a 
-	 *                      seller object as the second argument. When there is no error the first argument is null. 
+	 *
+	 * @return	{void}		Returns arguments to a callback function: an error object as the first argument, and a
+	 *                      seller object as the second argument. When there is no error the first argument is null.
 	 *                      When there is an error, the second argument is undefined.
 	 */
 	create: function(firstname, surname, telephone, cellphone, dealershipId, userId, callback) {
@@ -45,16 +45,16 @@ exports.seller = {
 		});
 	},
 	/**
-	 * Returns a row from the sellers database table, in the form of a seller object, based on the id of the user 
+	 * Returns a row from the sellers database table, in the form of a seller object, based on the id of the user
 	 * in the users database table, with which the seller is associated.
-	 * 
-	 * @param   {number}    userId      The id of the user in the users database table, with which the seller is 
+	 *
+	 * @param   {number}    userId      The id of the user in the users database table, with which the seller is
 	 *                                  associated.
-	 * @param   {function}  callback    Another function which is called as soon as this function has completed its 
+	 * @param   {function}  callback    Another function which is called as soon as this function has completed its
 	 *                                  execution.
-	 * 
-	 * @return	{void}		Returns arguments to a callback function: an error object as the first argument, and a 
-	 *                      seller object as the second argument. When there is no error the first argument is null. 
+	 *
+	 * @return	{void}		Returns arguments to a callback function: an error object as the first argument, and a
+	 *                      seller object as the second argument. When there is no error the first argument is null.
 	 *                      When there is an error, the second argument is undefined.
 	 */
 	read: function(userId, callback) {
@@ -79,21 +79,21 @@ exports.seller = {
 	},
 	/**
 	 * Updates a row in the sellers database table.
-	 * 
+	 *
 	 * @param	{number}	sellerId		The id of the row to be updated.
 	 * @param   {string}    firstname       The firstname of the seller.
 	 * @param   {string}    surname         The surname of the seller.
 	 * @param   {string}    telephone       The telephone number (land line) of the seller.
 	 * @param   {string}    cellphone       The cellphone number of the seller.
-	 * @param   {number}    dealershipId    The id of the dealership in the dealerships database table with which the 
+	 * @param   {number}    dealershipId    The id of the dealership in the dealerships database table with which the
 	 *                                      seller is associated.
-	 * @param   {number}    userId          The id of the user in the users database table with which the seller is 
+	 * @param   {number}    userId          The id of the user in the users database table with which the seller is
 	 *                                      associated.
-	 * @param   {function}  callback        Another function which is called as soon as this function has completed its 
+	 * @param   {function}  callback        Another function which is called as soon as this function has completed its
 	 *                                      execution.
-	 * 
-	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a 
-	 *                      seller object as the second argument. When there is no error the first argument is null. 
+	 *
+	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a
+	 *                      seller object as the second argument. When there is no error the first argument is null.
 	 *                      When there is an error, the second argument is undefined.
 	 */
 	update: function(sellerId, firstname, surname, telephone, cellphone, dealershipId, userId, callback) {
@@ -112,6 +112,23 @@ exports.seller = {
 				theSeller.id = sellerId;
 				return callback(null, theSeller);
 			}
+		});
+	},
+	/**
+	 * Deletes a row from the sellers database table.
+	 *
+	 * @param	{number}	id			The id of the row.
+	 * @param	{function}	callback	Another function which is called as soon as this function has completed its
+	 *                                  execution.
+	 *
+	 * @return {void}		Returns an error object to a callback function. When there is no error the error is null.
+	 */
+	del: function(sellerId, callback) {
+		db.query('DELETE FROM sellers WHERE id = ?', sellerId, function(err) {
+			if (err) {
+				return callback(err);
+			}
+			return callback(null);
 		});
 	}
 };

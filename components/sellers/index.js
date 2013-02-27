@@ -46,7 +46,8 @@ app.map(app, {
 		'/view': {
 			get: profile.show,
 			post: profile.add,
-			put: profile.edit
+			put: profile.edit,
+			delete: profile.del
 		},
 		'/login': {
 			get: login.show,

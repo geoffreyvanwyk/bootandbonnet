@@ -12,6 +12,7 @@
     "mysql": "2.0.x",
     "bcrypt": "0.7.x",
     "async": "0.2.x",
-    "sanitizer": "0.0.x"
+    "sanitizer": "0.0.x",
+    "emailjs": "~0.3.4"
   }
 }
