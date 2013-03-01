@@ -1,11 +1,6 @@
 "use strict";
-/*
- * GET home page.
- */
 
-var path = require('path'); // For handling file paths.
-
-exports.index = function(request, response) {
+module.exports = function(request, response) {
 	if (request.session.seller && request.query.logout) {
 		var loggedIn = false;
 		request.session = null;
@@ -14,7 +9,9 @@ exports.index = function(request, response) {
 	} else {
 		var loggedIn = false;
 	}
-	response.render(path.join(__dirname, '../views/home'), {
+	response.render('emailVerified', {
 		loggedIn: loggedIn
 	});
 };
+
+

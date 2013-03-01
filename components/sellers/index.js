@@ -19,14 +19,14 @@ var login = require('./routes/login').login;			// For working with the login.ejs
 var app = module.exports = express();
 
 app.configure(function() {
-	app.engine('ejs', engine);
-	app.set('views', __dirname + '/views');
-	app.set('view engine', 'ejs');
-	app.use('/assets', express.static(path.join(__dirname, 'assets')));
+    app.engine('ejs', engine);
+    app.set('views', __dirname + '/views');
+    app.set('view engine', 'ejs');
+    app.use('/assets', express.static(path.join(__dirname, 'assets')));
 });
 
 app.configure('development', function() {
-	app.use(express.errorHandler());
+    app.use(express.errorHandler());
 });
 
 /**
@@ -36,22 +36,23 @@ app.configure('development', function() {
 app.map = map;
 
 app.map(app, {
-	'/seller': {
-		'/add': {
-			get: register.add
-		},
-		'/edit': {
-			get: register.edit
-		},
-		'/view': {
-			get: profile.show,
-			post: profile.add,
-			put: profile.edit,
-			delete: profile.del
-		},
-		'/login': {
-			get: login.show,
-			post: login.start
-		}
+    '/seller': {
+	get: profile.verifyEmail,
+	'/add': {
+	    get: register.add
+	},
+	'/edit': {
+	    get: register.edit
+	},
+	'/view': {
+	    get: profile.show,
+	    post: profile.add,
+	    put: profile.edit,
+	    delete: profile.del
+	},
+	'/login': {
+	    get: login.show,
+	    post: login.start
 	}
+    }
 });

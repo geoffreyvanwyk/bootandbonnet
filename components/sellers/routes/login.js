@@ -13,88 +13,88 @@ var seller = require('../models/sellers').seller; // For working with the seller
 var user = require('../models/users').user; // For working with the users database table.
 
 var login = exports.login = {
-	/**
-	 * Responds to HTTP GET /seller/login. Displays the login form.
-	 * 
-	 * @param   {object}    request     An HTTP request object received from the express.get() method.
-	 * @param   {object}    response    An HTTP response object received from the express.get() method.
-	 */
-	show: function(request, response) {
-		if (!request.session.seller) {
-			if (request.session.login) {
-				var email = request.session.login.email;
-				var emailError = request.session.login.emailError;
-				var passwordError = request.session.login.passwordError;
-				request.session.login = null;
-			}
-			response.render('login', {
-				email: email || '',
-				emailError: emailError || '',
-				passwordError: passwordError || '',
-				loggedIn: false
-			});
-		}
-	},
-	/**
-	 * Responds to HTTP POST /. Starts a seller's logged-in session.
-	 * 
-	 * @param   {object}    request     An HTTP request object received from the express.get() method.
-	 * @param   {object}    response    An HTTP response object received from the express.get() method.
-	 */
-	start: function(request, response) {
-		var slr = request.body.seller;
-		user.read(slr.email, function(err, theUser) {
-			if (err && err.message === 'The email address has not been registered.') {
+    /**
+     * Responds to HTTP GET /seller/login. Displays the login form.
+     *
+     * @param   {object}    request     An HTTP request object received from the express.get() method.
+     * @param   {object}    response    An HTTP response object received from the express.get() method.
+     */
+    show: function(request, response) {
+	if (!request.session.seller) {
+	    if (request.session.login) {
+		var email = request.session.login.email;
+		var emailError = request.session.login.emailError;
+		var passwordError = request.session.login.passwordError;
+		request.session.login = null;
+	    }
+	    response.render('login', {
+		email: email || '',
+		emailError: emailError || '',
+		passwordError: passwordError || '',
+		loggedIn: false
+	    });
+	}
+    },
+    /**
+     * Responds to HTTP POST /. Starts a seller's logged-in session.
+     *
+     * @param   {object}    request     An HTTP request object received from the express.get() method.
+     * @param   {object}    response    An HTTP response object received from the express.get() method.
+     */
+    start: function(request, response) {
+	var slr = request.body.seller;
+	user.read(slr.email, function(err, theUser) {
+	    if (err && err.message === 'The email address has not been registered.') {
+		request.session.login = {
+		    emailError: err.message,
+		    email: slr.email
+		};
+		login.show(request, response);
+	    } else if (err) {
+		throw err;
+	    } else {
+		bcrypt.compare(slr.password, theUser.passwordHash, function(err, isMatch) {
+		    if (err) {
+			throw err;
+		    } else {
+			switch (isMatch) {
+			    case true:
+				seller.read(theUser.id, function(err, theSeller) {
+				    if (err) {
+					throw err;
+				    } else {
+					dealership.read(theSeller.dealershipId, function(err, theDealership) {
+					    if (err) {
+						throw err;
+					    } else {
+						location.read(theDealership.locationId, function(err, theLocation) {
+						    if (err) {
+							throw err;
+						    } else {
+							theDealership.province = theLocation.province;
+							theDealership.town = theLocation.town;
+							profile.createSessionSeller(request, response, theUser,
+							    theSeller, theDealership, home);
+						    }
+						});
+					    }
+					});
+				    }
+
+				});
+				break;
+			    case false:
 				request.session.login = {
-					emailError: err.message,
-					email: slr.email
+				    passwordError: 'The password is wrong.'
 				};
 				login.show(request, response);
-			} else if (err) {
-				throw err;
-			} else {
-				bcrypt.compare(slr.password, theUser.passwordHash, function(err, isMatch) {
-					if (err) {
-						throw err;
-					} else {
-						switch (isMatch) {
-							case true:
-								seller.read(theUser.id, function(err, theSeller) {
-									if (err) {
-										throw err;
-									} else {
-										dealership.read(theSeller.dealershipId, function(err, theDealership) {
-											if (err) {
-												throw err;
-											} else {
-												location.read(theDealership.locationId, function(err, theLocation) {
-													if (err) {
-														throw err;
-													} else {
-														theDealership.province = theLocation.province;
-														theDealership.town = theLocation.town;
-														profile.createSessionSeller(request, response, theUser,
-																theSeller, theDealership, home);
-													}
-												});
-											}
-										});
-									}
-
-								});
-								break;
-							case false:
-								request.session.login = {
-									passwordError: 'The password is wrong.'
-								};
-								login.show(request, response);
-								break;
-						}
-
-					}
-				});
+				break;
 			}
 
+		    }
 		});
-	}
+	    }
+
+	});
+    }
 };
