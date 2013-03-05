@@ -4,12 +4,12 @@
 <% script('../assets/js/register.js') -%>
 
 <%
-	var provincesString = JSON.stringify(provinces);
-	if (emailError === '') {
-		var controlClass = 'control-group';
-	} else {
-		var controlClass = 'control-group error';
-	}
+var provincesString = JSON.stringify(provinces);
+if (emailError === '') {
+var controlClass = 'control-group';
+} else {
+var controlClass = 'control-group error';
+}
 %>
 
 <form id="register" method="post" action="/seller/view">
@@ -100,7 +100,7 @@
 		<legend>Seller type</legend>
 		<div id="sellerTypeAlert" class="alert alert-error" style="display: none;">
 			<button type="button" class="close" data-dismiss="alert">&times;</button>
-			Please specify which type of seller you are by clicking either the Private seller option button or the 
+			Please specify which type of seller you are by clicking either the Private seller option button or the
 			Dealership option button.
 		</div>
 		<div class="row">
@@ -130,7 +130,7 @@
 				<div class="control-group">
 					<label class="control-label" for="dealershipName">Name</label>
 					<div class="controls">
-						<input type="text" id="dealershipName" name="seller[dealershipName]" 
+						<input type="text" id="dealershipName" name="seller[dealershipName]"
 							   value="<%=dealershipName%>" />
 					</div>
 				</div>
@@ -138,9 +138,9 @@
 				<div class="control-group">
 					<label class="control-label" for="streetAddress1">Street address</label>
 					<div class="controls">
-						<input type="text" id="streetAddress1" name="seller[streetAddress1]" 
+						<input type="text" id="streetAddress1" name="seller[streetAddress1]"
 							   value="<%=streetAddress1%>" /><br />
-						<input type="text" id="streetAddress2" name="seller[streetAddress2]" 
+						<input type="text" id="streetAddress2" name="seller[streetAddress2]"
 							   value="<%=streetAddress2%>" />
 					</div>
 				</div>

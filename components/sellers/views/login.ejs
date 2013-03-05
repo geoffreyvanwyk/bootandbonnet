@@ -1,21 +1,30 @@
 <% layout('../../../views/layout') -%>
 
-<% 
+<%
 if (emailError === '') {
-var emailAlertType = '';
+	var emailAlertType = '';
 } else {
-var emailAlertType = 'error';
+	var emailAlertType = 'error';
 }
 if (passwordError === '') {
-var passwordAlertType = '';
+	var passwordAlertType = '';
 } else {
-var passwordAlertType = 'error';
+	var passwordAlertType = 'error';
+}
+if (isPasswordReset) {
+	var resetDisplay = '';
+} else {
+	var resetDisplay = 'none';
 }
 %>
 
 <form method="post" action="/seller/login">
     <fieldset>
         <legend>Log In</legend>
+		<div class="alert alert-success" style="display: <%=resetDisplay%>;">
+			<button type="button" class="close" data-dismiss="alert">&times;</button>
+			Your password has been reset successfully. You may now log in with your new password.
+		</div>
 		<div class="row">
 			<div class="span12">
 				<div class="control-group <%=emailAlertType%>">
@@ -36,6 +45,7 @@ var passwordAlertType = 'error';
 
 				<div class="controls" >
 					<button type="submit" class="btn btn-primary" >Log in</button>
+					<a href="/seller/login/password/forgot">Forgot password?</a>
 				</div>
 			</div>
 		</div>
