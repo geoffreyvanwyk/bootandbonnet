@@ -4,7 +4,7 @@ window.onload = function() {
 	var resetForm = document.getElementById('reset');
 
 	function isPasswordValid() {
-		return (passwordBox.value.length >= 7);
+		return (passwordBox.value.length >= 8);
 	}
 
 	function isPasswordConfirmed() {
@@ -24,7 +24,7 @@ window.onload = function() {
 
 	passwordBox.onfocus = function() {
 		if (!isPasswordValid()) {
-			setValidationState("Password", "info", "Minimum 7 characters.");
+			setValidationState("Password", "info", "Minimum 8 characters.");
 		}
 	};
 
@@ -32,7 +32,7 @@ window.onload = function() {
 		if (isPasswordValid()) {
 			setValidationState("Password", "success", "Good!");
 		} else {
-			setValidationState("Password", "info", "Minimum 7 characters.");
+			setValidationState("Password", "info", "Minimum 8 characters.");
 		}
 
 		if (confirmPasswordBox.value.length > 0) {
@@ -42,7 +42,7 @@ window.onload = function() {
 
 	passwordBox.onblur = function() {
 		if (passwordBox.value.length !== 0 && !isPasswordValid()) {
-			setValidationState("Password", "error", "Too short! Minimum 7 characters.");
+			setValidationState("Password", "error", "Too short! Minimum 8 characters.");
 		} else if (!isPasswordValid()) {
 			setValidationState("Password", "", "");
 		}

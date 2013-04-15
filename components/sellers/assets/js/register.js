@@ -19,12 +19,19 @@ window.onload = function() {
 			return false;
 		}
 	}
-
+	
+	/**
+	 * Returns true if the password matches the password criteria; false, otherwise. If the user is logged in, it means
+	 * that the user is editing his/her profile. In that case, the user might not wish to change the password, which 
+	 * means that the password field might be left blank.
+	 *
+	 * @returns {boolean}
+	 */
 	function isPasswordValid() {
 		if (!isUserLoggedIn()) {
-			return (passwordBox.value.length >= 7);
+			return (passwordBox.value.length >= 8);
 		} else {
-			return ((passwordBox.value.length >= 7) || (passwordBox.value.length === 0));
+			return ((passwordBox.value.length >= 8) || (passwordBox.value.length === 0));
 		}
 	}
 
@@ -83,7 +90,7 @@ window.onload = function() {
 
 	passwordBox.onfocus = function() {
 		if (!isPasswordValid()) {
-			setValidationState("Password", "info", "Minimum 7 characters.");
+			setValidationState("Password", "info", "Minimum 8 characters.");
 		}
 	};
 
@@ -91,7 +98,7 @@ window.onload = function() {
 		if (isPasswordValid()) {
 			setValidationState("Password", "success", "Good!");
 		} else {
-			setValidationState("Password", "info", "Minimum 7 characters.");
+			setValidationState("Password", "info", "Minimum 8 characters.");
 		}
 
 		if (confirmPasswordBox.value.length > 0) {
@@ -101,7 +108,7 @@ window.onload = function() {
 
 	passwordBox.onblur = function() {
 		if (passwordBox.value.length !== 0 && !isPasswordValid()) {
-			setValidationState("Password", "error", "Too short! Minimum 7 characters.");
+			setValidationState("Password", "error", "Too short! Minimum 8 characters.");
 		} else if (!isPasswordValid()) {
 			setValidationState("Password", "", "");
 		}
@@ -187,7 +194,7 @@ window.onload = function() {
 				break;
 			}
 		}
-	}
+	};
 
 	/**
 	 * Sets the value of the hidden input element townId to the id of the selected town.

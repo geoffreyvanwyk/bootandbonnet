@@ -4,40 +4,143 @@
  * For working with the locations database table.
  */
 
-var async = require('async');             // For working with asynchronous collection methods.
-var db = require('../database.js');    // For connecting to the database.
+var async = require('async'); // For working with asynchronous collection methods.
+var db = require('../database.js'); // For connecting to the database.
 
-var location = {
+var town = Object.defineProperties({}, {
+	/* Data Properties */
+	id: {
+		value: 0, 
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	name: {
+		value: "",
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	province: {
+		value: "",
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	country: {
+		value: "",
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	/* Methods */
 	/**
-	 * Returns a row from the locations database table, in the form of a location object, based on the locations's id.
+	 * Returns a row from the locations database table, in the form of a town object, based on the locations's id.
 	 * 
-	 * @param	{number}	id				The id of the location row.
-	 * @param   {function}  callback        Another function which is called as soon as this function has completed its 
-	 *                                      execution.
+	 * @param	{function}	callback	Another function which is called as soon as this function has completed its 
+	 *                                  execution.
 	 * 
-	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a 
-	 *                      location object as the second argument. When there is no error the first argument is null. 
+	 * @return	{function}	Returns arguments to a callback function: an error object as the first argument, and a 
+	 *                      location object as the second argument. When there is no error, the first argument is null. 
 	 *                      When there is an error, the second argument is undefined.
 	 */
-	read: function(id, callback) {
-		db.query('SELECT id, province, town FROM locations WHERE id = ?', id, function(err, rows, fields) {
-			if (err) {
-				throw err;
-			} else if (rows.length === 0) {
-				return callback(new Error('Location does not exist.'));
-			} else {
-				var theLocation = {
-					id: rows[0].id,
-					province: rows[0].province,
-					town: rows[0].town
-				};
-				return callback(null, theLocation);
-			}
-		});
-	}
-};
+	read: {
+		value: function (callback) {
+			var that = this;
+			db.query('SELECT id, province, town, country FROM locations WHERE id = ?', this.id, function (err, rows, fields) {
+				if (err) {
+					throw err;
+				} else if (rows.length === 0) {
+					return callback(new Error('Location does not exist.'));
+				} else {
+					that.name = rows[0].town;
+					that.province = rows[0].province;
+					that.country = rows[0].country;
+					return callback(null, that);
+				}
+			});
+		},
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
 
-var provinces = {
+});
+
+Object.preventExtensions(town);
+
+var province = Object.defineProperties({}, {
+	/* Data Properties */
+	name: {
+		value: "",
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	towns: {
+		value: [],
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	country: {
+		value: "",
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	/* Methods */
+	read: {
+		value: function (callback) {
+			var that = this;
+			var whereCondition = " AND country = ".concat(db.escape(that.country));
+			db.query("SELECT id, town FROM locations WHERE province = ?".concat(whereCondition), that.name, function (err, rows, fields) {
+				if (err) {
+					return callback(err);
+				}
+				async.forEach(rows, function (row, callback1) {
+					var twn = Object.create(town);
+					twn.id = row.id;
+					twn.name = row.town;
+					twn.province = that.name;
+					twn.country = that.country;
+					that.towns.push(twn);
+					callback1();
+				}, function () {
+					return callback(null, that);
+				});
+			});
+		},
+		writable: false,
+		enumerable: false,
+		configurable: false
+	}
+});
+
+Object.preventExtensions(province);
+
+
+var provinces = Object.defineProperties({}, {
+	/* Data Properties */
+	names: {
+		value: [],
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	objects: {
+		value: [],
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	country: {
+		value: "", 
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	/* Methods */
 	/**
 	 * Returns an array of strings containing the names of the provinces, 
 	 * e.g. ['Eastern Cape', 'Western Cape', 'Northern Cape', 'Limpopo']. 
@@ -49,21 +152,24 @@ var provinces = {
 	 *                      array of province names as the second argument. When there is no error the first argument is 
 	 *                      null. When there is an error, the second argument is undefined.
 	 */
-	names: function(callback) {
-		db.query('SELECT DISTINCT province FROM locations', function(err, rows, fields) {
-			if (err) {
-				return callback(err);
-			} else {
-				var provinceNames = [];
-				async.forEach(rows, function(row, callback1) {
-					provinceNames.push(row.province);
+	readNames: {
+		value: function (callback) {
+			var that = this;
+			db.query('SELECT DISTINCT province FROM locations WHERE country = ?', that.country, function (err, rows, fields) {
+				if (err) {
+					return callback(err);
+				}
+				async.forEach(rows, function (row, callback1) {
+					that.names.push(row.province);
 					callback1();
-				}, function() {
-					return callback(null, provinceNames);
+				}, function () {
+					return callback(null, that);
 				});
-			}
-
-		});
+			});
+		},
+		writable: false,
+		enumerable: false,
+		configurable: false
 	},
 	/**
 	 * Returns an array of province objects. An example of a province object is:
@@ -88,41 +194,43 @@ var provinces = {
 	 *                      array of province objects as the second argument. When there is no error the first argument 
 	 *                      is null. When there is an error, the second argument is undefined.
 	 */
-	objects: function(callback) {
-		var provinceObjects = [];
-		provinces.names(function(err, provinceNames) {
-			if (err) {
-				return callback(err);
-			}
-			async.forEach(provinceNames, function(provinceName, callback1) {
-				provinceObjects.push({
-					name: provinceName,
-					towns: []
-				});
-				callback1();
-			}, function() {
-				async.forEach(provinceObjects, function(provinceObject, callback2) {
-					db.query("SELECT id, town FROM locations WHERE province = ?", provinceObject.name, function(err, rows, fields) {
-						if (err) {
-							return callback(err);
-						}
-						async.forEach(rows, function(row, callback3) {
-							provinceObject.towns.push({
-								id: row.id,
-								name: row.town
-							});
-							callback3();
-						}, function() {
+	readObjects: {
+		value: function (callback) {
+			var that = this;
+			that.readNames(function (err, that) {
+				if (err) {
+					return callback(err);
+				}
+				async.forEach(that.names, function (provinceName, callback1) {
+					var prov = Object.create(province);
+					prov.name = provinceName;
+					prov.country = that.country;
+					prov.towns = [];
+					that.objects.push(prov);
+					callback1();
+				}, function () {
+					async.forEach(that.objects, function (provinceObject, callback2) {
+						provinceObject.read(function (err, provinceObject) {
+							if (err) {
+								return callback(err);
+							}
 							callback2();
 						});
+					}, function () {
+						return callback(null, that);
 					});
-				}, function() {
-					return callback(null, provinceObjects);
 				});
 			});
-		});
+		},
+		writable: false,
+		enumerable: false,
+		configurable: false
 	}
-};
+});
 
-module.exports.location = location;
-module.exports.provinces = provinces;
+Object.preventExtensions(provinces);
+
+module.exports = {
+	town: town,
+	provinces: provinces
+};

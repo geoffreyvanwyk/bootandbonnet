@@ -4,7 +4,7 @@
  * Handles the register.ejs view.
  */
 
-var provinces = require('../../../models/locations').provinces;	// For working with the locations database tabe.
+var provincesPrototype = require('../../../models/locations').provinces;	// For working with the locations database tabe.
 
 var register = exports.register = {
 	/**
@@ -45,9 +45,14 @@ var register = exports.register = {
 			loggedIn, response) {
 
 		if (((action === 'add') && (!loggedIn)) || ((action === 'edit') && (loggedIn))) {
-			provinces.objects(function(provinceObjects) {
+			var provinces = Object.create(provincesPrototype);
+			provinces.country = "South Africa";
+			provinces.readObjects(function(err, provinces) {
+				if (err) {
+					throw err;
+				}
 				response.render('register', {
-					provinces: provinceObjects,
+					provinces: provinces.objects,
 					heading: heading,
 					method: method,
 					buttonCaption: btnCaption,

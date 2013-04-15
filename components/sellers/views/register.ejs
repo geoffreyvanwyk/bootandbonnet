@@ -1,5 +1,3 @@
-<!--For registering new sellers and editing the information of existing sellers.-->
-
 <% layout('../../../views/layout') -%>
 <% script('../assets/js/register.js') -%>
 
@@ -13,19 +11,19 @@ var controlClass = 'control-group error';
 %>
 
 <form id="register" method="post" action="/seller/view">
-    <input type="hidden" name="_method" value="<%=method%>"/>
-    <h2><%=heading%></h2>
+    <input type="hidden" name="_method" value="<%= method %>"/>
+    <h2><%=heading %></h2>
 
     <fieldset>
 		<legend>Account credentials</legend>
 
 		<div class="row">
 			<div class="span6">
-				<div class="<%=controlClass%>">
+				<div class="<%=controlClass %>">
 					<label class="control-label" for="email">Email address</label>
 					<div class="controls">
 						<input type="email" id="email" name="seller[email]" value="<%=email%>" required="required"/>
-						<span class="help-inline"><%=emailError%></span>
+						<span class="help-inline"><%=emailError %></span>
 					</div>
 				</div>
 			</div>

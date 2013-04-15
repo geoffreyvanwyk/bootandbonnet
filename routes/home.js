@@ -5,7 +5,7 @@
 
 var path = require('path'); // For handling file paths.
 
-exports.index = function(request, response) {
+exports.index = function showHomePage(request, response) {
 	if (request.session.seller && request.query.logout) {
 		var loggedIn = false;
 		request.session = null;

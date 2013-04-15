@@ -25,7 +25,7 @@ app.configure(function() {
     app.use(express.cookieParser('xvrT4521ghqw0'));
     app.use(express.cookieSession());
     app.use(app.router);
-    app.use('/assets', express.static(path.join(__dirname, 'assets')));
+    app.use('/assets', express.static(path.join(__dirname + '/assets')));
 });
 
 app.configure('development', function() {
@@ -54,8 +54,10 @@ app.map = map;
 
 var home = require('./routes/home').index;
 var sellers = require('./components/sellers');
+var vehicles = require('./components/vehicles');
 
 app.use(sellers);
+app.use(vehicles);
 
 app.map(app, {
     '/': {

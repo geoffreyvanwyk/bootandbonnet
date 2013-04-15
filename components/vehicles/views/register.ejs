@@ -1,0 +1,36 @@
+<% layout('../../../views/layout') -%>
+<% script('/components/vehicles/assets/js/register.js') -%>
+
+<%
+var manufacturersString = JSON.stringify(makes);
+
+%>
+
+<form method="post" action="/vehicle/add">
+	<h2>New Vehicle</h2>
+	<fieldset>
+		<legend>Type</legend>
+
+		<input type="hidden" id="manufacturers" value="<%=manufacturersString%>" />
+
+		<label>Make:</label>
+		<select id="makes">
+			<option>Please select ...</option>
+			<% for (m in makes) { %>
+			<option><%=makes[m].name%></option>
+			<% } %>
+		</select>
+
+		<label>Model:</label>
+		<select id="models">
+			<option>Please select ...</option>
+		</select>
+	</fieldset>
+
+	<fieldset>
+		<legend>Luxuries</legend>
+		<input type="checkbox" id="airConditioning" name="vehicle[airConditioning]" />Air Conditioning
+		<input type="checkbox" id="electricalWindows" name="vehicle[electricalWindows]" />Electrical Windows
+		<input type="checkbox" id="radio" name="vehicle[radio]" />Radio
+	</fieldset>
+</form>

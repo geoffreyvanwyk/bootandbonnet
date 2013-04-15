@@ -5,12 +5,12 @@
  */
 
 var bcrypt = require('bcrypt');	// For hashing and comparing passwords.
-var dealership = require('../models/dealerships').dealership; // For working with the dealerships database table.
+var dealershipPrototype = require('../models/dealerships').dealership; // For working with the dealerships database table.
 var home = require('../../../routes/home').index;
-var location = require('../../../models/locations').location; // For working with the locations database table.
-var profile = require('./profile').profile; // For creating a seller object as a property of the request.session object.
-var seller = require('../models/sellers').seller; // For working with the sellers database table.
-var user = require('../models/users').user; // For working with the users database table.
+var townPrototype = require('../../../models/locations').town; // For working with the locations database table.
+var profile = require('./profile'); // For creating a seller object as a property of the request.session object.
+var sellerPrototype = require('../models/sellers').seller; // For working with the sellers database table.
+var userPrototype = require('../models/users').user; // For working with the users database table.
 
 var login = module.exports.login = {
 	/**
@@ -48,7 +48,9 @@ var login = module.exports.login = {
 	 */
 	start: function(request, response) {
 		var slr = request.body.seller;
-		user.read(slr.email, function(err, theUser) {
+		var user = Object.create(userPrototype);
+		user.username = slr.email;
+		user.read(function(err, user) {
 			if (err && err.message === 'The email address has not been registered.') {
 				request.session.login = {
 					emailError: err.message,
@@ -58,28 +60,33 @@ var login = module.exports.login = {
 			} else if (err) {
 				throw err;
 			} else {
-				bcrypt.compare(slr.password, theUser.passwordHash, function(err, isMatch) {
+				bcrypt.compare(slr.password, user.passwordHash, function(err, isMatch) {
 					if (err) {
 						throw err;
 					} else {
 						switch (isMatch) {
 							case true:
-								seller.read(theUser.id, function(err, theSeller) {
+								var seller = Object.create(sellerPrototype);
+								seller.userId = user.id;
+								seller.read(function(err, seller) {
 									if (err) {
 										throw err;
 									} else {
-										dealership.read(theSeller.dealershipId, function(err, theDealership) {
+										var dealership = Object.create(dealershipPrototype);
+										dealership.id = seller.dealershipId;
+										dealership.read(function(err, dealership) {
 											if (err) {
 												throw err;
 											} else {
-												location.read(theDealership.locationId, function(err, theLocation) {
+												var town = Object.create(townPrototype);
+												town.id = dealership.locationId;
+												town.read(function(err, town) {
 													if (err) {
 														throw err;
 													} else {
-														theDealership.province = theLocation.province;
-														theDealership.town = theLocation.town;
-														profile.createSessionSeller(request, response, theUser,
-															theSeller, theDealership, home);
+														dealership.province = town.province;
+														dealership.town = town.name;
+														profile.setSession(request, response, user, dealership, seller, home);
 													}
 												});
 											}

@@ -6,129 +6,132 @@
 
 var db = require('../../../database'); // For connecting to the database.
 
-exports.seller = {
-	/**
-	 * Inserts a new row into the sellers database table, and returns the newly inserted row, in the form of a seller
-	 * object, as the second argument to a callback function. The first argument to the callback function is an error
-	 * object.
-	 *
-	 * @param   {string}    firstname       The firstname of the seller.
-	 * @param   {string}    surname         The surname of the seller.
-	 * @param   {string}    telephone       The telephone number (land line) of the seller.
-	 * @param   {string}    cellphone       The cellphone number of the seller.
-	 * @param   {number}    dealershipId    The id of the dealership in the dealerships database table with which the
-	 *                                      seller is associated.
-	 * @param   {number}    userId          The id of the user in the users database table with which the seller is
-	 *                                      associated.
-	 * @param   {function}  callback        Another function which is called as soon as this function has completed its
-	 *                                      execution.
-	 *
-	 * @return	{void}		Returns arguments to a callback function: an error object as the first argument, and a
-	 *                      seller object as the second argument. When there is no error the first argument is null.
-	 *                      When there is an error, the second argument is undefined.
-	 */
-	create: function(firstname, surname, telephone, cellphone, dealershipId, userId, callback) {
-		var newSeller = {
-			firstname: firstname,
-			surname: surname,
-			telephone: telephone,
-			cellphone: cellphone,
-			dealershipId: dealershipId,
-			userId: userId
-		};
-		db.query('INSERT INTO sellers SET ?', newSeller, function(err, result) {
-			if (err) {
-				return callback(err);
-			}
-			newSeller.id = result.insertId;
-			return callback(null, newSeller);
-		});
+var seller = Object.defineProperties({}, {
+	/* Data properties */
+	id: {
+		value: 0, 
+		writable: true,
+		enumerable: true,
+		configurable: false
 	},
-	/**
-	 * Returns a row from the sellers database table, in the form of a seller object, based on the id of the user
-	 * in the users database table, with which the seller is associated.
-	 *
-	 * @param   {number}    userId      The id of the user in the users database table, with which the seller is
-	 *                                  associated.
-	 * @param   {function}  callback    Another function which is called as soon as this function has completed its
-	 *                                  execution.
-	 *
-	 * @return	{void}		Returns arguments to a callback function: an error object as the first argument, and a
-	 *                      seller object as the second argument. When there is no error the first argument is null.
-	 *                      When there is an error, the second argument is undefined.
-	 */
-	read: function(userId, callback) {
-		db.query('SELECT * FROM sellers WHERE userId = ?', userId, function(err, rows, fields) {
-			if (err) {
-				return callback(err);
-			}
-			if (rows.length === 0) {
-				return callback(new Error('Seller does not exist.'));
-			}
-			var theSeller = {
-				sellerId: rows[0].id,
-				firstname: rows[0].firstname,
-				surname: rows[0].surname,
-				telephone: rows[0].telephone,
-				cellphone: rows[0].cellphone,
-				dealershipId: rows[0].dealershipId,
-				userId: rows[0].userId
-			};
-			return callback(null, theSeller);
-		});
+	firstname: {
+		value: "",
+		writable: true,
+		enumerable: true,
+		configurable: false
 	},
-	/**
-	 * Updates a row in the sellers database table.
-	 *
-	 * @param	{number}	sellerId		The id of the row to be updated.
-	 * @param   {string}    firstname       The firstname of the seller.
-	 * @param   {string}    surname         The surname of the seller.
-	 * @param   {string}    telephone       The telephone number (land line) of the seller.
-	 * @param   {string}    cellphone       The cellphone number of the seller.
-	 * @param   {number}    dealershipId    The id of the dealership in the dealerships database table with which the
-	 *                                      seller is associated.
-	 * @param   {number}    userId          The id of the user in the users database table with which the seller is
-	 *                                      associated.
-	 * @param   {function}  callback        Another function which is called as soon as this function has completed its
-	 *                                      execution.
-	 *
-	 * @return {void}		Returns arguments to a callback function: an error object as the first argument, and a
-	 *                      seller object as the second argument. When there is no error the first argument is null.
-	 *                      When there is an error, the second argument is undefined.
-	 */
-	update: function(sellerId, firstname, surname, telephone, cellphone, dealershipId, userId, callback) {
-		var theSeller = {
-			firstname: firstname,
-			surname: surname,
-			telephone: telephone,
-			cellphone: cellphone,
-			dealershipId: dealershipId,
-			userId: userId
-		};
-		db.query('UPDATE sellers SET ? WHERE id = '.concat(sellerId), theSeller, function(err, result) {
-			if (err) {
-				return callback(err);
-			} else {
-				theSeller.id = sellerId;
-				return callback(null, theSeller);
-			}
-		});
+	surname: {
+		value: "",
+		writable: true,
+		enumerable: true,
+		configurable: false
 	},
-	/**
-	 * Deletes a row from the sellers database table.
-	 *
-	 * @param	{number}	id			The id of the row.
-	 * @param	{function}	callback	Another function which is called as soon as this function has completed its
-	 *                                  execution.
-	 *
-	 * @return {void}		Returns an error object to a callback function. When there is no error the error is null.
-	 */
-	del: function(sellerId, callback) {
-		db.query('DELETE FROM sellers WHERE id = ?', sellerId, function(err) {
-			if (err) {
-				return callback(err);
-			}
-			return callback(null);
-		});
+	telephone: {
+		value: "", 
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	cellphone: {
+		value: "", 
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	dealershipId: {
+		value: 0, 
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	userId: {
+		value: 0, 
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	/* Methods */
+	create: {
+		value: function (callback) {
+			var that = this;
+			db.query('INSERT INTO sellers SET ?', {
+				firstname: that.firstname,
+				surname: that.surname,
+				telephone: that.telephone,
+				cellphone: that.cellphone,
+				dealershipId: that.dealershipId,
+				userId: that.userId
+			}, function(err, result) {
+				if (err) {
+					return callback(err);
+				}
+				that.id = result.insertId;
+				return callback(null, that);
+			});
+		},
+		writable: false,
+		enumerable: false,
+		configurable: false
+	},
+	read: {
+		value: function(callback) {
+			var that = this;
+			db.query('SELECT * FROM sellers WHERE userId = ?', that.userId, function(err, rows, fields) {
+				if (err) {
+					return callback(err);
+				}
+				if (rows.length === 0) {
+					return callback(new Error('Seller does not exist.'));
+				}
+				that.id = rows[0].id;
+				that.firstname = rows[0].firstname; 
+				that.surname = rows[0].surname; 
+				that.telephone = rows[0].telephone;
+				that.cellphone = rows[0].cellphone;
+				that.dealershipId = rows[0].dealershipId;
+				return callback(null, that);
+			});
+		},
+		writable: false,
+		enumerable: false,
+		configurable: false
+	},
+	update: {
+		value: function(callback) {
+			var that = this;
+			db.query('UPDATE sellers SET ? WHERE id = '.concat(db.escape(that.id)), {
+				firstname: that.firstname,
+				surname: that.surname,
+				telephone: that.telephone,
+				cellphone: that.cellphone
+			}, function(err, result) {
+				if (err) {
+					return callback(err);
+				} else {
+					return callback(null, that);
+				}
+			});
+		},
+		writable: false,
+		enumerable: false,
+		configurable: false
+	},
+	del: {
+		value: function(callback) {
+			var that = this;
+			db.query('DELETE FROM sellers WHERE id = ?', that.id, function(err) {
+				if (err) {
+					return callback(err);
+				}
+				return callback(null);
+			});
+		},
+		writable: false,
+		enumerable: false,
+		configurable: false
 	}
-};
+});
+
+Object.preventExtensions(seller);
+
+module.exports.seller = seller;
