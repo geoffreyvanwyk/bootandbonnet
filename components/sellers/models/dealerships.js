@@ -44,7 +44,7 @@ var dealership = Object.defineProperties({}, {
 		enumerable: true,
 		configurable: false
 	},
-	locationId: {
+	townId: {
 		value: 0, 
 		writable: true,
 		enumerable: true,
@@ -58,7 +58,7 @@ var dealership = Object.defineProperties({}, {
 				name: that.name,
 				streetAddress1: that.streetAddress1,
 				streetAddress2: that.streetAddress2,
-				locationId: that.locationId
+				townId: that.townId
 			}, function (err, result) {
 				if (err) {
 					return callback(err);
@@ -84,7 +84,7 @@ var dealership = Object.defineProperties({}, {
 				that.name = rows[0].name;
 				that.streetAddress1 = rows[0].streetAddress1;
 				that.streetAddress2 = rows[0].streetAddress2;
-				that.locationId = rows[0].locationId;
+				that.townId = rows[0].townId;
 				return callback(null, that);
 			});
 		},
@@ -99,7 +99,7 @@ var dealership = Object.defineProperties({}, {
 				name: that.name,
 				streetAddress1: that.streetAddress1,
 				streetAddress2: that.streetAddress2,
-				locationId: that.locationId
+				townId: that.townId
 			}, function (err, result) {
 				if (err) {
 					return callback(err);

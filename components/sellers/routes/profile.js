@@ -14,6 +14,8 @@ var register = require('./register').register; // For working withe the register
 var sanitize = require('sanitizer').sanitize; // For removing scripts from user input.
 var sellerPrototype = require('../models/sellers').seller; // For working with the sellers database table.
 var userPrototype = require('../models/users').user; // For working with the users database table.
+var provincesPrototype = require('../../../models/locations').provinces;	// For working with the locations database tabe.
+
 
 /**
  * Responds to HTTP GET /seller/view. Displays the seller's profile.
@@ -40,7 +42,9 @@ function showProfile(request, response, callback) {
 		townId: ss.townId,
 		loggedIn: true
 	});
-	return callback(request, response);
+	if (typeof(callback) === 'function') {
+		return callback(request, response);
+	}
 }
 
 /**
@@ -63,14 +67,13 @@ function addProfile(request, response) {
 				return callback(err);
 			}
 			var newUser = Object.create(userPrototype);
-			newUser.username = sanitize(slr.email);
+			newUser.emailAddress = sanitize(slr.email);
 			newUser.passwordHash = hash;
 			newUser.create(callback);
 		});
 	}
 
 	function createDealership(callback) {
-		console.log("Entering createDealership");
 		switch (slr.type) {
 			case "privateSeller":
 				var newDealership = Object.create(dealershipPrototype); 
@@ -84,14 +87,13 @@ function addProfile(request, response) {
 				newDealership.streetAddress2 = sanitize(slr.streetAddress2);
 				newDealership.province = sanitize(slr.province);
 				newDealership.town = sanitize(slr.town);
-				newDealership.locationId = sanitize(slr.townId);
+				newDealership.townId = sanitize(slr.townId);
 				newDealership.create(callback);
 				break;
 		}
 	}
 
 	function createSeller(newUser, callback) {
-		console.log("Entering createSeller");
 		createDealership(function(err, newDealership) {
 			if (err) {
 				return callback(err);
@@ -113,7 +115,6 @@ function addProfile(request, response) {
 	}
 
 	function createEntities(callback) {
-		console.log("Entering createEntities");
 		createUser(function(err, newUser) {
 			if (err) {
 				return callback(err);
@@ -169,7 +170,7 @@ function editProfile(request, response) {
 			var currentPasswordHash = ss.passwordHash;
 			var newPasswordHash = hash;
 			user.id = sanitize(ss.userId);
-			user.username = sanitize(slr.email);
+			user.emailAddress = sanitize(slr.email);
 			user.passwordHash = isPasswordChanged ? newPasswordHash : currentPasswordHash;
 			user.emailAddressVerified = !isEmailChanged;
 			user.update(callback);
@@ -191,7 +192,7 @@ function editProfile(request, response) {
 				dealership.streetAddress2 = sanitize(slr.streetAddress2);
 				dealership.province = sanitize(slr.province);
 				dealership.town = sanitize(slr.town);
-				dealership.locationId = sanitize(slr.townId);
+				dealership.townId = sanitize(slr.townId);
 				dealership.update(callback)
 				break;
 		}
@@ -329,7 +330,7 @@ function removeProfile(request, response) {
 function setSession(request, response, user, dealership, seller, callback) {
 	request.session.seller = {
 		userId: user.id,
-		email: user.username,
+		email: user.emailAddress,
 		passwordHash: user.passwordHash,
 		dealershipId: dealership.id,
 		dealershipName: dealership.name,
@@ -337,7 +338,7 @@ function setSession(request, response, user, dealership, seller, callback) {
 		streetAddress2: dealership.streetAddress2,
 		province: dealership.province,
 		town: dealership.town,
-		townId: dealership.locationId,
+		townId: dealership.townId,
 		sellerId: seller.id,
 		firstname: seller.firstname,
 		surname: seller.surname,
@@ -411,7 +412,7 @@ function verifyEmail(request, response) {
 			var isUserLoggedIn = request.session.seller && request.session.seller.loggedIn;
 			var user = Object.create(userPrototype);
 			if (isUserLoggedIn) {
-				user.username = request.session.email;
+				user.emailAddress = request.session.email;
 				user.passwordHash = request.session.seller.passwordHash;
 				user.emailAddressVerified = true;
 				user.update(function(err) {
@@ -422,7 +423,7 @@ function verifyEmail(request, response) {
 					}
 				});
 			} else {
-				user.username = email;
+				user.emailAddress = email;
 				user.read(function (err, user) {
 					 if (err) {
 						throw err;
@@ -442,11 +443,88 @@ function verifyEmail(request, response) {
 	});
 }
 
+/**
+ * Responds to HTTP GET /seller/add and /seller/edit. Displays the register form, to either add or edit a seller profile. If a 
+ * seller is already logged-in, a new profile cannot be added, so the function 
+ * will do nothing. If a seller is not logged-in, a profile cannot be edited, 
+ * so the function will do nothing.
+ *
+ * @param   {object}	request     An HTTP request object received from the express.get() method.
+ * @param   {object}	response    An HTTP response object received from the express.get() method.
+ *
+ 
+ * @returns {undefined}                  
+ */
+function showRegistrationForm(request, response) {
+	var action = request.query.path.split('/').slice(-1);
+	var isSellerLoggedIn = request.session.seller ? true : false;
+
+	if ((action === 'add') && (!isSellerLoggedIn)) { 		
+		var provinces = Object.create(provincesPrototype);
+		provinces.country = "South Africa";
+		provinces.readObjects(function (err, provinces) {
+			if (err) {
+				throw err;
+			}
+			response.render('register', {
+				provinces: provinces.objects,
+				heading: 'New Seller',
+				buttonCaption: 'Register',
+				emailError: '',
+				sellerType: '',
+				email: '',
+				password: '', 
+				firstname: '',
+				surname: '',
+				telephone: '',
+				cellphone: '',
+				dealershipName: '',
+				streetAddress1: '',
+				streetAddress2: '',
+				province: '',
+				town: '',
+				townId: '',
+				loggedIn: isSellerLoggedIn 
+			});
+		});
+	} else if ((action === 'edit') && (isSellerLoggedIn)) {
+		var ss = request.session.seller;
+		var provinces = Object.create(provincesPrototype);
+		provinces.country = "South Africa";
+		provinces.readObjects(function (err, provinces) {
+			if (err) {
+				throw err;
+			}
+			response.render('register', {
+				provinces: provinces.objects,
+				heading: 'Edit Seller',
+				buttonCaption: 'Save Changes',
+				emailError: '',
+				sellerType: ss.type,
+				email: ss.email,
+				password: ss.password,
+				firstname: ss.firstname,
+				surname: ss.surname,
+				telephone: ss.telephone,
+				cellphone: ss.cellphone,
+				dealershipName: ss.dealershipName,
+				streetAddress1: ss.streetAddress1,
+				streetAddress2: ss.streetAddress2,
+				province: ss.province,
+				town: ss.town,
+				townId: ss.townId,
+				loggedIn:isSellerLoggedIn 
+			});
+		});
+	}
+}
+
 module.exports = {
 	show: showProfile,
 	add: addProfile,
 	edit: editProfile,
 	remove: removeProfile,
+	showRegistrationForm: showRegistrationForm,
 	verifyEmail: verifyEmail,
 	setSession: setSession
 };

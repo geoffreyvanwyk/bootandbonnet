@@ -14,7 +14,7 @@ var user = Object.defineProperties({}, {
 		enumerable: true,
 		configuarable: false
 	},
-	username: {
+	emailAddress: {
 		value: "",
 		writable: true,
 		enumerable: true,
@@ -43,7 +43,7 @@ var user = Object.defineProperties({}, {
 		value: function(callback) {
 			var that = this;
 			db.query('INSERT INTO users SET ?', {
-				username: that.username,
+				emailAddress: that.emailAddress,
 				passwordHash: that.passwordHash
 			}, function(err, result) {
 				if (err) {
@@ -60,11 +60,14 @@ var user = Object.defineProperties({}, {
 	read: {
 		value: function(callback) {
 			var that = this;
-			db.query('SELECT * FROM users WHERE username = ?', that.username, function(err, rows, fields) {
+			db.query('SELECT * FROM users WHERE emailAddress = ?', [
+				that.emailAddress
+			], function (err, rows, fields) {
 				if (err) {
 					return callback(err);
 				}
 				if (rows.length === 0) {
+					console.log(rows);
 					return callback(new Error('The email address has not been registered.'));
 				}
 				that.id = rows[0].id;
@@ -82,7 +85,7 @@ var user = Object.defineProperties({}, {
 		value: function(callback) {
 			var that = this;
 			db.query("UPDATE users SET ? WHERE id = ".concat(db.escape(that.id)), {
-				username: that.username,
+				emailAddress: that.emailAddress,
 				passwordHash: that.passwordHash,
 				emailAddressVerified: that.emailAddressVerified
 			}, function(err, result) {

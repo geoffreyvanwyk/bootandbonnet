@@ -1,4 +1,4 @@
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Aandenk'),
 ('South Africa', 'Eastern Cape', 'Aarbossiesplaat'),
 ('South Africa', 'Eastern Cape', 'Aasvoelkop'),

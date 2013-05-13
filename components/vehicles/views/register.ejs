@@ -3,34 +3,195 @@
 
 <%
 var manufacturersString = JSON.stringify(makes);
-
+var currentDateObject = new Date(Date.now());
+var thisYear = currentDateObject.getFullYear();
 %>
 
-<form method="post" action="/vehicle/add">
+<form method="post" action="/vehicle/add" enctype="multipart/form-data">
+
 	<h2>New Vehicle</h2>
+
 	<fieldset>
 		<legend>Type</legend>
 
-		<input type="hidden" id="manufacturers" value="<%=manufacturersString%>" />
+		<input type="hidden" id="manufacturers" 
+				value="<%=manufacturersString %>" />
 
 		<label>Make:</label>
-		<select id="makes">
+		<select id="makes" name="vehicle[make]">
 			<option>Please select ...</option>
-			<% for (m in makes) { %>
-			<option><%=makes[m].name%></option>
-			<% } %>
+		<% for (m in makes) { %>
+			<option><%=makes[m].name %></option>
+		<% } %>
 		</select>
 
 		<label>Model:</label>
-		<select id="models">
+		<select id="models" name="vehicle[model]">
 			<option>Please select ...</option>
+		</select>
+		<input type="hidden" id="modelId" name="vehicle[modelId]" value=""/>
+
+		<label>Year:</label>
+		<select id="year" name="vehicle[year]">
+			<option selected="selected">Please select...</option>
+		<% for (var year = thisYear; year != 1900; year--) { %>
+			<option value="<%=year%>"><%=year %></option>
+		<% } %>
 		</select>
 	</fieldset>
 
 	<fieldset>
-		<legend>Luxuries</legend>
-		<input type="checkbox" id="airConditioning" name="vehicle[airConditioning]" />Air Conditioning
-		<input type="checkbox" id="electricalWindows" name="vehicle[electricalWindows]" />Electrical Windows
-		<input type="checkbox" id="radio" name="vehicle[radio]" />Radio
+
+		<legend>Description</legend>
+
+		<div class="input-append">
+			<label>Mileage:</label>
+			<input class="span2" id="mileage" type="text" 
+					name="vehicle[mileage]" />
+			<span class="add-on">km</span>
+		</div>
+
+		<div class="input-prepend input-append">
+			<label>Price:</label>
+			<span class="add-on">R</span>
+			<input class="span2" id="price" type="text" 
+					name="vehicle[price]" />
+			<span class="add-on">.00</span>
+		</div>
+
+		<label for="colour">Colour:</label>
+		<select id="colour" name="vehicle[color]">
+			<option selected="selected">Please select...</option>
+		<% for (c in colours) { %>
+			<option value="<%=colours[c] %>"><%=colours[c] %></option>
+		<% } %>
+		</select>
+
+		<label>Comments:</label>
+		<textarea cols="1" rows="5" id="comments" name="vehicle[comments]">
+		</textarea>
+
 	</fieldset>
+
+	<fieldset>
+
+		<legend>Luxuries</legend>
+
+		<label>Electrical Windows:</label>
+		<select id="electricalWindows" name="vehicle[electricalWindows]">
+			<option value="none">None</option>
+			<option value="frontOnly">Front Only</option>
+			<option value="frontAndBack">Front and Back</option>
+		</select><br />
+
+		<label class="checkbox">
+			<input type="checkbox" id="airConditioning" name="vehicle[airConditioning]" />
+			Air Conditioning
+		</label>
+
+		<label class="checkbox">
+			<input type="checkbox" id="cdPlayer" name="vehicle[cdPlayer]" />
+			CD Player
+		</label>
+
+		<label class="checkbox">
+			<input type="checkbox" id="radio" name="vehicle[radio]" />
+			Radio
+		</label>
+	</fieldset>
+
+	<fieldset>
+		<legend>Security</legend>
+
+		<label class="checkbox">
+			<input type="checkbox" id="alarm" name="vehicle[alarm]" />
+			Alarm
+		</label>
+
+		<label class="checkbox">
+			<input type="checkbox" id="centralLocking" name="vehicle[centralLocking]" />
+			Central Locking
+		</label>
+
+		<label class="checkbox">
+			<input type="checkbox" id="immobilizer" name="vehicle[immobilizer]" />
+			Immobilizer
+		</label>
+
+		<label class="checkbox">
+			<input type="checkbox" id="gearLock" name="vehicle[gearLock]" />
+			Gear Lock
+		</label>
+	</fieldset>
+
+	<fieldset>
+		<legend>Safety</legend>
+			<label>Air Bags:</label>
+			<select id="airBags" name="airBags">
+				<option value=0>0</option>
+				<option value=1>1</option>
+				<option value=2>2</option>
+				<option value=3>3</option>
+				<option value=4>4</option>
+			</select>
+	</fieldset>
+
+	<fieldset>
+		<legend>Mechanics</legend>
+
+		<label class="checkbox">
+			<input type="checkbox" id="absBrakes" name="vehicle[absBrakes]" />
+			ABS Brakes
+		</label>
+
+		<label class="checkbox">
+			<input type="checkbox" id="powerSteering" name="vehicle[powerSteering]" />
+			Power Steering
+		</label>
+
+		<div class="input-append">
+			<label>Engine Capacity:</label>
+			<input class="span3" type="text" id="engineCapacity" 
+					name="vehicle[engineCapacity]" />
+			<span class="add-on">L</span>
+		</div>
+
+		<label>Fuel Type:</label>
+		<select id="fuelTypes" name="vehicle[fuelType]">
+			<option selected="selected">Please select...</option>
+		<% for (f in fuels) { %>
+			<option value="<%=fuels[f] %>"><%=fuels[f] %></option>
+		<% } %>
+		</select>
+
+		<label>Transmission Type:</label>
+		<select id="transmissionTypes" name="vehicle[transmissionType]">
+			<option selected="selected">Please select...</option>
+		<% for (t in transmissions) { %>
+			<option value="<%=transmissions[t] %>"><%=transmissions[t] %></option>
+		<% } %>
+		</select>
+	</fieldset>
+
+	<fieldset id="photos">
+		<legend>Photos</legend>
+
+		<label>Photo 1:</label>
+		<input type="file" name="photo1" />
+
+		<label>Photo 2:</label>
+		<input type="file" name="photo2" />
+
+		<label>Photo 3:</label>
+		<input type="file" name="photo3" />
+
+		<label>Photo 4:</label>
+		<input type="file" name="photo4" />
+	</fieldset>
+	
+		<div class="form-actions">
+			<button type="submit" class="btn btn-primary" >Register</button>
+			<button type="button" class="btn" id="cancelButton" >Cancel</button>
+		</div>
+	
 </form>

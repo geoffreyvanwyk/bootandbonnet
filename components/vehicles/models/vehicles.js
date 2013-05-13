@@ -140,12 +140,6 @@
 		enumerable: true,
 		configurable: false
 	},
-	manufacturerId: {
-		value: 0,
-		writable: true,
-		enumerable: true,
-		configurable: false
-	},
 	modelId: {
 		value: 0,
 		writable: true,
@@ -183,7 +177,6 @@
 				color: that.color,
 				fuelType: that.fuelType,
 				sellerId: that.sellerId,
-				manufacturerId: that.manufacturerId,
 				modelId: that.modelId,
 				townId: that.townId
 			}, function (err, result) {
@@ -206,7 +199,7 @@
 					return callback(err);
 				}
 				if (rows.length === 0) {
-					return callback(new Error('The vehicle does not exist.');
+					return callback(new Error('The vehicle does not exist.'));
 				}
 				that.dateAdded = rows[0].dateAdded;
 				that.year = rows[0].year;
@@ -229,10 +222,10 @@
 				that.color = rows[0].color;
 				that.fuelType = rows[0].fuelType;
 				that.sellerId = rows[0].sellerId;
-				that.manufacturerId = rows[0].manufacturerId;
 				that.modelId = rows[0].modelId;
 				that.townId = rows[0].townId;
 				return callback(null, that); 
+			});
 		},
 		writable: true,
 		enumerable: true,
@@ -262,7 +255,6 @@
 				color: that.color,
 				fuelType: that.fuelType,
 				sellerId: that.sellerId,
-				manufacturerId: that.manufacturerId,
 				modelId: that.modelId,
 				townId: that.townId
 			}, function (err, result) {

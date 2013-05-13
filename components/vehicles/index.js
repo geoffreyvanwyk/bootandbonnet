@@ -7,7 +7,7 @@ var express = require('express');
 var engine = require('ejs-locals');
 var path = require('path');
 var map = require('../../app').map;
-var register = require('./routes/register').register; // For working with the register.ejs view.
+var profile = require('./routes/profile'); 
 
 /**
  * Configure application.
@@ -31,7 +31,8 @@ app.map = map;
 app.map(app, {
 	'/vehicle': {
 		'/add': {
-			get: register.add
+			get: profile.form,
+			post: profile.add
 		}
 	}
 });

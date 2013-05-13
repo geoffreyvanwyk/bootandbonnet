@@ -9,7 +9,7 @@ var path = require('path');
 var map = require('../../app').map;
 var register = require('./routes/register').register; // For working with the register.ejs view.
 var profile = require('./routes/profile'); // For working with the profile.ejs view.
-var login = require('./routes/login').login; // For working with the login.ejs view.
+var login = require('./routes/login'); // For working with the login.ejs view.
 var resetPassword = require('./routes/resetPassword').resetPassword;
 
 /**
@@ -34,23 +34,25 @@ app.map = map;
 app.map(app, {
 	'/seller': {
 		'/add': {
-			get: register.add
+			get: profile.showRegistrationForm,
+			post: profile.add
 		},
 		'/edit': {
-			get: register.edit,
+			get: profile.showRegistrationForm,
+			post: profile.edit,
 			'/verify-email': {
 				get: profile.verifyEmail
 			}
 		},
 		'/view': {
-			get: profile.show,
-			post: profile.add,
-			put: profile.edit,
-			delete: profile.remove
+			get: profile.show
+		},
+		'/remove': {
+			get: profile.remove
 		},
 		'/login': {
-			get: login.show,
-			post: login.start,
+			get: login.showLoginForm,
+			post: login.startLoginSession,
 			'/password': {
 				'/forgot': {
 					get: resetPassword.showForgot,

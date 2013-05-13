@@ -47,7 +47,9 @@ var town = Object.defineProperties({}, {
 	read: {
 		value: function (callback) {
 			var that = this;
-			db.query('SELECT id, province, town, country FROM locations WHERE id = ?', this.id, function (err, rows, fields) {
+			db.query('SELECT id, province, town, country FROM locations WHERE id = ?', [
+				that.id
+			], function (err, rows, fields) {
 				if (err) {
 					throw err;
 				} else if (rows.length === 0) {

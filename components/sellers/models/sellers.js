@@ -107,9 +107,8 @@ var seller = Object.defineProperties({}, {
 			}, function(err, result) {
 				if (err) {
 					return callback(err);
-				} else {
-					return callback(null, that);
-				}
+				} 
+				return callback(null, that);
 			});
 		},
 		writable: false,
