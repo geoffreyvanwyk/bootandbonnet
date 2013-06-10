@@ -1,5 +1,6 @@
 "use strict";
 
+var async = require('async');
 var db = require('../database');
 
 var photo = Object.defineProperties({}, {
@@ -41,7 +42,7 @@ var photo = Object.defineProperties({}, {
 		enumerable: true,
 		configurable: false
 	},
-	read: {
+	readByVehicleId: {
 		value: function (callback) {
 			var that = this;
 		},
@@ -70,6 +71,47 @@ var photo = Object.defineProperties({}, {
 
 Object.preventExtensions(photo);
 
+var photos = Object.defineProperties({}, {
+	all: {
+		value: [],
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	vehicleId: {
+		value: 0,
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	readByVehicleId: {
+		value: function (callback) {
+			var that = this;
+			db.query('SELECT * FROM photos WHERE vehicleId = ?', that.vehicleId, function (err, rows, fiels) {
+				if (err) {
+					return callback(err);
+				}
+				async.forEach(rows, function (row, callback1) {
+					that.all.push({
+						id: row.id,
+						filePath: row.filePath,
+						vehicleId: row.vehicleId
+					});	
+					callback1();
+				}, function () {
+					return callback(null, that);	
+				});
+			}); 
+		},
+		writable: true,
+		enumerable: true,
+		configurable: false
+	}
+});
+
+Object.preventExtensions(photos);
+
 module.exports = {
-	photo: photo
+	photo: photo,
+	photos: photos
 }; 

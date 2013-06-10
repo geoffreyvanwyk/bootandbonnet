@@ -1,0 +1,29 @@
+<% layout('../../../views/layout') -%>
+
+<h2>My Vehicles</h2>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>Make</th>
+			<th>Model</th>
+			<th>Year</th>
+			<th>Price</th>
+		</tr>
+	</thead>
+	<tbody>
+	<% for (v in vehicles) { %>
+		<form action="/vehicle/<%=vehicles[v].id %>" method="get">
+			<tr>
+				<td><%=vehicles[v].id %></td>
+				<td><%=vehicles[v].model.manufacturer.name %></td>
+				<td><%=vehicles[v].model.name %></td>
+				<td><%=vehicles[v].year %></td>
+				<td><%=vehicles[v].price %></td>
+				<td><button class="btn btn-info">View</button></td>
+			</tr>
+		</form>
+	<% } %>
+	</tbody>
+</table>

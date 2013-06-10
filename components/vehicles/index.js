@@ -23,6 +23,7 @@ app.configure(function() {
 app.configure('development', function() {
 	app.use(express.errorHandler());
 });
+
 /**
  * Route requests.
  */
@@ -33,6 +34,19 @@ app.map(app, {
 		'/add': {
 			get: profile.form,
 			post: profile.add
+		},
+		'/:vid': {
+			get: profile.show,
+			'/image': {
+				'/:iid': {
+					get: profile.sendFile
+				}
+			},
+		}
+	},
+	'/seller': {
+		'/vehicles': {
+			get: profile.list
 		}
 	}
 });

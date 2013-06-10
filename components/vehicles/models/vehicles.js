@@ -4,10 +4,13 @@
  * For working with the vehicles database table
  */
 
- var db = require("../../../database"); // For connecting to the database.
+var async = require('async');
+var db = require("../../../database"); // For connecting to the database.
+var modelPrototype = require('./models').model;
+var photosPrototype = require('../../../models/photos').photos;
 
- var vehicle = Object.defineProperties({}, {
-	/* Data properties */
+var vehiclePrototype = Object.defineProperties({}, {
+/* Data properties */
 	id: {
 		value: 0,
 		writable: true,
@@ -111,19 +114,19 @@
 		configurable: false
 	},
 	airBags: {
-		value: false,
+		value: '',
 		writable: true,
 		enumerable: true,
 		configurable: false
 	},
 	transmission: {
-		value: "",
+		value: '',
 		writable: true,
 		enumerable: true,
 		configurable: false
 	},
 	color: {
-		value: "",
+		value: '',
 		writable: true,
 		enumerable: true,
 		configurable: false
@@ -134,25 +137,31 @@
 		enumerable: true,
 		configurable: false
 	},
-	sellerId: {
-		value: 0,
+	seller: {
+		value: {},
 		writable: true,
 		enumerable: true,
 		configurable: false
 	},
-	modelId: {
-		value: 0,
+	model: {
+		value: {},
 		writable: true,
 		enumerable: true,
 		configurable: false
 	},
-	townId: {
-		value: 0,
+	town: {
+		value: {},
 		writable: true,
 		enumerable: true,
 		configurable: false
 	},
-	/* Methods */
+	photos: {
+		value: [],
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+/* Methods */
 	create: {
 		value: function (callback) {
 			var that = this;
@@ -194,6 +203,30 @@
 	read: {
 		value: function (callback) {
 			var that = this;
+			that.readVehicle(function (err, vehicle) {
+				if (err) {
+					return callback(err);
+				}
+				that.readPhotos(function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					}
+					that.readModel(function (err, vehicle) {
+						if (err) {
+							return callback(err);
+						}
+						return callback(null, vehicle);
+					});
+				});
+			}); 
+		},
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	readVehicle: {
+		value: function (callback) {
+			var that = this;
 			db.query('SELECT * FROM vehicles WHERE id = ?', that.id, function (err, rows, fields) {
 				if (err) {
 					return callback(err);
@@ -221,10 +254,44 @@
 				that.transmission = rows[0].transmission;
 				that.color = rows[0].color;
 				that.fuelType = rows[0].fuelType;
-				that.sellerId = rows[0].sellerId;
-				that.modelId = rows[0].modelId;
-				that.townId = rows[0].townId;
+				that.seller.id = rows[0].sellerId;
+				that.model.id = rows[0].modelId;
+				that.town.id = rows[0].townId;
 				return callback(null, that); 
+			});
+		},
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	readPhotos: {
+		value: function (callback) {
+			var that = this;
+			var photos = Object.create(photosPrototype);
+			photos.vehicleId = that.id;
+			photos.readByVehicleId(function (err, photos) {
+				if (err) {
+					return callback(err);
+				}
+				that.photos = photos.all;
+				return callback(null, that);
+			});
+		},
+		writable: true,
+		enumerable: true,
+		configurable: false
+	},
+	readModel: {
+		value: function (callback) {
+			var that = this;
+			var model = Object.create(modelPrototype);
+			model.id = that.model.id;
+			model.read(function (err, model) {
+				if (err) {
+					return callback(err);
+				}
+				that.model = model;
+				return callback(null, that);
 			});
 		},
 		writable: true,
@@ -284,41 +351,72 @@
 	}
 });
 
-Object.preventExtensions(vehicle);
+Object.preventExtensions(vehiclePrototype);
 
-var vehicles = Object.defineProperties({}, {
-	/* Methods */
-	create: {
-		value: function (callback) {
-			var that = this;
-			
-		},
+var vehiclesPrototype = Object.defineProperties({}, {
+/* Data Properties */
+	objects: {
+		value: [],
 		writable: true,
 		enumerable: true,
 		configurable: false
 	},
-	read: {
-		value: function (callback) {
+/* Methods */
+	readBy: {
+		value: function (property, callback) {
 			var that = this;
-			
-		},
-		writable: true,
-		enumerable: true,
-		configurable: false
-	},
-	update: {
-		value: function (callback) {
-			var that = this;
-			
-		},
-		writable: true,
-		enumerable: true,
-		configurable: false
-	},
-	del: {
-		value: function (callback) {
-			var that = this;
-			
+			db.query("SELECT * FROM vehicles WHERE ".concat(property.name).concat(" = ?"), property.value, function (err, rows, fields) {
+				if (err) {
+					return callback(err);
+				}
+				async.forEach(rows, function (row, callback1) {
+					that.objects.push({
+						id: row.id,
+						year: row.year,
+						mileage: row.mileage,
+						price: row.price,
+						comments: row.comments,
+						engineCapacity: row.engineCapacity,
+						powerSteering: row.powerSteering,
+						absBrakes: row.absBreaks,
+						radio: row.radio,
+						cdPlayer: row.cdPlayer,
+						airConditioning: row.airConditioning,
+						electricWindows: row.electricWindows,
+						alarm: row.alarm,
+						centralLocking: row.centralLocking,
+						immobilizer: row.immobilizer,
+						gearLock: row.gearLock,
+						airBags: row.airBags,
+						transmission: row.transmission,
+						color: row.color,
+						fuelType: row.fuelType,
+						seller: {
+							id: row.sellerId
+						},
+						model: {
+							id: row.modelId
+						},
+						town: {
+							id: row.townId
+						}
+					});
+					callback1();
+				}, function () {
+					async.forEach(that.objects, function (vehicleObject, callback2) {
+						var vehicle = Object.create(vehiclePrototype);
+						vehicleObject.readModel = vehicle.readModel;
+						vehicleObject.readModel(function (err, vehicle) {
+							if (err) {
+								return callback(err);
+							}
+							callback2();
+						});
+					}, function () {
+						return callback(null, that);
+					});
+				});	
+			});
 		},
 		writable: true,
 		enumerable: true,
@@ -326,9 +424,9 @@ var vehicles = Object.defineProperties({}, {
 	}
 });
 
-Object.preventExtensions(vehicles);
+Object.preventExtensions(vehiclesPrototype);
 
 module.exports = {
-	vehicle: vehicle,
-	vehicles: vehicles
+	vehicle: vehiclePrototype,
+	vehicles: vehiclesPrototype
 };

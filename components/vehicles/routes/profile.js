@@ -9,11 +9,14 @@ var manufacturersPrototype = require('../models/manufacturers').manufacturers;
 var transmissionsPrototype = require('../../../models/transmissions').transmissions;
 var photoPrototype = require('../../../models/photos').photo;
 var vehiclePrototype = require('../models/vehicles').vehicle;
+var vehiclesPrototype = require('../models/vehicles').vehicles;
+var modelPrototype = require('../models/models').model;
+var manufacturerPrototype = require('../models/manufacturers').manufacturer;
 
 /**
- * Responds to HTTP GET /vehicle/add.
+ * Responds to HTTP GET /vehicle/add and HTTP GET /vehicle/edit.
  */
-function showRegistrationForm(request, response) {
+function showForm(request, response) {
 	var manufacturers = Object.create(manufacturersPrototype);
 	manufacturers.readObjects(function (err, manufacturers) {
 		if (err) {
@@ -71,7 +74,7 @@ function addProfile(request, response) {
 					return callback(err);
 				} 
 				var p = Object.create(photoPrototype);
-				p.filePath = newPath;
+				p.filePath = seller.sellerId.toString().concat('-').concat(vehicle.id).concat('-').concat(counter);
 				p.vehicleId = vehicle.id;
 				p.create(function (err, p) {
 					if (err) {
@@ -136,19 +139,77 @@ function addProfile(request, response) {
 		if (err) {
 			throw err;
 		} else {
+			request.session.vehicle = {
+				id: vehicle.id
+			};
 			showProfile(request, response);
 		}
 	});
 }
 
+/**
+ * Responds to HTTP POST /vehicle/edit.
+ */
+function editProfile(request, response) {
+
+}
+
+/**
+ * Responds to HTTP GET /vehicle/remove.
+ */
+function removeProfile(request, response) {
+
+}
+
+/**
+ * Responds to HTTP GET /vehicle/view.
+ */
 function showProfile(request, response) {
-	response.render('profile', {
-		loggedIn: true
+	var vehicle = Object.create(vehiclePrototype);
+	vehicle.id = request.params.vid;
+	vehicle.read(function (err, vehicle) {
+		if (err) {
+			throw err;
+		} else {
+			response.render('profile', {
+				vehicle: vehicle,
+				loggedIn: true
+			});
+		}
+	});
+}
+
+/**
+ * Responds to HTTP GET /vehicle/:vid/image/:iid.
+ */
+function sendFile(request, response) {
+	response.send(path.resolve('./assets/img/vehicles/2/'.concat(request.params.iid)));
+}
+
+function listVehicles(request, response) {
+	var seller = request.session.seller;
+	var vehicles = Object.create(vehiclesPrototype);
+	var sellerId = {
+		name: 'sellerId',
+		value: seller.sellerId
+	};
+	vehicles.readBy(sellerId, function (err, vehicles) {
+		if (err) {
+			throw err;
+		} else {
+			response.render('list', {
+				loggedIn: true,
+				vehicles: vehicles.objects
+			});
+		}
 	});
 }
 
 module.exports = {
-	form: showRegistrationForm,
+	form: showForm,
 	add: addProfile,
-	show: showProfile
+	edit: editProfile,
+	remove: removeProfile,
+	show: showProfile,
+	list: listVehicles
 };

@@ -138,8 +138,7 @@ function addProfile(request, response) {
 				slr.type, slr.email, '', slr.firstname, slr.surname, slr.telephone, slr.cellphone,
 				slr.dealershipName, slr.streetAddress1, slr.streetAddress2, slr.province, slr.town,
 				slr.townId, slr.loggedIn, response);
-		}
-		else if (err) {
+		} else if (err) {
 			throw err;
 		} else {
 			showProfile(request, response, sendEmail);

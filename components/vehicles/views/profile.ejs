@@ -1,5 +1,13 @@
 <% layout('../../../views/layout') -%>
 
+<%
+	var photos = vehicle.photos;
+%>
+
 <form action="." method="get" >
-	<h2>Vehicle</h2>	
+	<h2>Vehicle</h2>
+	<h3><%=vehicle.year %> <%=vehicle.model.manufacturer.name %> <%=vehicle.model.name %> R<%=vehicle.price %> </h3>
+<% for (p in photos) { %>
+	<img src="<%=photos[p].filePath %>" />
+<% } %>
 </form>
