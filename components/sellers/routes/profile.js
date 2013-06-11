@@ -422,7 +422,7 @@ function verifyEmail(request, response) {
 			throw err;
 		} else if (isMatch) {
 			var isUserLoggedIn = request.session.user && request.session.user.loggedIn;
-			mongoose.connect('localhost/bootandbonnet');
+			mongoose.connect('mongodb://localhost/bootandbonnet');
 			mongoose.connection.once('open', function () {
 				User.findOneAndUpdate({emailAddress: email}, {$set: {emailAddressVerified: true}}, function () {
 					if (isUserLoggedIn) {
