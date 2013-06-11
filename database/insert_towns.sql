@@ -1025,7 +1025,7 @@ INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Heckel'),
 ('South Africa', 'Eastern Cape', 'Heights'),
 ('South Africa', 'Eastern Cape', 'Heilbron');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Helena'),
 ('South Africa', 'Eastern Cape', 'Helmekaal'),
 ('South Africa', 'Eastern Cape', 'Helmekaar'),
@@ -2046,7 +2046,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Mandleni'),
 ('South Africa', 'Eastern Cape', 'Mandlovina'),
 ('South Africa', 'Eastern Cape', 'Mandlovini');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Mandluntsha'),
 ('South Africa', 'Eastern Cape', 'Mandundu'),
 ('South Africa', 'Eastern Cape', 'Manelspoort'),
@@ -3078,7 +3078,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Ntabencuka'),
 ('South Africa', 'Eastern Cape', 'Ntabeni'),
 ('South Africa', 'Eastern Cape', 'Ntabenkomo');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Ntaberu'),
 ('South Africa', 'Eastern Cape', 'Ntabezulu'),
 ('South Africa', 'Eastern Cape', 'Ntaboduli'),
@@ -4096,7 +4096,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Villiera'),
 ('South Africa', 'Eastern Cape', 'Villiersrust'),
 ('South Africa', 'Eastern Cape', 'Vinitsh');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Eastern Cape', 'Visrivier'),
 ('South Africa', 'Eastern Cape', 'Vista'),
 ('South Africa', 'Eastern Cape', 'Vleiland'),
@@ -5140,7 +5140,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Free State', 'Sonop'),
 ('South Africa', 'Free State', 'Sonskyn'),
 ('South Africa', 'Free State', 'Sorgvliet');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Free State', 'South Holme'),
 ('South Africa', 'Free State', 'Soutpan'),
 ('South Africa', 'Free State', 'Speranza'),
@@ -6195,7 +6195,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'KwaZulu Natal', 'Essenwood'),
 ('South Africa', 'KwaZulu Natal', 'Estcourt'),
 ('South Africa', 'KwaZulu Natal', 'Ethels Drive');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'KwaZulu Natal', 'eTholeni'),
 ('South Africa', 'KwaZulu Natal', 'Everdon'),
 ('South Africa', 'KwaZulu Natal', 'Evunga'),
@@ -7190,7 +7190,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'KwaZulu Natal', 'Thornville Junction'),
 ('South Africa', 'KwaZulu Natal', 'Thornwood'),
 ('South Africa', 'KwaZulu Natal', 'Thrings Post');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'KwaZulu Natal', 'Thurlough'),
 ('South Africa', 'KwaZulu Natal', 'Tinley Manor'),
 ('South Africa', 'KwaZulu Natal', 'Tinley Manor Estate'),
@@ -8298,7 +8298,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Limpopo', 'Serageng'),
 ('South Africa', 'Limpopo', 'Serala'),
 ('South Africa', 'Limpopo', 'Serare');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Limpopo', 'Seriteng'),
 ('South Africa', 'Limpopo', 'Serokolo'),
 ('South Africa', 'Limpopo', 'Serolorolo'),
@@ -9367,7 +9367,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'North-West', 'Driefontein'),
 ('South Africa', 'North-West', 'Driehoek'),
 ('South Africa', 'North-West', 'Driestat');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'North-West', 'Drillhole'),
 ('South Africa', 'North-West', 'Duikersbos'),
 ('South Africa', 'North-West', 'Dupperspos'),
@@ -10422,7 +10422,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Northern Cape', 'De Halt'),
 ('South Africa', 'Northern Cape', 'De Hoek'),
 ('South Africa', 'Northern Cape', 'De Hoop');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Northern Cape', 'De Kruis'),
 ('South Africa', 'Northern Cape', 'De Niel'),
 ('South Africa', 'Northern Cape', 'De Vloere'),
@@ -11409,7 +11409,7 @@ INSERT INTO `locations` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Western Cape', 'Kruiskloof'),
 ('South Africa', 'Western Cape', 'Kruisrivier'),
 ('South Africa', 'Western Cape', 'Kruisvallei');
-INSERT INTO `locations` (`country`, `province`, `town`) VALUES
+INSERT INTO `towns` (`country`, `province`, `town`) VALUES
 ('South Africa', 'Western Cape', 'Kuils River'),
 ('South Africa', 'Western Cape', 'Kuilsrivier'),
 ('South Africa', 'Western Cape', 'Kwaggaskloofdam'),

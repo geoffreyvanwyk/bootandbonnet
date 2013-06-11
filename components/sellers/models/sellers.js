@@ -4,6 +4,33 @@
  * For working with the sellers database table.
  */
 
+var mongoose = require('mongoose');
+var userSchema = require('../models/users').userSchema;
+var dealershipSchema = require('../models/dealerships').dealershipSchema;
+var townSchema = require('../../../models/locations').townSchema;
+
+var privateSellerSchema = mongoose.Schema({
+	name: {
+		firstName: String,
+		surname: String
+	},
+	telephone: String,
+	cellphone: String,
+	address: {
+		town: String,
+		province: String,
+		country: String
+	},
+	userId: String 
+});
+
+var PrivateSeller = mongoose.model('PrivateSeller', privateSellerSchema);
+
+module.exports = {
+	PrivateSeller: PrivateSeller,
+	privateSellerSchema: privateSellerSchema
+};
+
 var db = require('../../../database'); // For connecting to the database.
 
 var seller = Object.defineProperties({}, {

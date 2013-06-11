@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * For working with the locations database table.
+ * For working with the towns database table.
  */
 
 var async = require('async'); // For working with asynchronous collection methods.
@@ -35,7 +35,7 @@ var town = Object.defineProperties({}, {
 	},
 	/* Methods */
 	/**
-	 * Returns a row from the locations database table, in the form of a town object, based on the locations's id.
+	 * Returns a row from the towns database table, in the form of a town object, based on the towns's id.
 	 * 
 	 * @param	{function}	callback	Another function which is called as soon as this function has completed its 
 	 *                                  execution.
@@ -47,7 +47,7 @@ var town = Object.defineProperties({}, {
 	read: {
 		value: function (callback) {
 			var that = this;
-			db.query('SELECT id, province, town, country FROM locations WHERE id = ?', [
+			db.query('SELECT id, province, town, country FROM towns WHERE id = ?', [
 				that.id
 			], function (err, rows, fields) {
 				if (err) {
@@ -96,7 +96,7 @@ var province = Object.defineProperties({}, {
 		value: function (callback) {
 			var that = this;
 			var whereCondition = " AND country = ".concat(db.escape(that.country));
-			db.query("SELECT id, town FROM locations WHERE province = ?".concat(whereCondition), that.name, function (err, rows, fields) {
+			db.query("SELECT id, town FROM towns WHERE province = ?".concat(whereCondition), that.name, function (err, rows, fields) {
 				if (err) {
 					return callback(err);
 				}
@@ -157,7 +157,7 @@ var provinces = Object.defineProperties({}, {
 	readNames: {
 		value: function (callback) {
 			var that = this;
-			db.query('SELECT DISTINCT province FROM locations WHERE country = ?', that.country, function (err, rows, fields) {
+			db.query('SELECT DISTINCT province FROM towns WHERE country = ?', that.country, function (err, rows, fields) {
 				if (err) {
 					return callback(err);
 				}

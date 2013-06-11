@@ -4,6 +4,22 @@
  * For working with the users database table.
  */
 
+var mongoose = require('mongoose');
+
+var userSchema = mongoose.Schema({
+	emailAddress: String,
+	passwordHash: String,
+	dateAdded: {type: Date, default: Date.now},
+	emailAddressVerified: {type: Boolean, default: false}
+});
+
+var User = mongoose.model('User', userSchema);
+	
+module.exports = {
+	User: User,
+	userSchema: userSchema
+};
+
 var db = require('../../../database'); // For connecting to the database.
 
 var user = Object.defineProperties({}, {

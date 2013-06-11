@@ -4,7 +4,7 @@ SET time_zone = "+02:00";
 --
 -- Database: bootandbonnet
 --
-CREATE DATABASE bootandbonnet;
+CREATE DATABASE  IF NOT EXISTS bootandbonnet;
 USE bootandbonnet;
 -- --------------------------------------------------------
 
@@ -13,10 +13,10 @@ USE bootandbonnet;
 --
 CREATE TABLE IF NOT EXISTS users (
     id		int(11)	    NOT NULL    AUTO_INCREMENT,
-    username	varchar(50) NOT NULL 
-	COMMENT 'email address.',
-    password	varchar(32) NOT NULL,
-    date_added	timestamp   NOT NULL	DEFAULT CURRENT_TIMESTAMP,
+    emailAddress varchar(50) NOT NULL ,
+    passwordHash	varchar(32) NOT NULL,
+    dateAdded	timestamp   NOT NULL	DEFAULT CURRENT_TIMESTAMP,
+	emailAddressVerified boolean NOT NULL DEFAULT false,
     CONSTRAINT users_pk
 	PRIMARY KEY (id)	
 )  ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;

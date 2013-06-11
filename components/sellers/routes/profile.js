@@ -3,6 +3,10 @@
  * Handles the profile.ejs and emailVerified.ejs views.
  */
 
+var mongoose = require('mongoose');
+var User = require('../models/users').User;
+var PrivateSeller = require('../models/sellers').PrivateSeller;
+
 var async = require('async');
 var bcrypt = require('bcrypt'); // For hashing and comparing passwords.
 var dealershipPrototype = require('../models/dealerships').dealership; // For working with the dealerships database table.
@@ -26,20 +30,32 @@ var provincesPrototype = require('../../../models/locations').provinces;	// For 
  * @return  {function}	Returns the request and response objects to a callback function.
  */
 function showProfile(request, response, callback) {
-	var ss = request.session.seller;
+	if (request.session.dealership === null) {
+		var seller = request.session.privateSeller;
+		var fullname = seller.name.firstName.concat(' ').concat(seller.name.surname); 
+		var dealershipName = '';
+		var streetAddress1 = '';
+		var streetAddress2 = '';
+	} else {
+		var seller = request.session.dealership;
+		var fullname = seller.contactPerson.name.concat(' ').concat(seller.contactPerson.name.surname);
+		var dealershipName = seller.name;
+		var streetAddress1 = seller.address.street;
+		var streetAddress2 = seller.address.suburb;
+	}
 	response.render('profile', {
 		method: 'delete',
-		sellerType: ss.type,
-		email: ss.email,
-		fullname: ss.firstname.concat(' ').concat(ss.surname),
-		telephone: ss.telephone,
-		cellphone: ss.cellphone,
-		dealershipName: ss.dealershipName,
-		streetAddress1: ss.streetAddress1,
-		streetAddress2: ss.streetAddress2,
-		province: ss.province,
-		town: ss.town,
-		townId: ss.townId,
+		sellerType: request.session.dealership ? 'dealership' : 'privateSeller',
+		email: request.session.user.emailAddress,
+		fullname: fullname,
+		telephone: seller.telephone,
+		cellphone: seller.cellphone,
+		dealershipName: dealershipName,
+		streetAddress1: streetAddress1,
+		streetAddress2: streetAddress2,
+		province: seller.province,
+		town: seller.town,
+		townId: 1,
 		loggedIn: true
 	});
 	if (typeof(callback) === 'function') {
@@ -131,7 +147,52 @@ function addProfile(request, response) {
 			setSession(request, response, newUser, newDealership, newSeller, callback);
 		});
 	}
+	
+	mongoose.connect('mongodb://localhost/bootandbonnet');
+	mongoose.connection.on('error', console.error.bind(console, 'Error: Failed to connect to MongoDB.'));
+	mongoose.connection.once('open', function () {
+		bcrypt.hash(slr.password, 10, function(err, hash) {
+			if (err) {
+				throw err;
+			}
+			var user = new User({
+				emailAddress: slr.email,
+				passwordHash: hash
+			});
+			user.save(function (err, user) {
+				if (err) {
+					throw err;
+				}
+				if (slr.type === 'privateSeller') {
+					var privateSeller = new PrivateSeller({
+						name: {
+							firstName: slr.firstname,
+							surname: slr.surname
+						},
+						telephone: slr.telephone,
+						cellphone: slr.cellphone,
+						address: {
+							town: slr.town,
+							province: slr.province,
+							country: 'South Africa'
+						},
+						userId: user._id
+					});
+					privateSeller.save(function (err, privateSeller) {
+						if (err) {
+							throw err;
+						}
+						var dealership = null;
+						setSession(request, response, user, dealership, privateSeller, function () {
+							showProfile(request, response, sendEmail);
+						});
+					});	
+				}
+			})
+		});
+	});
 
+/*
 	setupProfile(function(err) {
 		if (err && err.code === "ER_DUP_ENTRY") {
 			register.show('new', 'New Seller', 'post', 'Register', 'Email address already registered.',
@@ -139,11 +200,12 @@ function addProfile(request, response) {
 				slr.dealershipName, slr.streetAddress1, slr.streetAddress2, slr.province, slr.town,
 				slr.townId, slr.loggedIn, response);
 		} else if (err) {
-			throw err;
+				throw err;
 		} else {
 			showProfile(request, response, sendEmail);
 		}
 	});
+*/
 }
 
 /**
@@ -326,26 +388,36 @@ function removeProfile(request, response) {
  *
  * @return  {function}	Returns its callback function with no arguments.
  */
-function setSession(request, response, user, dealership, seller, callback) {
-	request.session.seller = {
-		userId: user.id,
-		email: user.emailAddress,
+function setSession(request, response, user, dealership, privateSeller, callback) {
+	request.session.user = {
+		id: user._id,
+		emailAddress: user.emailAddress,
 		passwordHash: user.passwordHash,
-		dealershipId: dealership.id,
-		dealershipName: dealership.name,
-		streetAddress1: dealership.streetAddress1,
-		streetAddress2: dealership.streetAddress2,
-		province: dealership.province,
-		town: dealership.town,
-		townId: dealership.townId,
-		sellerId: seller.id,
-		firstname: seller.firstname,
-		surname: seller.surname,
-		telephone: seller.telephone,
-		cellphone: seller.cellphone,
-		type: (dealership.id === 1) ? "privateSeller" : "dealership",
+		dateAdded: user.dateAdded,
+		emailAddressVerified: user.emailAddressVerified,
 		loggedIn: true
 	};
+	if (dealership === null) {
+		request.session.privateSeller = {
+			id: privateSeller._id,
+			name: privateSeller.name, 
+			telephone: privateSeller.telephone,
+			cellphone: privateSeller.cellphone,
+			address: privateSeller.address,
+			userId: privateSeller.userId
+		};
+		request.session.dealership = null;
+	} else {
+		request.session.dealership = {
+			id: dealership._id,
+			name: dealership.name,
+			address: dealership.address,
+			contactPerson: dealership.contactPerson,
+			telephone: dealership.telephone,
+			cellphone: dealership.cellphone,
+			userId: dealership.userId
+		};
+	}
 	if (typeof(callback) === "function") {
 		if (callback.toString().indexOf("showHomePage") !== -1) {
 			return callback(request, response);
@@ -364,7 +436,7 @@ function setSession(request, response, user, dealership, seller, callback) {
  *
  */
 function sendEmail(request) {
-	var emailAddress = request.session.seller.email;
+	var emailAddress = request.session.user.emailAddress;
 	bcrypt.hash(emailAddress, 10, function(err, hash) {
 		if (err) {
 			throw err;
@@ -455,7 +527,8 @@ function verifyEmail(request, response) {
  * @returns {undefined}                  
  */
 function showRegistrationForm(request, response) {
-	var action = request.query.path.split('/').slice(-1);
+	var action = request.path.split('/').slice(-1)[0];
+	console.log(action);
 	var isSellerLoggedIn = request.session.seller ? true : false;
 
 	if ((action === 'add') && (!isSellerLoggedIn)) { 		
