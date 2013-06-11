@@ -268,51 +268,27 @@ function editProfile(request, response) {
  * @return  {undefined}
  */
 function removeProfile(request, response) {
-	var ss = request.session.seller;
-
-	function deleteSeller(callback) {
-		var seller = Object.create(sellerPrototype);
-		seller.id = ss.sellerId;
-		seller.del(callback);
-	}
-	
-	function deleteUser(callback) {
-		var user = Object.create(userPrototype);
-		user.id = ss.userId;
-		user.del(callback);
-	}
-
-	function deleteDealership(callback) {
-		var dealership = Object.create(dealershipPrototype);
-		dealership.id = ss.dealershipId;
-		dealership.del(callback);
-	}
-
-	function deleteProfile(callback) {
-		deleteSeller(function (err) {
-			if (err) {
-				return callback(err);
-			}
-			deleteUser(function (err) {
-				if (err) {
-					return callback(err);
-				}
-				deleteDealership(function (err) {
-					if (err) {
-						return callback(err);
-					}
-					return callback(null);
+	var user = request.session.user;
+	var privateSeller = request.session.privateSeller; 
+	var dealership = request.session.dealership;
+	mongoose.connect('mongodb://localhost/bootandbonnet');
+	mongoose.connection.once('open', function () {
+		if (privateSeller) {
+			PrivateSeller.findByIdAndRemove(privateSeller.id, function (err) {
+				request.session.privateSeller = null;
+				User.findByIdAndRemove(user.id, function (err) {
+					request.session.user = null;
+					home(request, response);
 				});
 			});
-		});
-	}
-
-	deleteProfile(function (err) {
-		if (err) {
-			throw err;
-		} else {
-			request.session.seller = null;
-			home(request, response);
+		} else if (dealership) {
+			Dealership.findByIdAndRemove(dealership.id, function (err) {
+				request.session.dealership = null;
+				User.findByIdAndRemove(user.id, function (err) {
+					request.session.user = null;
+					home(request, response);
+				});
+			});
 		}
 	});
 }

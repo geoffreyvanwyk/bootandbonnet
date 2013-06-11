@@ -12,8 +12,7 @@ if (sellerType === 'dealership') {
 
 <h2>My Profile</h2>
 
-<form method="post" action="/seller/view">
-	<input type="hidden" name="_method" value="<%= method %>"/>
+<form method="get" action="/seller/remove">
     <fieldset id="dealership" style="display: <%= dlrDisplay %>">
 		<p><i class="icon-briefcase"></i>&nbsp;<strong><%= dealershipName %></strong></p>
 		<div class="row">
