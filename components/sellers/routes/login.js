@@ -58,14 +58,15 @@ function showLoginForm(request, response) {
  * @param   {object}    response    An HTTP response object received from the express.get() method.
  */
 function startLoggedInSession(request, response) {
-	var slr = request.body.seller;
+	var slr = request.body.user;
 	mongoose.connect('mongodb://localhost/bootandbonnet');
+	mongoose.connection.on('error', console.error.bind(console, 'Error: Failed to connect to MongoDB.'));
 	mongoose.connection.once('open', function () {
-		User.findOne({emailAddress: slr.email}, function (err, user) {
+		User.findOne({emailAddress: slr.emailAddress}, function (err, user) {
 			if (!user) {
 				request.session.login = {
 					emailError: 'The email address has not been registered.',
-					email: slr.email
+					email: slr.emailAddress
 				};			
 			} else {
 				bcrypt.compare(slr.password, user.passwordHash, function (err, isMatch) {
@@ -73,15 +74,18 @@ function startLoggedInSession(request, response) {
 						PrivateSeller.findOne({userId: user._id}, function (err, privateSeller) {
 							if (!privateSeller) {
 								Dealership.findOne({userId: user._id}, function (err, dealership) {
+									mongoose.connection.close();
 									var privateSeller = null;
 									profile.setSession(request, response, user, dealership, privateSeller, home);	
 								});
 							} else {
+								mongoose.connection.close();
 								var dealership = null;
 								profile.setSession(request, response, user, dealership, privateSeller, home);
 							}
 						});				
 					} else {
+						mongoose.connection.close();
 						request.session.login = {
 							passwordError: 'The password is wrong.'
 						};

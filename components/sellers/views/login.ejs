@@ -30,7 +30,7 @@ if (isPasswordReset) {
 				<div class="control-group <%=emailAlertType%>">
 					<label class="control-label">Email</label>
 					<div class="controls">
-						<input type="email" name="seller[email]" value="<%=email%>" required="required" />
+						<input type="email" name="user[emailAddress]" value="<%=email%>" required="required" />
 						<span class="help-block" ><%=emailError%></span>
 					</div>
 				</div>
@@ -38,7 +38,7 @@ if (isPasswordReset) {
 				<div class="control-group <%=passwordAlertType%>">
 					 <label class="control-label">Password</label>
 					<div class="controls">
-						<input type="password" name="seller[password]" required="required" />
+						<input type="password" name="user[password]" required="required" />
 						<span class="help-block" ><%=passwordError%></span>
 					</div>
 				</div>

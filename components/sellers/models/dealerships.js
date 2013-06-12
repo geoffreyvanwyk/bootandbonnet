@@ -9,7 +9,7 @@ var mongoose = require('mongoose');
 var dealershipSchema = mongoose.Schema({
 	name: String,
 	contactPerson: {
-		firstName: String,
+		firstname: String,
 		surname: String
 	},
 	telephone: String,

@@ -31,15 +31,15 @@ var provincesPrototype = require('../../../models/locations').provinces;	// For 
  * @return  {function}	Returns the request and response objects to a callback function.
  */
 function showProfile(request, response, callback) {
-	if (request.session.dealership === null) {
+	if (request.session.privateSeller) {
 		var seller = request.session.privateSeller;
-		var fullname = seller.name.firstName.concat(' ').concat(seller.name.surname); 
+		var fullname = seller.name.firstname.concat(' ').concat(seller.name.surname); 
 		var dealershipName = '';
 		var streetAddress1 = '';
 		var streetAddress2 = '';
 	} else {
 		var seller = request.session.dealership;
-		var fullname = seller.contactPerson.firstName.concat(' ').concat(seller.contactPerson.surname);
+		var fullname = seller.contactPerson.firstname.concat(' ').concat(seller.contactPerson.surname);
 		var dealershipName = seller.name;
 		var streetAddress1 = seller.address.street;
 		var streetAddress2 = seller.address.suburb;
@@ -78,14 +78,15 @@ function addProfile(request, response) {
 	var slr = request.body.seller;
 
 	mongoose.connect('mongodb://localhost/bootandbonnet');
-	mongoose.connection.on('error', console.error.bind(console, 'Error: Failed to connect to MongoDB.'));
+	mongoose.connection.on('error', console.error.bind(console, 
+											'Error: addProfile failed to connect to MongoDB.'));
 	mongoose.connection.once('open', function () {
-		bcrypt.hash(slr.password, 10, function(err, hash) {
+		bcrypt.hash(request.body.user.password, 10, function(err, hash) {
 			if (err) {
 				throw err;
 			}
 			var user = new User({
-				emailAddress: slr.email,
+				emailAddress: request.body.user.emailAddress,
 				passwordHash: hash
 			});
 			user.save(function (err, user) {
@@ -95,7 +96,7 @@ function addProfile(request, response) {
 				if (slr.type === 'privateSeller') {
 					var privateSeller = new PrivateSeller({
 						name: {
-							firstName: slr.firstname,
+							firstname: slr.firstname,
 							surname: slr.surname
 						},
 						telephone: slr.telephone,
@@ -111,6 +112,7 @@ function addProfile(request, response) {
 						if (err) {
 							throw err;
 						}
+						mongoose.connection.close();
 						var dealership = null;
 						setSession(request, response, user, dealership, privateSeller, function () {
 							showProfile(request, response, sendEmail);
@@ -120,7 +122,7 @@ function addProfile(request, response) {
 					var dealership = new Dealership({
 						name: slr.dealershipName,
 						contactPerson: {
-							firstName: slr.firstname,
+							firstname: slr.firstname,
 							surname: slr.surname
 						},
 						address: {
@@ -138,6 +140,7 @@ function addProfile(request, response) {
 						if (err) {
 							throw err;
 						}
+						mongoose.connection.close();
 						var privateSeller = null;
 						setSession(request, response, user, dealership, privateSeller, function () {
 							showProfile(request, response, sendEmail);
@@ -150,7 +153,7 @@ function addProfile(request, response) {
 }
 
 /**
- * Responds to HTTP PUT /seller/view. Edits the user profile, then displays it.
+ * Responds to HTTP POST /seller/edit. Edits the user profile, then displays it.
  *
  * @param   {object}    request     An HTTP request object received from the express.put() method.
  * @param   {object}    response    An HTTP response object received from the express.put() method.
@@ -158,103 +161,87 @@ function addProfile(request, response) {
  * @return  {undefined}
  */
 function editProfile(request, response) {
-	var slr = request.body.seller;
-	var ss = request.session.seller;
-	var isEmailChanged = slr.email.toLowerCase() !== ss.email.toLowerCase();
+	var isEmailChanged = request.body.user.emailAddress.toLowerCase() !== request.session.user.emailAddress.toLowerCase();
+	var isPasswordChanged = request.body.user.password !== "";
 
 	function updateUser(callback) {
-		bcrypt.hash(slr.password, 10, function (err, hash) {
-			if (err) {
-				return callback(err);
-			}
-			var user = Object.create(userPrototype);
-			var isPasswordChanged = slr.password !== "";
-			var currentPasswordHash = ss.passwordHash;
-			var newPasswordHash = hash;
-			user.id = sanitize(ss.userId);
-			user.emailAddress = sanitize(slr.email);
-			user.passwordHash = isPasswordChanged ? newPasswordHash : currentPasswordHash;
-			user.emailAddressVerified = !isEmailChanged;
-			user.update(callback);
-		});
-	}
-
-	function updateDealership(callback) {
-		switch (slr.type) {
-			case "privateSeller":
-				var dealership = Object.create(dealershipPrototype);
-				dealership.id = 1;
-				return callback(null, dealership);
-				break;
-			case "dealership":
-				var dealership = Object.create(dealershipPrototype);
-				dealership.id = ss.dealershipId;
-				dealership.name = sanitize(slr.dealershipName);
-				dealership.streetAddress1 = sanitize(slr.streetAddress1);
-				dealership.streetAddress2 = sanitize(slr.streetAddress2);
-				dealership.province = sanitize(slr.province);
-				dealership.town = sanitize(slr.town);
-				dealership.townId = sanitize(slr.townId);
-				dealership.update(callback)
-				break;
-		}
-	}
-
-	function updateSeller(user, callback) {
-		updateDealership(function (err, dealership) {
-			if (err) {
-				return callback(err);	
-			}
-			var seller = Object.create(sellerPrototype); 
-			seller.id = sanitize(ss.sellerId);
-			seller.firstname = sanitize(slr.firstname);
-			seller.surname = sanitize(slr.surname);
-			seller.telephone = sanitize(slr.telephone);
-			seller.cellphone = sanitize(slr.cellphone);
-			seller.dealershipId = dealership.id;
-			seller.userId = user.id;
-			seller.update(function (err, seller) {
+		if (isEmailChanged && isPasswordChanged) {
+			bcrypt.hash(request.body.user.password, 10, function (err, hash) {
+				if (err) {
+					throw err;
+				} else {
+					User.findByIdAndUpdate(request.session.user._id, {
+						$set: {
+							emailAddress: request.body.user.emailAddress, 
+							passwordHash: hash,
+							emailAddressVerified: false
+						}
+					}, function (err, user) {
+						if (err) {
+							return callback(err);
+						} 
+						request.session.user.emailAddres = user.emailAddress;
+						request.session.user.passworsHash = user.passwordHash;
+						return callback(null, user);	
+					});
+				}
+			});		
+		} else if (isEmailChanged) {
+			User.findByIdAndUpdate(request.session.user._id, {
+				$set: {
+					emailAddress: request.body.user.emailAddress
+				}
+			}, function (err, user) {
 				if (err) {
 					return callback(err);
 				}
-				return callback(null, user, dealership, seller);
+				request.session.user.emailAddress = user.emailAddress;
+				return callback(null, user);
 			});
-		});
+		} else {
+			return callback(null, request.session.user);
+		}
 	}
 
-	function updateEntities(callback) {
+	mongoose.connect('mongodb://localhost/bootandbonnet');
+	mongoose.connection.on('error', console.error.bind(console, 
+											'Error: addProfile failed to connect to MongoDB.'));
+	mongoose.connection.once('open', function () {
 		updateUser(function (err, user) {
 			if (err) {
-				return callback(err);
+				throw err;
+			} else if (request.body.seller.type === 'privateSeller' && request.session.privateSeller) {
+				PrivateSeller.findByIdAndUpdate(request.session.privateSeller._id, {
+					$set: {
+						name: {
+							firstname: request.body.seller.firstname,
+							surname: request.body.seller.surname
+						},
+						telephone: request.body.seller.telephone,
+						cellphone: request.body.seller.cellphone,
+						address: {
+							town: request.body.seller.town,
+							province: request.body.seller.province
+						}	
+					}
+				}, function (err, privateSeller) {
+					if (err) {
+						throw err;
+					} else {
+						mongoose.connection.close();
+						request.session.privateSeller.name = privateSeller.name;
+						request.session.privateSeller.telephone = privateSeller.telephone;
+						request.session.privateSeller.cellphone = privateSeller.cellphone;
+						request.session.privateSeller.address = privateSeller.address;
+						showProfile(request, response, function (request, response) {
+							if (isEmailChanged) {
+								sendEmail(request, response);
+							}
+						});
+					}
+				});
 			}
-			updateSeller(user, callback);
 		});
-	}
-
-	function updateProfile(callback) {
-		updateEntities(function (err, user, dealership, seller) {
-			if (err) {
-				return callback(err);
-			}
-			setSession(request, response, user, dealership, seller, callback);
-		});
-	}
-
-	updateProfile(function(err) {
-		if (err && err.code === "ER_DUP_ENTRY") {
-			register.show('new', 'New Seller', 'post', 'Register', 'Email address already registered.',
-				slr.type, slr.email, '', slr.firstname, slr.surname, slr.telephone, slr.cellphone,
-				slr.dealershipName, slr.streetAddress1, slr.streetAddress2, slr.province, slr.town,
-				slr.townId, slr.loggedIn, response);
-		} else if (err) {
-			throw err;
-		} else {
-			showProfile(request, response, function () {
-				if (isEmailChanged) {
-					sendEmail(request);
-				}
-			});
-		}
 	});
 }
 
@@ -271,23 +258,45 @@ function removeProfile(request, response) {
 	var user = request.session.user;
 	var privateSeller = request.session.privateSeller; 
 	var dealership = request.session.dealership;
+
 	mongoose.connect('mongodb://localhost/bootandbonnet');
+	mongoose.connection.on('error', console.error.bind(console, 
+											'Error: addProfile failed to connect to MongoDB.'));
 	mongoose.connection.once('open', function () {
 		if (privateSeller) {
-			PrivateSeller.findByIdAndRemove(privateSeller.id, function (err) {
-				request.session.privateSeller = null;
-				User.findByIdAndRemove(user.id, function (err) {
-					request.session.user = null;
-					home(request, response);
-				});
+			PrivateSeller.findByIdAndRemove(privateSeller._id, function (err) {
+				if (err) {
+					throw err;	
+				} else {
+					request.session.privateSeller = null;
+					User.findByIdAndRemove(user._id, function (err) {
+						if (err) {
+							throw err;
+						} else {
+							mongoose.connection.close();
+							request.session.user = null;
+							home(request, response);				
+						}
+					});
+				}
 			});
 		} else if (dealership) {
-			Dealership.findByIdAndRemove(dealership.id, function (err) {
-				request.session.dealership = null;
-				User.findByIdAndRemove(user.id, function (err) {
-					request.session.user = null;
-					home(request, response);
-				});
+			Dealership.findByIdAndRemove(dealership._id, function (err) {
+				if (err) {
+					throw err;
+				} else {
+					request.session.dealership = null;
+					User.findByIdAndRemove(user._id, function (err) {
+						if (err) {
+							throw err;
+						} else {
+							mongoose.connection.close();
+							request.session.user = null;
+							home(request, response);					
+						}
+
+					});			
+				}
 			});
 		}
 	});
@@ -307,7 +316,7 @@ function removeProfile(request, response) {
  */
 function setSession(request, response, user, dealership, privateSeller, callback) {
 	request.session.user = {
-		id: user._id,
+		_id: user._id,
 		emailAddress: user.emailAddress,
 		passwordHash: user.passwordHash,
 		dateAdded: user.dateAdded,
@@ -316,7 +325,7 @@ function setSession(request, response, user, dealership, privateSeller, callback
 	};
 	if (dealership === null) {
 		request.session.privateSeller = {
-			id: privateSeller._id,
+			_id: privateSeller._id,
 			name: privateSeller.name, 
 			telephone: privateSeller.telephone,
 			cellphone: privateSeller.cellphone,
@@ -326,7 +335,7 @@ function setSession(request, response, user, dealership, privateSeller, callback
 		request.session.dealership = null;
 	} else {
 		request.session.dealership = {
-			id: dealership._id,
+			_id: dealership._id,
 			name: dealership.name,
 			address: dealership.address,
 			contactPerson: dealership.contactPerson,
@@ -358,7 +367,7 @@ function sendEmail(request) {
 		if (err) {
 			throw err;
 		} else {
-			var link = 'http://localhost:3000/seller/edit/verify-email/?email='
+			var link = 'http://localhost:3000/seller/edit/verify-email/?emailAddress='
 							.concat(encodeURIComponent(emailAddress))
 							.concat('&hash=')
 							.concat(hash);
@@ -391,19 +400,27 @@ function sendEmail(request) {
  * @return  {undefined}	It returns nothing. It displays the emailVerification page.
  */
 function verifyEmail(request, response) {
-	var email = decodeURIComponent(request.query.email);
-	var emailHash = request.query.hash;
-	bcrypt.compare(email, emailHash, function(err, isMatch) {
+	var emailAddress = decodeURIComponent(request.query.emailAddress);
+	var emailAddressHash = request.query.hash;
+	console.log('Hi!');
+	bcrypt.compare(emailAddress, emailAddressHash, function(err, isMatch) {
 		if (err) {
 			throw err;
 		} else if (isMatch) {
 			var isUserLoggedIn = request.session.user && request.session.user.loggedIn;
 			mongoose.connect('mongodb://localhost/bootandbonnet');
+			mongoose.connection.on('error', console.error.bind(console, 
+											'Error: addProfile failed to connect to MongoDB.'));
 			mongoose.connection.once('open', function () {
-				User.findOneAndUpdate({emailAddress: email}, {$set: {emailAddressVerified: true}}, function () {
+				User.findOneAndUpdate({emailAddress: emailAddress}, {
+					$set: {
+						emailAddressVerified: true
+					}
+				}, function () {
 					if (isUserLoggedIn) {
 						request.session.user.emailAddressVerified = true;
 					}
+					mongoose.connection.close();
 					emailVerified(request, response);
 				});
 			});
@@ -425,8 +442,7 @@ function verifyEmail(request, response) {
  */
 function showRegistrationForm(request, response) {
 	var action = request.path.split('/').slice(-1)[0];
-	console.log(action);
-	var isSellerLoggedIn = request.session.seller ? true : false;
+	var isSellerLoggedIn = request.session.user ? true : false;
 
 	if ((action === 'add') && (!isSellerLoggedIn)) { 		
 		var provinces = Object.create(provincesPrototype);
@@ -437,6 +453,7 @@ function showRegistrationForm(request, response) {
 			}
 			response.render('register', {
 				provinces: provinces.objects,
+				action: '/seller/add',
 				heading: 'New Seller',
 				buttonCaption: 'Register',
 				emailError: '',
@@ -457,7 +474,21 @@ function showRegistrationForm(request, response) {
 			});
 		});
 	} else if ((action === 'edit') && (isSellerLoggedIn)) {
-		var ss = request.session.seller;
+		if (request.session.privateSeller) {
+			var seller = request.session.privateSeller;
+			var firstname = seller.name.firstname;
+			var surname = seller.name.surname;
+			var dealershipName = '';
+			var streetAddress1 = '';
+			var streetAddress2 = '';
+		} else {
+			var seller = request.session.dealership;
+			var firstname = seller.contactPerson.firstname;
+			var surname = seller.contactPerson.surname;
+			var dealershipName = seller.name;
+			var streetAddress1 = seller.address.street;
+			var streetAddress2 = seller.address.suburb;
+		}
 		var provinces = Object.create(provincesPrototype);
 		provinces.country = "South Africa";
 		provinces.readObjects(function (err, provinces) {
@@ -466,23 +497,23 @@ function showRegistrationForm(request, response) {
 			}
 			response.render('register', {
 				provinces: provinces.objects,
+				action: '/seller/edit',
 				heading: 'Edit Seller',
 				buttonCaption: 'Save Changes',
 				emailError: '',
-				sellerType: ss.type,
-				email: ss.email,
-				password: ss.password,
-				firstname: ss.firstname,
-				surname: ss.surname,
-				telephone: ss.telephone,
-				cellphone: ss.cellphone,
-				dealershipName: ss.dealershipName,
-				streetAddress1: ss.streetAddress1,
-				streetAddress2: ss.streetAddress2,
-				province: ss.province,
-				town: ss.town,
-				townId: ss.townId,
-				loggedIn:isSellerLoggedIn 
+				sellerType: request.session.privateSeller ? 'privateSeller' : 'dealership',
+				email: request.session.user.emailAddress,
+				password: '',
+				firstname: firstname,
+				surname: surname,
+				telephone: seller.telephone,
+				cellphone: seller.cellphone,
+				dealershipName: dealershipName,
+				streetAddress1: streetAddress1,
+				streetAddress2: streetAddress2,
+				province: seller.province,
+				town: seller.town,
+				loggedIn: isSellerLoggedIn 
 			});
 		});
 	}

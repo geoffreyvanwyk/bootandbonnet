@@ -10,7 +10,7 @@ var controlClass = 'control-group error';
 }
 %>
 
-<form id="register" method="post" action="/seller/add">
+<form id="register" method="post" action="<%=action %>">
     <h2><%=heading %></h2>
 
     <fieldset>
@@ -21,7 +21,7 @@ var controlClass = 'control-group error';
 				<div class="<%=controlClass %>">
 					<label class="control-label" for="email">Email address</label>
 					<div class="controls">
-						<input type="email" id="email" name="seller[email]" value="<%=email%>" required="required"/>
+						<input type="email" id="email" name="user[emailAddress]" value="<%=email%>" required="required"/>
 						<span class="help-inline"><%=emailError %></span>
 					</div>
 				</div>
@@ -31,7 +31,7 @@ var controlClass = 'control-group error';
 				<div id="divPassword" class="control-group">
 					<label class="control-label" for="password">Password</label>
 					<div class="controls">
-						<input type="password" id="password" name="seller[password]" value="<%=password%>"/>
+						<input type="password" id="password" name="user[password]" value="<%=password%>"/>
 						<span id="spanPassword" class="help-inline"></span>
 					</div>
 				</div>
@@ -163,8 +163,6 @@ var controlClass = 'control-group error';
 					<% } %>
 					<option>Please select ...</option>
 				</select>
-				<input type="hidden" id="townId" name="seller[townId]" value="<%=townId%>"/>
-
 			</div>
 		</div>
     </fieldset>

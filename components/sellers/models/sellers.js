@@ -11,7 +11,7 @@ var townSchema = require('../../../models/locations').townSchema;
 
 var privateSellerSchema = mongoose.Schema({
 	name: {
-		firstName: String,
+		firstname: String,
 		surname: String
 	},
 	telephone: String,
