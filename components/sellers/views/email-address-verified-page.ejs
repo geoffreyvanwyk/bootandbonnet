@@ -1,4 +1,22 @@
 <% layout('../../../views/layout') -%>
 
-<h2>Thank you!</h2>
-<p>Your email address has been verfied.</p>
+<%
+var noError = isSellerNotExist === '' && isHashNotMatch === '' ? '' : 'none';
+var sellerNotExist = isSellerNotExist === '' ? 'none' : '';
+var hashNotMatch = isHashNotMatch === '' ? 'none' : '';
+%>
+
+<div style="display: <%=noError %>">
+	<h2>Thank you!</h2>
+	<p>Your email address has been verfied.</p>
+</div>
+
+<div style="display: <%=sellerNotExist %>">
+	<h2>Error</h2>
+	<p>The email address does not exist in our database.</p>
+</div>
+
+<div style="display: <%=hashNotMatch %>">
+	<h2>Error</h2>
+	<p>The hash in the link does not match the email address.</p>
+</div>

@@ -1,465 +1,61 @@
 "use strict";
+
 /**
- * Handles the profile.ejs and emailVerified.ejs views.
+ * Import external modules.
  */
 
-var mongoose = require('mongoose');
-var User = require('../models/users').User;
-var PrivateSeller = require('../models/sellers').PrivateSeller;
-var Dealership = require('../models/dealerships').Dealership;
-
-var async = require('async');
 var bcrypt = require('bcrypt'); // For hashing and comparing passwords.
-var dealershipPrototype = require('../models/dealerships').dealership; // For working with the dealerships database table.
-var email = require('../../../email').email; // For sending emails.
-var emailVerified = require('./emailVerified');
-var home = require('../../../routes/home').index;
-var locationPrototype = require('../../../models/locations').location; // For working with the locations database table.
-var register = require('./register').register; // For working withe the register.ejs view.
 var sanitize = require('sanitizer').sanitize; // For removing scripts from user input.
-var sellerPrototype = require('../models/sellers').seller; // For working with the sellers database table.
-var userPrototype = require('../models/users').user; // For working with the users database table.
-var provincesPrototype = require('../../../models/locations').provinces;	// For working with the locations database tabe.
-
 
 /**
- * Responds to HTTP GET /seller/view. Displays the seller's profile.
- *
- * @param   {object}    request     An HTTP request object received from the express.get() method.
- * @param   {object}    response    An HTTP response object received from the express.get() method.
- *
- * @return  {function}	Returns the request and response objects to a callback function.
+ * Import models.
  */
-function showProfile(request, response, callback) {
-	if (request.session.privateSeller) {
-		var seller = request.session.privateSeller;
-		var fullname = seller.name.firstname.concat(' ').concat(seller.name.surname); 
-		var dealershipName = '';
-		var streetAddress1 = '';
-		var streetAddress2 = '';
-	} else {
-		var seller = request.session.dealership;
-		var fullname = seller.contactPerson.firstname.concat(' ').concat(seller.contactPerson.surname);
-		var dealershipName = seller.name;
-		var streetAddress1 = seller.address.street;
-		var streetAddress2 = seller.address.suburb;
-	}
-	response.render('profile', {
-		method: 'delete',
-		sellerType: request.session.dealership ? 'dealership' : 'privateSeller',
-		email: request.session.user.emailAddress,
-		fullname: fullname,
-		telephone: seller.telephone,
-		cellphone: seller.cellphone,
-		dealershipName: dealershipName,
-		streetAddress1: streetAddress1,
-		streetAddress2: streetAddress2,
-		province: seller.address.province,
-		town: seller.address.town,
-		townId: 1,
-		loggedIn: true
-	});
-	if (typeof(callback) === 'function') {
-		return callback(request, response);
-	}
-}
+
+var Seller = require('../models/sellers').Seller;
+var PrivateSeller = require('../models/private-sellers').PrivateSeller;
+var Dealership = require('../models/dealerships').Dealership;
+var Province = require('../../../models/provinces').Province;
 
 /**
- * Responds to HTTP POST /seller/view. Inserts a new user into the users database table, a new dealership into the
- * dealerships database table (if the seller type is 'dealership'), a new seller into the sellers database table,
- * creates a seller session object, logs-in the new seller, and displays the seller profile page.
- *
- * @param   {object}    request     An HTTP request object received from the express.post() method.
- * @param   {object}    response    An HTTP response object received from the express.post() method.
- *
- * @return  {undefined}
+ * Import routes.
  */
-function addProfile(request, response) {
-	var slr = request.body.seller;
 
-	mongoose.connect('mongodb://localhost/bootandbonnet');
-	mongoose.connection.on('error', console.error.bind(console, 
-											'Error: addProfile failed to connect to MongoDB.'));
-	mongoose.connection.once('open', function () {
-		bcrypt.hash(request.body.user.password, 10, function(err, hash) {
-			if (err) {
-				throw err;
-			}
-			var user = new User({
-				emailAddress: request.body.user.emailAddress,
-				passwordHash: hash
-			});
-			user.save(function (err, user) {
-				if (err) {
-					throw err;
-				}
-				if (slr.type === 'privateSeller') {
-					var privateSeller = new PrivateSeller({
-						name: {
-							firstname: slr.firstname,
-							surname: slr.surname
-						},
-						telephone: slr.telephone,
-						cellphone: slr.cellphone,
-						address: {
-							town: slr.town,
-							province: slr.province,
-							country: 'South Africa'
-						},
-						userId: user._id
-					});
-					privateSeller.save(function (err, privateSeller) {
-						if (err) {
-							throw err;
-						}
-						mongoose.connection.close();
-						var dealership = null;
-						setSession(request, response, user, dealership, privateSeller, function () {
-							showProfile(request, response, sendEmail);
-						});
-					});	
-				} else {
-					var dealership = new Dealership({
-						name: slr.dealershipName,
-						contactPerson: {
-							firstname: slr.firstname,
-							surname: slr.surname
-						},
-						address: {
-							street: slr.streetAddress1,
-							suburb: slr.streetAddress2,
-							town: slr.town,
-							province: slr.province,
-							country: 'South Africa'
-						},
-						telephone: slr.telephone,
-						cellphone: slr.cellphone,
-						userId: user._id
-					});
-					dealership.save(function (err, dealership) {
-						if (err) {
-							throw err;
-						}
-						mongoose.connection.close();
-						var privateSeller = null;
-						setSession(request, response, user, dealership, privateSeller, function () {
-							showProfile(request, response, sendEmail);
-						});
-					});
-				}
-			})
-		});
-	});
-}
+var eav = require('./email-address-verification');
+var main = require('../../../routes/main');
+var login = require('./login');
 
 /**
- * Responds to HTTP POST /seller/edit. Edits the user profile, then displays it.
+ * Responds to HTTP GET /seller/add and HTTP GET /seller/edit.
  *
- * @param   {object}    request     An HTTP request object received from the express.put() method.
- * @param   {object}    response    An HTTP response object received from the express.put() method.
+ * Displays seller-registration-form, to either add or edit a seller profile. If a seller is already
+ * logged-in, a new profile cannot be added, so the function will do nothing. If a seller is not
+ * logged-in, a profile cannot be edited, so the function will do nothing.
  *
- * @return  {undefined}
- */
-function editProfile(request, response) {
-	var isEmailChanged = request.body.user.emailAddress.toLowerCase() !== request.session.user.emailAddress.toLowerCase();
-	var isPasswordChanged = request.body.user.password !== "";
-
-	function updateUser(callback) {
-		if (isEmailChanged && isPasswordChanged) {
-			bcrypt.hash(request.body.user.password, 10, function (err, hash) {
-				if (err) {
-					throw err;
-				} else {
-					User.findByIdAndUpdate(request.session.user._id, {
-						$set: {
-							emailAddress: request.body.user.emailAddress, 
-							passwordHash: hash,
-							emailAddressVerified: false
-						}
-					}, function (err, user) {
-						if (err) {
-							return callback(err);
-						} 
-						request.session.user.emailAddres = user.emailAddress;
-						request.session.user.passworsHash = user.passwordHash;
-						return callback(null, user);	
-					});
-				}
-			});		
-		} else if (isEmailChanged) {
-			User.findByIdAndUpdate(request.session.user._id, {
-				$set: {
-					emailAddress: request.body.user.emailAddress
-				}
-			}, function (err, user) {
-				if (err) {
-					return callback(err);
-				}
-				request.session.user.emailAddress = user.emailAddress;
-				return callback(null, user);
-			});
-		} else {
-			return callback(null, request.session.user);
-		}
-	}
-
-	mongoose.connect('mongodb://localhost/bootandbonnet');
-	mongoose.connection.on('error', console.error.bind(console, 
-											'Error: addProfile failed to connect to MongoDB.'));
-	mongoose.connection.once('open', function () {
-		updateUser(function (err, user) {
-			if (err) {
-				throw err;
-			} else if (request.body.seller.type === 'privateSeller' && request.session.privateSeller) {
-				PrivateSeller.findByIdAndUpdate(request.session.privateSeller._id, {
-					$set: {
-						name: {
-							firstname: request.body.seller.firstname,
-							surname: request.body.seller.surname
-						},
-						telephone: request.body.seller.telephone,
-						cellphone: request.body.seller.cellphone,
-						address: {
-							town: request.body.seller.town,
-							province: request.body.seller.province
-						}	
-					}
-				}, function (err, privateSeller) {
-					if (err) {
-						throw err;
-					} else {
-						mongoose.connection.close();
-						request.session.privateSeller.name = privateSeller.name;
-						request.session.privateSeller.telephone = privateSeller.telephone;
-						request.session.privateSeller.cellphone = privateSeller.cellphone;
-						request.session.privateSeller.address = privateSeller.address;
-						showProfile(request, response, function (request, response) {
-							if (isEmailChanged) {
-								sendEmail(request, response);
-							}
-						});
-					}
-				});
-			}
-		});
-	});
-}
-
-/**
- * Responds to HTTP DELETE /seller/view. Deletes the seller profile and all related rows in the database. Displays
- * the home page.
+ * @param		{object}		request     An HTTP request object received from the express.get() method.
+ * @param		{object}		response    An HTTP response object received from the express.get() method.
  *
- * @param   {object}    request     An HTTP request object received from the express.del() method.
- * @param   {object}    response    An HTTP response object received from the express.del() method.
- *
- * @return  {undefined}
- */
-function removeProfile(request, response) {
-	var user = request.session.user;
-	var privateSeller = request.session.privateSeller; 
-	var dealership = request.session.dealership;
-
-	mongoose.connect('mongodb://localhost/bootandbonnet');
-	mongoose.connection.on('error', console.error.bind(console, 
-											'Error: addProfile failed to connect to MongoDB.'));
-	mongoose.connection.once('open', function () {
-		if (privateSeller) {
-			PrivateSeller.findByIdAndRemove(privateSeller._id, function (err) {
-				if (err) {
-					throw err;	
-				} else {
-					request.session.privateSeller = null;
-					User.findByIdAndRemove(user._id, function (err) {
-						if (err) {
-							throw err;
-						} else {
-							mongoose.connection.close();
-							request.session.user = null;
-							home(request, response);				
-						}
-					});
-				}
-			});
-		} else if (dealership) {
-			Dealership.findByIdAndRemove(dealership._id, function (err) {
-				if (err) {
-					throw err;
-				} else {
-					request.session.dealership = null;
-					User.findByIdAndRemove(user._id, function (err) {
-						if (err) {
-							throw err;
-						} else {
-							mongoose.connection.close();
-							request.session.user = null;
-							home(request, response);					
-						}
-
-					});			
-				}
-			});
-		}
-	});
-}
-
-/**
- * Creates a seller object as a property of the request.session object.
- *
- * @param   {object}    request		An HTTP request object received from the express HTTP method.
- * @param   {object}    response	An HTTP response object received from the express HTTP method.
- * @param	{object}	user		A user object.
- * @param	{object}	seller		A seller object.
- * @param	{object}	dealership	A dealership object.
- * @param	{function}	callback	The function which is called as soon as this function completes execution.
- *
- * @return  {function}	Returns its callback function with no arguments.
- */
-function setSession(request, response, user, dealership, privateSeller, callback) {
-	request.session.user = {
-		_id: user._id,
-		emailAddress: user.emailAddress,
-		passwordHash: user.passwordHash,
-		dateAdded: user.dateAdded,
-		emailAddressVerified: user.emailAddressVerified,
-		loggedIn: true
-	};
-	if (dealership === null) {
-		request.session.privateSeller = {
-			_id: privateSeller._id,
-			name: privateSeller.name, 
-			telephone: privateSeller.telephone,
-			cellphone: privateSeller.cellphone,
-			address: privateSeller.address,
-			userId: privateSeller.userId
-		};
-		request.session.dealership = null;
-	} else {
-		request.session.dealership = {
-			_id: dealership._id,
-			name: dealership.name,
-			address: dealership.address,
-			contactPerson: dealership.contactPerson,
-			telephone: dealership.telephone,
-			cellphone: dealership.cellphone,
-			userId: dealership.userId
-		};
-	}
-	if (typeof(callback) === "function") {
-		if (callback.toString().indexOf("showHomePage") !== -1) {
-			return callback(request, response);
-		}
-		return callback(null);
-	}
-}
-
-/**
- * Sends an email to a user to verify the email address provided.
- *
- * @param	{string}	emailAddress	The email address provided by the seller.
- * @param	{function}	callback		The function which is called as soon as this function completes execution.
- *
- * @return	{undefined}
- *
- */
-function sendEmail(request) {
-	var emailAddress = request.session.user.emailAddress;
-	bcrypt.hash(emailAddress, 10, function(err, hash) {
-		if (err) {
-			throw err;
-		} else {
-			var link = 'http://localhost:3000/seller/edit/verify-email/?emailAddress='
-							.concat(encodeURIComponent(emailAddress))
-							.concat('&hash=')
-							.concat(hash);
-			email.send({
-				text: "Dear Sir/Madam,\n\n"
-						.concat("Thank you for registering a BootandBonnet account.\n\n")
-						.concat("In order to guarantee receiving important future emails regarding your account, ")
-						.concat("you must verify your email address. ") 
-						.concat("Please click the following link to verify your email address:\n\n")
-						.concat(link).concat('\n\n')
-						.concat("Thank you,\n")
-						.concat("The BootandBonnet Team"),
-				from: "BootandBonnet <info@bootandbon.net>",
-				to: emailAddress,
-				subject: "Email Verification"
-			}, function(err, message) {
-				console.log(err || message);
-			});
-		}
-	});
-}
-
-/**
- * Responds to HTTP GET /seller. It checks that the email address and the email hash in the query string match. It
- * then displays the emailVerification.ejs page.
- *
- * @param   {object}	request     An HTTP request object received from the express.get() method.
- * @param   {object}	response    An HTTP response object received from the express.get() method.
- *
- * @return  {undefined}	It returns nothing. It displays the emailVerification page.
- */
-function verifyEmail(request, response) {
-	var emailAddress = decodeURIComponent(request.query.emailAddress);
-	var emailAddressHash = request.query.hash;
-	console.log('Hi!');
-	bcrypt.compare(emailAddress, emailAddressHash, function(err, isMatch) {
-		if (err) {
-			throw err;
-		} else if (isMatch) {
-			var isUserLoggedIn = request.session.user && request.session.user.loggedIn;
-			mongoose.connect('mongodb://localhost/bootandbonnet');
-			mongoose.connection.on('error', console.error.bind(console, 
-											'Error: addProfile failed to connect to MongoDB.'));
-			mongoose.connection.once('open', function () {
-				User.findOneAndUpdate({emailAddress: emailAddress}, {
-					$set: {
-						emailAddressVerified: true
-					}
-				}, function () {
-					if (isUserLoggedIn) {
-						request.session.user.emailAddressVerified = true;
-					}
-					mongoose.connection.close();
-					emailVerified(request, response);
-				});
-			});
-		}
-	});
-}
-
-/**
- * Responds to HTTP GET /seller/add and /seller/edit. Displays the register form, to either add or edit a seller profile. If a 
- * seller is already logged-in, a new profile cannot be added, so the function 
- * will do nothing. If a seller is not logged-in, a profile cannot be edited, 
- * so the function will do nothing.
- *
- * @param   {object}	request     An HTTP request object received from the express.get() method.
- * @param   {object}	response    An HTTP response object received from the express.get() method.
- *
- 
- * @returns {undefined}                  
+ * @returns	{undefined}
  */
 function showRegistrationForm(request, response) {
 	var action = request.path.split('/').slice(-1)[0];
-	var isSellerLoggedIn = request.session.user ? true : false;
-
-	if ((action === 'add') && (!isSellerLoggedIn)) { 		
-		var provinces = Object.create(provincesPrototype);
-		provinces.country = "South Africa";
-		provinces.readObjects(function (err, provinces) {
-			if (err) {
-				throw err;
-			}
-			response.render('register', {
-				provinces: provinces.objects,
+	var isSellerLoggedIn = request.session.seller ? true : false;
+	Province.find(function (err, provinces) {
+		if (err) {
+			console.log(err);
+			return main.showErrorPage(request, response);
+		} else if ((action === 'add') && (!isSellerLoggedIn)) {
+			var locals = {
+				validation: request.session.registrationFormValidation,
+				provinces: provinces,
 				action: '/seller/add',
 				heading: 'New Seller',
 				buttonCaption: 'Register',
-				emailError: '',
+				/* request.session.emailError is set by addProfile if the email address is already
+				* registered.*/
+				emailError: request.session.emailError || '',
 				sellerType: '',
-				email: '',
-				password: '', 
+				emailAddress: '',
+				password: '',
 				firstname: '',
 				surname: '',
 				telephone: '',
@@ -470,39 +66,35 @@ function showRegistrationForm(request, response) {
 				province: '',
 				town: '',
 				townId: '',
-				loggedIn: isSellerLoggedIn 
-			});
-		});
-	} else if ((action === 'edit') && (isSellerLoggedIn)) {
-		if (request.session.privateSeller) {
-			var seller = request.session.privateSeller;
-			var firstname = seller.name.firstname;
-			var surname = seller.name.surname;
-			var dealershipName = '';
-			var streetAddress1 = '';
-			var streetAddress2 = '';
-		} else {
-			var seller = request.session.dealership;
-			var firstname = seller.contactPerson.firstname;
-			var surname = seller.contactPerson.surname;
-			var dealershipName = seller.name;
-			var streetAddress1 = seller.address.street;
-			var streetAddress2 = seller.address.suburb;
-		}
-		var provinces = Object.create(provincesPrototype);
-		provinces.country = "South Africa";
-		provinces.readObjects(function (err, provinces) {
-			if (err) {
-				throw err;
+				loggedIn: isSellerLoggedIn
+			};
+		} else if ((action === 'edit') && (isSellerLoggedIn)) {
+			if (request.session.privateSeller) {
+				var seller = request.session.privateSeller;
+				var firstname = seller.name.firstname;
+				var surname = seller.name.surname;
+				var dealershipName = '';
+				var streetAddress1 = '';
+				var streetAddress2 = '';
+			} else {
+				var seller = request.session.dealership;
+				var firstname = seller.contactPerson.firstname;
+				var surname = seller.contactPerson.surname;
+				var dealershipName = seller.name;
+				var streetAddress1 = seller.address.street;
+				var streetAddress2 = seller.address.suburb;
 			}
-			response.render('register', {
-				provinces: provinces.objects,
+			var locals = {
+				validation: request.session.registrationFormValidation,
+				provinces: provinces,
 				action: '/seller/edit',
 				heading: 'Edit Seller',
 				buttonCaption: 'Save Changes',
-				emailError: '',
+				/* request.session.emailError is set by addProfile if the email address is already
+				* registered.*/
+				emailError: request.session.emailError || '',
 				sellerType: request.session.privateSeller ? 'privateSeller' : 'dealership',
-				email: request.session.user.emailAddress,
+				emailAddress: request.session.seller.emailAddress,
 				password: '',
 				firstname: firstname,
 				surname: surname,
@@ -511,20 +103,487 @@ function showRegistrationForm(request, response) {
 				dealershipName: dealershipName,
 				streetAddress1: streetAddress1,
 				streetAddress2: streetAddress2,
-				province: seller.province,
-				town: seller.town,
-				loggedIn: isSellerLoggedIn 
+				province: seller.address.province,
+				town: seller.address.town,
+				loggedIn: isSellerLoggedIn
+			};
+		}
+		return response.render('registration-form', locals, function (err, html) {
+			request.session.emailError = null;
+			request.session.registrationFormValidation = null;
+			response.send(html);
+		});
+	});
+}
+
+/**
+ * Responds to HTTP POST /seller/add and HTTP POST /seller/edit.
+ *
+ * Validates the inputs on the seller registration form. If any of the inputs are invalid, it redisplays the
+ * registration form; otherwise, it calls the addProfile or editProfile functions.
+ *
+ * @param		{object}		request     An HTTP request object received from the express.post() method.
+ * @param		{object}		response    An HTTP response object received from the express.post() method.
+ *
+ * @returns	{undefined}
+ */
+function validateInputs(request, response) {
+	var action = request.path.split('/').slice(-1)[0];
+	var isSellerLoggedIn = request.session.seller ? true : false;
+	var formSeller = request.body.seller;
+	var regExpStr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$";
+	var regExp = new RegExp(regExpStr, 'gim');
+	request.session.registrationFormValidation = {
+		isEmailValid: regExp.test(formSeller.emailAddress),
+		isPasswordValid: (function () {
+			if (action === 'add' && !isSellerLoggedIn) {
+				return (formSeller.password.length >= 8);
+			} else if (action === 'edit' && isSellerLoggedIn) {
+				return (formSeller.password.length >= 8 || formSeller.password.length === 0);
+			}
+		}()),
+		isPasswordConfirmed: formSeller.password === formSeller.confirmPassword,
+		isTelephoneProvided: (formSeller.telephone !== '' || formSeller.cellphone !== ''),
+		isLocationProvided: (formSeller.province !== 'Please select ...' &&
+							formSeller.town !== 'Please select ...'),
+		isSellerTypeProvided: formSeller.type ? true : false,
+		isDealershipNameProvided: (function () {
+			if (formSeller.type === 'dealership') {
+				return formSeller.dealershipName !== '';
+			} else if (formSeller.type === 'privateSeller') {
+				return true;
+			}
+		}()),
+		isDealershipAddressProvided: (function () {
+			if (formSeller.type === 'dealership') {
+				return formSeller.streetAddress1 !== '';
+			} else if (formSeller.type === 'privateSeller') {
+				return true;
+			}
+		}())
+	};
+	var fv = request.session.registrationFormValidation;
+	for (var c in fv){
+		if (!fv[c]) {
+			return showRegistrationForm(request, response);
+		}
+	}
+	if (action === 'add' && !isSellerLoggedIn) {
+		return addProfile(request, response);
+	} else if (action === 'edit' && isSellerLoggedIn) {
+		return editProfile(request, response);
+	}
+}
+
+/**
+ * Inserts a new seller into the sellers database collection, a new dealership into the dealerships database
+ * collection (if the seller type is 'dealership'), creates a seller session object, logs-in the new seller,
+ * and displays the seller profile page.
+ *
+ * @param		{object}		request     An HTTP request object received from the express.post() method.
+ * @param		{object}		response    An HTTP response object received from the express.post() method.
+ *
+ * @returns	{undefined}
+ */
+function addProfile(request, response) {
+	var formSeller = request.body.seller;
+	bcrypt.hash(formSeller.password, 10, function (err, passwordHash) {
+		if (err) {
+			console.log(err);
+			return main.showErrorPage(request, response);
+		} else {
+			var seller = new Seller({
+				emailAddress: formSeller.emailAddress,
+				passwordHash: passwordHash
 			});
+			seller.save(function (err, seller) {
+				if (err && (err.message.substring('duplicate key error index') !== -1)) {
+					request.session.emailError = 'That email address has been registered already.';
+					showRegistrationForm(request, response);
+				} else if (err) {
+					console.log(err);
+					return main.showErrorPage(request, response);
+				} else if (formSeller.type === 'privateSeller') {
+					var privateSeller = new PrivateSeller({
+						name: {
+							firstname: formSeller.firstname,
+							surname: formSeller.surname
+						},
+						telephone: formSeller.telephone,
+						cellphone: formSeller.cellphone,
+						address: {
+							town: formSeller.town,
+							province: formSeller.province,
+						},
+						sellerId: seller._id
+					});
+					privateSeller.save(function (err, privateSeller) {
+						if (err) {
+							console.log(err);
+							return main.showErrorPage(request, response);
+						} else {
+							var dealership = null;
+							login.setSession(request, response, seller, dealership, privateSeller,
+								function () {
+									return showProfile(request, response, eav.sendEmail);
+								}
+							);
+						}
+					});
+				} else {
+					var dealership = new Dealership({
+						name: formSeller.dealershipName,
+						contactPerson: {
+							firstname: formSeller.firstname,
+							surname: formSeller.surname
+						},
+						address: {
+							street: formSeller.streetAddress1,
+							suburb: formSeller.streetAddress2,
+							town: formSeller.town,
+							province: formSeller.province,
+						},
+						telephone: formSeller.telephone,
+						cellphone: formSeller.cellphone,
+						sellerId: seller._id
+					});
+					dealership.save(function (err, dealership) {
+						if (err) {
+							console.log(err);
+							return main.showErrorPage(request, response);
+						} else {
+							var privateSeller = null;
+							login.setSession(request, response, seller, dealership, privateSeller,
+								function () {
+									return showProfile(request, response, eav.sendEmail);
+								}
+							);
+						}
+					});
+				}
+			});
+		}
+	});
+}
+
+/**
+ * Responds to HTTP GET /seller/view/:sid.
+ *
+ * Displays the seller's profile.
+ *
+ * @param		{object}		request		An HTTP request object received from the express.get() method.
+ * @param		{object}		response	An HTTP response object received from the express.get() method.
+ *
+ * @returns	{undefined}		Returns the request and response objects to a callback function.
+ */
+function showProfile(request, response, callback) {
+	var isPrivateSeller = request.session.privateSeller ? true : false;
+	if (isPrivateSeller) {
+		var seller = request.session.privateSeller;
+		var fullname = seller.name.firstname.concat(' ').concat(seller.name.surname);
+		var dealershipName = '';
+		var streetAddress1 = '';
+		var streetAddress2 = '';
+	} else {
+		var seller = request.session.dealership;
+		var fullname = seller.contactPerson.firstname.concat(' ').concat(seller.contactPerson.surname);
+		var dealershipName = seller.name;
+		var streetAddress1 = seller.address.street;
+		var streetAddress2 = seller.address.suburb;
+	}
+	response.render('profile-page', {
+		method: 'delete',
+		sellerType: request.session.dealership ? 'dealership' : 'privateSeller',
+		email: request.session.seller.emailAddress,
+		fullname: fullname,
+		telephone: seller.telephone,
+		cellphone: seller.cellphone,
+		dealershipName: dealershipName,
+		streetAddress1: streetAddress1,
+		streetAddress2: streetAddress2,
+		province: seller.address.province,
+		town: seller.address.town,
+		loggedIn: true
+	});
+	return callback(request, response);
+}
+
+/**
+ * Edits the seller profile, then displays it.
+ *
+ * @param		{object}		request     An HTTP request object received from the express.post() method.
+ * @param		{object}		response    An HTTP response object received from the express.post() method.
+ *
+ * @returns	{undefined}
+ */
+function editProfile(request, response) {
+	var formSeller = request.body.seller;
+	var sessionSeller = request.session.seller;
+	var isEmailChanged = formSeller.emailAddress.toLowerCase() !== sessionSeller.emailAddress.toLowerCase();
+	var isPasswordChanged = formSeller.password !== "";
+
+	function updateSeller(callback) {
+		if (isEmailChanged && isPasswordChanged) {
+			bcrypt.hash(formSeller.password, 10, function (err, hash) {
+				if (err) {
+					return callback(err)
+				} else {
+					Seller.findByIdAndUpdate(sessionSeller._id, {
+						$set: {
+							emailAddress: formSeller.emailAddress,
+							passwordHash: hash,
+							emailAddressVerified: false
+						}
+					}, function (err, seller) {
+						if (err) {
+							return callback(err);
+						}
+						sessionSeller.emailAddres = seller.emailAddress;
+						sessionSeller.passworsHash = seller.passwordHash;
+						return callback(null, seller);
+					});
+				}
+			});
+		} else if (isEmailChanged) {
+			Seller.findByIdAndUpdate(sessionSeller._id, {
+				$set: {
+					emailAddress: formSeller.emailAddress,
+					emailAddressVerified: false
+				}
+			}, function (err, seller) {
+				if (err) {
+					return callback(err);
+				}
+				sessionSeller.emailAddress = seller.emailAddress;
+				return callback(null, seller);
+			});
+		} else if (isPasswordChanged) {
+			bcrypt.hash(formSeller.password, 10, function (err, hash) {
+				if (err) {
+					return callback(err)
+				} else {
+					Seller.findByIdAndUpdate(sessionSeller._id, {
+						$set: {
+							passwordHash: hash,
+						}
+					}, function (err, seller) {
+						if (err) {
+							return callback(err);
+						}
+						sessionSeller.passworsHash = seller.passwordHash;
+						return callback(null, seller);
+					});
+				}
+			});
+		} else {
+			return callback(null, sessionSeller);
+		}
+	}
+
+	var sessionPrivateSeller = request.session.privateSeller;
+	var sessionDealership = request.session.dealership;
+
+	updateSeller(function (err, seller) {
+		if (err) {
+			console.log(err);
+			return main.showErrorPage(request, response);
+		} else if (formSeller.type === 'privateSeller' && sessionPrivateSeller) {
+			PrivateSeller.findByIdAndUpdate(sessionPrivateSeller._id, {
+				$set: {
+					name: {
+						firstname: formSeller.firstname,
+						surname: formSeller.surname
+					},
+					telephone: formSeller.telephone,
+					cellphone: formSeller.cellphone,
+					address: {
+						town: formSeller.town,
+						province: formSeller.province
+					}
+				}
+			}, function (err, privateSeller) {
+				if (err) {
+					console.log(err);
+					return main.showErrorPage(request, response);
+				} else {
+					request.session.privateSeller = privateSeller;
+					showProfile(request, response, function (request, response) {
+						if (isEmailChanged) {
+							return eav.sendEmail(request, response);
+						}
+						return;
+					});
+				}
+			});
+		} else if ((formSeller.type === 'dealership') && sessionDealership) {
+			Dealership.findByIdAndUpdate(sessionDealership._id, {
+				$set: {
+					name: formSeller.dealershipName,
+					contactPerson: {
+						firstname: formSeller.firstname,
+						surname: formSeller.surname
+					},
+					telephone: formSeller.telephone,
+					cellphone: formSeller.cellphone,
+					address: {
+						street: formSeller.streetAddress1,
+						suburb: formSeller.streetAddress2,
+						town: formSeller.town,
+						province: formSeller.province
+					}
+				}
+			}, function (err, dealership) {
+				if (err) {
+					console.log(err);
+					return main.showErrorPage(request, response);
+				} else {
+					request.session.dealership = dealership;
+					showProfile(request, response, function (request, response) {
+						if (isEmailChanged) {
+							return eav.sendEmail(request, response);
+						}
+						return;
+					});
+				}
+			});
+		} else if ((formSeller.type === 'dealership') && sessionPrivateSeller) {
+			request.session.dealership = {
+				_id: sessionPrivateSeller._id,
+				name: formSeller.dealershipName,
+				contactPerson: {
+					firstname: formSeller.firstname,
+					surname: formSeller.surname
+				},
+				telephone: formSeller.telephone,
+				cellphone: formSeller.cellphone,
+				address: {
+					street: formSeller.streetAddress1,
+					suburb: formSeller.streetAddress2,
+					town: formSeller.town,
+					province: formSeller.province
+				},
+				sellerId: sessionPrivateSeller.sellerId
+			};
+			request.session.privateSeller = null;
+			var dealership = new Dealership(request.session.dealership);
+			dealership.save(function (err, dealership) {
+				if (err) {
+					console.log(err);
+					return main.showErrorPage(request, response);
+				} else {
+					PrivateSeller.findByIdAndRemove(dealership._id, function (err) {
+						if (err) {
+							console.log(err);
+							return main.showErrorPage(request, response);
+						} else {
+							showProfile(request, response, function (request, response) {
+								if (isEmailChanged) {
+									return eav.sendEmail(request, response);
+								}
+								return;
+							});
+						}
+					});
+				}
+			});
+		} else if ((formSeller.type === 'privateSeller') && sessionDealership) {
+			request.session.privateSeller = {
+				_id: sessionDealership._id,
+				name: {
+					firstname: formSeller.firstname,
+					surname: formSeller.surname
+				},
+				telephone: formSeller.telephone,
+				cellphone: formSeller.cellphone,
+				address: {
+					town: formSeller.town,
+					province: formSeller.province
+				},
+				sellerId: sessionDealership.sellerId
+			};
+			request.session.dealership = null;
+			var privateSeller = new PrivateSeller(request.session.privateSeller);
+			privateSeller.save(function (err, privateSeller) {
+				if (err) {
+					console.log(err);
+					return main.showErrorPage(request, response);
+				} else {
+					Dealership.findByIdAndRemove(privateSeller._id, function (err) {
+						if (err) {
+							console.log(err);
+							return main.showErrorPage(request, response);
+						} else {
+							showProfile(request, response, function (request, response) {
+								if (isEmailChanged) {
+									return eav.sendEmail(request, response);
+								}
+								return;
+							});
+						}
+					});
+				}
+			});
+		}
+	});
+}
+
+/**
+ * Responds to HTTP GET /seller/remove.
+ *
+ * Deletes the seller from the database, then displays the home page.
+ *
+ * @param		{object}		request     An HTTP request object received from the express.get() method.
+ * @param		{object}		response    An HTTP response object received from the express.get() method.
+ *
+ * @returns	{undefined}
+ */
+function removeProfile(request, response) {
+	var sessionSeller = request.session.seller;
+	var sessionPrivateSeller = request.session.privateSeller;
+	var sessionsessionDealership = request.session.dealership;
+
+	if (sessionPrivateSeller) {
+		PrivateSeller.findByIdAndRemove(sessionPrivateSeller._id, function (err) {
+			if (err) {
+				console.log(err);
+				return main.showErrorPage(request, response);
+			} else {
+				request.session.privateSeller = null;
+				Seller.findByIdAndRemove(sessionSeller._id, function (err) {
+					if (err) {
+						console.log(err);
+						return main.showErrorPage(request, response);
+					} else {
+						request.session.seller = null;
+						return main.showHomePage(request, response);
+					}
+				});
+			}
+		});
+	} else if (sessionDealership) {
+		Dealership.findByIdAndRemove(sessionDealership._id, function (err) {
+			if (err) {
+				console.log(err);
+				return main.showErrorPage(request, response);
+			} else {
+				request.session.dealership = null;
+				Seller.findByIdAndRemove(sessionSeller._id, function (err) {
+					if (err) {
+						console.log(err);
+						return main.showErrorPage(request, response);
+					} else {
+						request.session.seller = null;
+						return main.showHomePage(request, response);
+					}
+				});
+			}
 		});
 	}
 }
 
 module.exports = {
-	show: showProfile,
-	add: addProfile,
-	edit: editProfile,
-	remove: removeProfile,
 	showRegistrationForm: showRegistrationForm,
-	verifyEmail: verifyEmail,
-	setSession: setSession
+	validateInputs: validateInputs,
+	showProfile: showProfile,
+	removeProfile: removeProfile
 };

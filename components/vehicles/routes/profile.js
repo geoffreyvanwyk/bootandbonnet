@@ -1,10 +1,10 @@
 "use strict";
 
 var async = require('async');
-var coloursPrototype = require('../../../models/colours').colours; 
+var coloursPrototype = require('../../../models/colours').colours;
 var fs = require('fs');
 var fuelsPrototype = require('../../../models/fuels').fuels;
-var home = require('../../../routes/home').index;
+var main = require('../../../routes/main');
 var manufacturersPrototype = require('../models/manufacturers').manufacturers;
 var transmissionsPrototype = require('../../../models/transmissions').transmissions;
 var photoPrototype = require('../../../models/photos').photo;
@@ -72,7 +72,7 @@ function addProfile(request, response) {
 			fs.rename(oldPath, newPath, function (err) {
 				if (err) {
 					return callback(err);
-				} 
+				}
 				var p = Object.create(photoPrototype);
 				p.filePath = seller.sellerId.toString().concat('-').concat(vehicle.id).concat('-').concat(counter);
 				p.vehicleId = vehicle.id;
@@ -85,7 +85,7 @@ function addProfile(request, response) {
 			});
 		}, function () {
 			return callback(null, vehicle);
-		}); 
+		});
 	}
 
 	function checkDirectory(vehicle, callback) {
@@ -131,7 +131,7 @@ function addProfile(request, response) {
 			if (err) {
 				return callback(err);
 			}
-			checkDirectory(vehicle, callback);	
+			checkDirectory(vehicle, callback);
 		});
 	}
 

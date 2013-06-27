@@ -1,27 +1,15 @@
 <% layout('../../../views/layout') -%>
 
 <%
-if (emailError === '') {
-	var emailAlertType = '';
-} else {
-	var emailAlertType = 'error';
-}
-if (passwordError === '') {
-	var passwordAlertType = '';
-} else {
-	var passwordAlertType = 'error';
-}
-if (isPasswordReset) {
-	var resetDisplay = '';
-} else {
-	var resetDisplay = 'none';
-}
+var emailAlertType = emailError === '' ? '' : 'error';
+var passwordAlertType = passwordError === '' ? '' : 'error';
+var resetDisplay = isPasswordReset ? '' : 'none';
 %>
 
 <form method="post" action="/seller/login">
     <fieldset>
         <legend>Log In</legend>
-		<div class="alert alert-success" style="display: <%=resetDisplay%>;">
+		<div class="alert alert-success" style="display: <%=resetDisplay %>;">
 			<button type="button" class="close" data-dismiss="alert">&times;</button>
 			Your password has been reset successfully. You may now log in with your new password.
 		</div>
@@ -30,7 +18,7 @@ if (isPasswordReset) {
 				<div class="control-group <%=emailAlertType%>">
 					<label class="control-label">Email</label>
 					<div class="controls">
-						<input type="email" name="user[emailAddress]" value="<%=email%>" required="required" />
+						<input type="email" name="seller[emailAddress]" value="<%=emailAddress %>" required="required"/>
 						<span class="help-block" ><%=emailError%></span>
 					</div>
 				</div>
@@ -38,14 +26,14 @@ if (isPasswordReset) {
 				<div class="control-group <%=passwordAlertType%>">
 					 <label class="control-label">Password</label>
 					<div class="controls">
-						<input type="password" name="user[password]" required="required" />
-						<span class="help-block" ><%=passwordError%></span>
+						<input type="password" name="seller[password]" required="required"/>
+						<span class="help-block" ><%=passwordError %></span>
 					</div>
 				</div>
 
-				<div class="controls" >
+				<div class="controls">
 					<button type="submit" class="btn btn-primary" >Log in</button>
-					<a href="/seller/login/password/forgot">Forgot password?</a>
+					<a href="/seller/password/forgot">Forgot password?</a>
 				</div>
 			</div>
 		</div>

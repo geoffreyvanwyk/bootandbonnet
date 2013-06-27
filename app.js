@@ -1,9 +1,16 @@
+"use strict";
+
 /**
- * Import dependencies.
+ * Import external modules.
  */
 
 var engine = require('ejs-locals');
 var express = require('express');
+
+/**
+ * Import built-in modules.
+ */
+
 var http = require('http');
 var path = require('path');
 
@@ -21,7 +28,7 @@ app.configure(function() {
     app.use(express.favicon());
     app.use(express.logger('dev'));
     app.use(express.bodyParser({
-		uploadDir: __dirname.concat('/assets/img')		
+		uploadDir: __dirname.concat('/assets/img')
 	}));
     app.use(express.methodOverride());
     app.use(express.cookieParser('xvrT4521ghqw0'));
@@ -54,7 +61,7 @@ var map = module.exports.map = function(app, a, route) {
 
 app.map = map;
 
-var home = require('./routes/home').index;
+var main = require('./routes/main');
 var sellers = require('./components/sellers');
 var vehicles = require('./components/vehicles');
 
@@ -63,14 +70,16 @@ app.use(vehicles);
 
 app.map(app, {
     '/': {
-	get: home
+	get: main.showHomePage
     }
 });
 
 /**
- * Start web server.
+ * Start web server and connect to database.
  */
 
 http.createServer(app).listen(app.get('port'), function() {
     console.log("Express server listening on port " + app.get('port'));
+	/* Connect with database. */
+	var mongoose = require('./database').mongoose;
 });

@@ -1,5 +1,6 @@
+assets/img/vehicles/
 nbproject/
 node_modules/
 *~
 *.swp
-assets/img/vehicles/
+*.directory
