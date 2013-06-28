@@ -14,7 +14,7 @@ var privateSellerSchema = mongoose.Schema({
 		province: String,
 		country: String
 	},
-	sellerId: mongoose.Schema.ObjectId
+	sellerId: mongoose.Schema.Types.ObjectId
 });
 
 var PrivateSeller = mongoose.model('PrivateSeller', privateSellerSchema);

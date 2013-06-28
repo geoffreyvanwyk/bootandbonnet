@@ -1,7 +1,25 @@
 "use strict";
 
+var mongoose = require('mongoose');
+var mongodb = require('../../../database').mongoose;
+
+var modelSchema = mongoose.Schema({
+	name: String,
+	shape: {type: String, default: 'general'},
+	photo: {type: String, default: 'unknown' }, // File path to image.
+	vehicles: [{type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle'}]
+});
+
+var makeSchema = mongoose.Schema({
+	name: String,
+	emblem: {type: String, default: 'unknown'}, // File path to image.
+	models: [modelSchema]
+});
+
+var Make = mongoose.model('Make', makeSchema);
+
 var async = require('async');
-var db = require('../../../database');
+var db = require('../../../database').mysql;
 
 var manufacturer = Object.defineProperties({}, {
 	/* Data properties */
@@ -32,7 +50,7 @@ var manufacturer = Object.defineProperties({}, {
 	/* Methods */
 	create: {
 		value: function (callback) {
-			var that = this;	
+			var that = this;
 			db.query("INSERT INTO manufacturers SET ?", {
 				name: that.name,
 				emblem: that.emblem
@@ -47,10 +65,10 @@ var manufacturer = Object.defineProperties({}, {
 		writable: false,
 		enumerable: false,
 		configurable: false
-	}, 
-	read: { 
-		value: function (callback) { 
-			var that = this;	
+	},
+	read: {
+		value: function (callback) {
+			var that = this;
 			db.query("SELECT * FROM manufacturers WHERE id = ?", [
 				that.id
 			], function (err, rows, fields) {
@@ -74,7 +92,7 @@ var manufacturer = Object.defineProperties({}, {
 			], function (err, rows, fields) {
 				if (err) {
 					return callback(err);
-				}	 
+				}
 				async.forEach(rows, function(row, callback1) {
 					that.models.push({
 						id: row.id,
@@ -88,14 +106,14 @@ var manufacturer = Object.defineProperties({}, {
 					return callback(that);
 				});
 			});
-		}, 
+		},
 		writable: false,
 		enumerable: false,
 		configurable: false
 	},
 	update: {
 		value: function (callback) {
-			var that = this;	
+			var that = this;
 			db.query("UPDATE manufacturers SET ? WHERE id = ".concat(db.escape(that.id)), {
 				name: that.name,
 				emblem: that.emblem
@@ -112,19 +130,19 @@ var manufacturer = Object.defineProperties({}, {
 	},
 	del: {
 		value: function (callback) {
-			var that = this;	
+			var that = this;
 			db.query("DELETE FROM manufacturers WHERE id = ?", that.id, function (err, result) {
 				if (err) {
 					return callback(err);
 				}
-				return callback(null);				
+				return callback(null);
 			});
 		},
 		writable: false,
 		enumerable: false,
 		configurable: false
 	}
-}); 
+});
 
 Object.preventExtensions(manufacturer);
 
@@ -141,7 +159,7 @@ var manufacturers = Object.defineProperties({}, {
 		writable: true,
 		enumerable: true,
 		configurable: false
-	}, 
+	},
 	/* Methods */
 	readNames: {
 		value: function (callback) {
@@ -177,11 +195,11 @@ var manufacturers = Object.defineProperties({}, {
 					return callback1();
 				}, function() {
 					async.forEach(that.objects, function (manufacturerObject, callback2) {
-						db.query('SELECT models.id, models.name '
+						db.query('SELECT models.name '
 									.concat('FROM models ')
 									.concat('INNER JOIN manufacturers ')
 									.concat('WHERE manufacturers.name = ? ')
-									.concat('AND manufacturers.id = models.manufacturerId'), [
+									.concat('AND manufacturers.id = models.manufacturer_id'), [
 							manufacturerObject.name
 						], function (err, rows, fields) {
 								if (err) {
@@ -189,7 +207,6 @@ var manufacturers = Object.defineProperties({}, {
 								}
 								async.forEach(rows, function(row, callback3) {
 									manufacturerObject.models.push({
-										id: row.id,
 										name: row.name
 									});
 									return callback3();
@@ -212,11 +229,26 @@ var manufacturers = Object.defineProperties({}, {
 Object.preventExtensions(manufacturers);
 
 if (require.main === module) {
-	manufacturers.readNames(function(err, names) {
+	manufacturers.readObjects(function(err, makes) {
 		if (err) {
 			throw err;
 		} else {
-			console.log(names);
+			async.forEach(makes.objects, function (makeObject, callback) {
+				var make = new Make({
+					name: makeObject.name,
+					models: makeObject.models
+				});
+				make.save(function (err, make) {
+					if (err) {
+						throw err;
+					} else {
+						console.log(make.name);
+						callback();
+					}
+				});
+			}, function () {
+				console.log('Done!');
+			});
 		}
 	});
 }
