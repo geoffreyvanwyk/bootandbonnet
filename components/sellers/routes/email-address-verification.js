@@ -10,7 +10,7 @@ var bcrypt = require('bcrypt');
  * Import local modules.
  */
 
-var email = require('../../../email').server;
+var email = require('../../../configuration/email').server;
 
 /**
  * Import models.

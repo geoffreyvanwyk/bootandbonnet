@@ -1,13 +1,135 @@
 <% layout('../../../views/layout') -%>
 
-<%
-	var photos = vehicle.photos;
-%>
-
 <form action="." method="get" >
-	<h2>Vehicle</h2>
-	<h3><%=vehicle.year %> <%=vehicle.model.manufacturer.name %> <%=vehicle.model.name %> R<%=vehicle.price %> </h3>
-<% for (p in photos) { %>
-	<img src="<%=photos[p].filePath %>" />
-<% } %>
+	<div class="page-header">
+		<h1>Vehicle</h1>
+	</div>
+	
+	<h2>
+		<%=vehicle.type.year%> <%=vehicle.type.make%> <%=vehicle.type.model%> R<%=vehicle.price.value%>
+	</h2>
+	<div class="row">
+		<div class="span6">
+			<ul class="thumbnails">
+				<li class="span6">
+					<img class="thumbnail" src="<%=vehicle.photos[0]%>"/>
+				</li>
+			</ul>
+			
+			<ul class="thumbnails">
+				<li class="span2">
+					<img class="thumbnail" src="<%=vehicle.photos[1]%>"/>
+				</li>
+				<li class="span2">
+					<img class="thumbnail" src="<%=vehicle.photos[2]%>"/>
+				</li>
+				<li class="span2">
+					<img class="thumbnail" src="<%=vehicle.photos[3]%>"/>
+				</li>
+			</ul>
+		</div>
+		
+		<div class="span3">
+			<fieldset>
+				<legend>Description</legend>
+				<span>
+					<strong>Mileage:</strong> 
+					<%=vehicle.description.mileage%> km
+				</span><br />
+				
+				<span>
+					<strong>Colour:</strong> 
+					<%=vehicle.description.color%>
+				</span><br />
+				
+				<span>
+					<strong>Full service history:</strong> 
+					<%=vehicle.description.fullServiceHistory%>
+				</span>
+			</fieldset>
+			
+			<fieldset>
+				<legend>Mechanics</legend>
+				
+				<span>
+					<strong>Engine capacity:</strong> 
+					<%=vehicle.mechanics.engineCapacity%> L
+				</span><br />
+				
+				<span>
+					<strong>Fuel type:</strong> 
+					<%=vehicle.mechanics.fuel%>
+				</span><br />
+				
+				<span>
+					<strong>ABS Brakes:</strong> 
+					<%=vehicle.mechanics.absBrakes%>
+				</span><br />
+			
+				<span>
+					<strong>Transmission:</strong> 
+					<%=vehicle.mechanics.transmission%>
+				</span>
+			</fieldset>
+			
+			<fieldset>
+				<legend>Luxuries</legend>
+				
+				<span>
+					<strong>Electrical windows:</strong> 
+					<%=vehicle.luxuries.electricalWindows%>
+				</span><br />
+				
+				<span>
+					<strong>Air conditioning:</strong> 
+					<%=vehicle.luxuries.airConditiong%>
+				</span><br />
+				
+				<span>
+					<strong>CD player:</strong> 
+					<%=vehicle.luxuries.cdPlayer%>
+				</span><br />
+				
+				<span>
+					<strong>Radio:</strong> 
+					<%=vehicle.luxuries.radio%>
+				</span>
+			</fieldset>
+		</div>
+		
+		<div class="span3">
+			<fieldset>
+				<legend>Security</legend>
+				
+				<span>
+					<strong>Alarm:</strong> 
+					<%=vehicle.security.alarm%>
+				</span><br />
+				
+				<span>
+					<strong>Central locking:</strong> 
+					<%=vehicle.security.centralLocking%>
+				</span><br />
+				
+				<span>
+					<strong>Immobiliser:</strong> 
+					<%=vehicle.security.immobilizer%>
+				</span><br />
+				
+				<span>
+					<strong>Gear lock:</strong> 
+					<%=vehicle.security.gearLock%>
+				</span>
+			</fieldset>
+			
+			<fieldset>
+				<legend>Safety</legend>
+				
+				<span>
+					<strong>Air bags:</strong> 
+					<%=vehicle.safety.airBags%>
+				</span><br />
+			</fieldset>
+		</div>
+	</div>
 </form>

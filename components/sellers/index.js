@@ -1,3 +1,11 @@
+/**
+ * HTTP Server Component: sellers
+ * 
+ * File Name: index.js
+ * 
+ * Purpose: Used to register new users and log them in.
+ */
+
 "use strict";
 
 /**
@@ -14,21 +22,10 @@ var engine = require('ejs-locals');
 var path = require('path');
 
 /**
- * Configure application.
+ * Import libraries.
  */
 
-var app = module.exports = express();
-
-app.configure(function () {
-	app.engine('ejs', engine);
-	app.set('views', __dirname + '/views');
-	app.set('view engine', 'ejs');
-	app.use('/assets', express.static(path.join(__dirname, 'assets')));
-});
-
-app.configure('development', function () {
-	app.use(express.errorHandler());
-});
+var map = require('../../library/route-map').map;
 
 /**
  * Import routes.
@@ -40,10 +37,27 @@ var login = require('./routes/login');
 var password = require('./routes/password-reset');
 
 /**
+ * Configure application.
+ */
+
+var app = express();
+
+app.configure(function () {
+	app.engine('ejs', engine);
+	app.set('views', __dirname + '/views');
+	app.set('view engine', 'ejs');
+    app.use('/static', express.static('static'));
+});
+
+app.configure('development', function () {
+	app.use(express.errorHandler());
+});
+
+/**
  * Map urls and HTTP verbs to routes.
  */
 
-app.map = require('../../app').map;
+app.map = map;
 
 app.map(app, {
 	'/seller': {
@@ -80,3 +94,7 @@ app.map(app, {
 		}
 	}
 });
+
+module.exports = {
+	app: app
+};

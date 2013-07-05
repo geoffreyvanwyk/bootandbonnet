@@ -1,5 +1,13 @@
 "use strict";
 
+/*
+ * Module: sellers 
+ * 
+ * File name: login.js
+ * 
+ * Purpose: Routes handling login
+ */
+
 /* Import external modules. */
 
 var bcrypt = require('bcrypt');

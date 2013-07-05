@@ -3,11 +3,16 @@
 var mongoose = require('mongoose');
 
 var provinceSchema = mongoose.Schema({
-	name: String,
-	towns: Array
+	name: {
+		type: String, 
+		required: true, 
+		unique: true
+	},
+	towns: {
+		type: [String], 
+		required: true
+	}
 });
-
-provinceSchema.index({name: 1}, {unique: true});
 
 var Province = mongoose.model('Province', provinceSchema);
 

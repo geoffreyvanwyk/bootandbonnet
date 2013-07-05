@@ -1,52 +1,73 @@
 "use strict";
 
+/**
+ * Import external modules.
+ */
+
 var async = require('async');
-var coloursPrototype = require('../../../models/colours').colours;
-var fs = require('fs');
-var fuelsPrototype = require('../../../models/fuels').fuels;
+
+/**
+ * Import built-in modules.
+ */
+
+var fs = require('fs'); // For uploading photos.
+
+/**
+ * Import libraries.
+ */
+
+var sanitize = require('../../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
+
+/**
+ * Import models.
+ */
+
+var Make = require('../models/makes').Make;
+var Vehicle = require('../models/vehicles').Vehicle;
+var Lookups = require('../../../models/lookups').Lookups;
+
+/**
+ * Import routes.
+ */
+
 var main = require('../../../routes/main');
-var manufacturersPrototype = require('../models/manufacturers').manufacturers;
-var transmissionsPrototype = require('../../../models/transmissions').transmissions;
-var photoPrototype = require('../../../models/photos').photo;
-var vehiclePrototype = require('../models/vehicles').vehicle;
-var vehiclesPrototype = require('../models/vehicles').vehicles;
-var modelPrototype = require('../models/models').model;
-var manufacturerPrototype = require('../models/manufacturers').manufacturer;
 
 /**
  * Responds to HTTP GET /vehicle/add and HTTP GET /vehicle/edit.
+ *
+ * Displays the vehicle registration-form, to either add or edit a vehicle profile, followed by the newly
+ * registered vehicle's profile.
+ *
+ * If a seller is not logged-in,
+ * logged-in, a new profile cannot be added, so the function will do nothing. If a seller is not
+ * logged-in, a profile cannot be edited, so the function will do nothing.
+ *
+ * @param		{object}		request     An HTTP request object received from the express.get() method.
+ * @param		{object}		response    An HTTP response object received from the express.get() method.
+ *
+ * @returns	{undefined}
  */
-function showForm(request, response) {
-	var manufacturers = Object.create(manufacturersPrototype);
-	manufacturers.readObjects(function (err, manufacturers) {
+function showRegistrationForm(request, response) {
+	Make.find(function (err, makes) {
 		if (err) {
-			throw err;
-		}
-		var colours = Object.create(coloursPrototype);
-		colours.readNames(function (err, colours) {
-			if (err) {
-				throw err;
-			}
-			var fuels = Object.create(fuelsPrototype);
-			fuels.readTypes(function (err, fuels) {
+			console.log(err);
+			return main.showErrorPage(request, response);
+		} else {
+			Lookups.find(function (err, lookups) {
 				if (err) {
-					throw err;
-				}
-				var transmissions = Object.create(transmissionsPrototype);
-				transmissions.readTypes(function (err, transmissions) {
-					if (err) {
-						throw err;
-					}
-					response.render('register', {
-						makes: manufacturers.objects,
-						colours: colours.names,
-						fuels: fuels.types,
-						transmissions: transmissions.types,
+					console.log(err);
+					return main.showErrorPage(request, response);
+				} else {
+					response.render('registration-form', {
+						makes: makes,
+						colors: lookups[0].colors,
+						fuels: lookups[0].fuels,
+						transmissions: lookups[0].transmissions,
 						loggedIn: true
 					});
-				});
+				}
 			});
-		});
+		}
 	});
 }
 
@@ -54,13 +75,19 @@ function showForm(request, response) {
  * Responds to HTTP POST /vehicle/add.
  */
 function addProfile(request, response) {
-	var seller = request.session.seller;
-	var vcl = request.body.vehicle;
-	var newDir = __dirname.concat('/../../../assets/img/vehicles/').concat(seller.sellerId);
+	var sessionSeller = request.session.seller;
+	var formVehicle = request.body.vehicle;
+	var uploadDir = '/static/img/vehicles/'.concat(sessionSeller._id);
+	var newDir = __dirname.concat('/../../..').concat(uploadDir);
 	var photos = [];
+	var photoPaths = [];
 
 	for (var i in request.files) {
-		photos.push(request.files[i]);
+		if (request.files[i].size > 0) {
+			photos.push(request.files[i]);
+		} else {
+			fs.unlinkSync(request.files[i].path);
+		}
 	}
 
 	function uploadPhotos(vehicle, callback) {
@@ -68,23 +95,27 @@ function addProfile(request, response) {
 		async.forEach(photos, function (photo, callback1) {
 			counter = counter + 1;
 			var oldPath = photo.path;
-			var newPath = newDir.concat('/').concat(seller.sellerId).concat('-').concat(vehicle.id).concat('-').concat(counter);
+			var newFileName = sessionSeller._id
+								.concat('-')
+								.concat(vehicle._id)
+								.concat('-')
+								.concat(counter);
+			var newPath = newDir.concat('/').concat(newFileName);
 			fs.rename(oldPath, newPath, function (err) {
 				if (err) {
 					return callback(err);
 				}
-				var p = Object.create(photoPrototype);
-				p.filePath = seller.sellerId.toString().concat('-').concat(vehicle.id).concat('-').concat(counter);
-				p.vehicleId = vehicle.id;
-				p.create(function (err, p) {
-					if (err) {
-						return callback(err);
-					}
-					callback1();
-				});
+				photoPaths.push(uploadDir.concat('/').concat(newFileName));
+				callback1();
 			});
 		}, function () {
-			return callback(null, vehicle);
+			vehicle.photos = photoPaths;
+			vehicle.save(function (err, vehicle) {
+				if (err) {
+					return callback(err);
+				}
+				return callback(null, vehicle);
+			});
 		});
 	}
 
@@ -102,32 +133,50 @@ function addProfile(request, response) {
 			}
 		});
 	}
-
-	function createVehicle(callback) {
-		var vehicle = Object.create(vehiclePrototype);
-		vehicle.year = vcl.year;
-		vehicle.mileage = vcl.mileage;
-		vehicle.price = vcl.price;
-		vehicle.comments = vcl.comments;
-		vehicle.engineCapacity = vcl.engineCapacity;
-		vehicle.powerSteering = vcl.powerSteering;
-		vehicle.absBrakes = vcl.absBrakes;
-		vehicle.radio = vcl.radio;
-		vehicle.cdPlayer = vcl.cdPlayer;
-		vehicle.airConditioning = vcl.airConditioning;
-		vehicle.electricWindows = vcl.electricWindows;
-		vehicle.alarm = vcl.alarm;
-		vehicle.centralLocking = vcl.centralLocking;
-		vehicle.immobilizer = vcl.immobilizer;
-		vehicle.gearLock = vcl.gearLock;
-		vehicle.airBags = vcl.airBags;
-		vehicle.transmission = vcl.transmission;
-		vehicle.color = vcl.color;
-		vehicle.fuelType = vcl.fuelType;
-		vehicle.sellerId = seller.sellerId;
-		vehicle.modelId = vcl.modelId;
-		vehicle.townId = seller.townId;
-		vehicle.create(function (err, vehicle) {
+	
+	function addVehicle(callback) {
+		var vehicle = new Vehicle({
+			type: {
+				make: sanitize(formVehicle.type.make), 
+				model: sanitize(formVehicle.type.model),
+				year: sanitize(formVehicle.type.year) 
+			},
+			description: {
+				mileage: sanitize(formVehicle.description.mileage),
+				color: sanitize(formVehicle.description.color),
+				fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory) 
+			},
+			mechanics: {
+				engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
+				fuel: sanitize(formVehicle.mechanics.fuel),
+				transmission: sanitize(formVehicle.mechanics.transmission),
+				absBrakes: sanitize(formVehicle.absBrakes),
+				powerSteering: sanitize(formVehicle.mechanics.powerSteering)
+			},
+			luxuries: {
+				airConditioning: sanitize(formVehicle.luxuries.airConditioning),
+				electricWindows: sanitize(formVehicle.luxuries.electricWindows),
+				radio: sanitize(formVehicle.luxuries.radio),
+				cdPlayer: sanitize(formVehicle.luxuries.cdPlayer) 
+			},
+			security: {
+				alarm: sanitize(formVehicle.security.alarm),
+				centralLocking: sanitize(formVehicle.security.centralLocking),
+				immobilizer: sanitize(formVehicle.security.immobilizer),
+				gearLock: sanitize(formVehicle.security.gearLock) 
+			},
+			safety: {
+				airBags: sanitize(formVehicle.safety.airBags) 
+			},
+			price: {
+				value: sanitize(formVehicle.price.value), 
+				negotiable: sanitize(formVehicle.price.negotiable) 
+			},
+			comments: sanitize(formVehicle.comments),
+			seller: sessionSeller._id
+		});
+		
+		vehicle.save(function (err, vehicle) {
 			if (err) {
 				return callback(err);
 			}
@@ -135,14 +184,12 @@ function addProfile(request, response) {
 		});
 	}
 
-	createVehicle(function (err, vehicle) {
+	addVehicle(function (err, vehicle) {
 		if (err) {
-			throw err;
+			console.log(err);
+			main.showErrorPage(request, response);
 		} else {
-			request.session.vehicle = {
-				id: vehicle.id
-			};
-			showProfile(request, response);
+			response.redirect(302, '/vehicle/view/'.concat(vehicle._id));
 		}
 	});
 }
@@ -162,18 +209,18 @@ function removeProfile(request, response) {
 }
 
 /**
- * Responds to HTTP GET /vehicle/view.
+ * Responds to HTTP GET /vehicle/view/:vehicleId.
  */
 function showProfile(request, response) {
-	var vehicle = Object.create(vehiclePrototype);
-	vehicle.id = request.params.vid;
-	vehicle.read(function (err, vehicle) {
+	var vehicleId = request.params.vehicleId.toString();
+	Vehicle.findById(vehicleId, function (err, vehicle) {
 		if (err) {
-			throw err;
+			console.log(err);
+			main.showErrorPage(request, response);
 		} else {
-			response.render('profile', {
+			response.render('profile-page', {
 				vehicle: vehicle,
-				loggedIn: true
+				loggedIn: request.session.seller ? true : false
 			});
 		}
 	});
@@ -206,10 +253,10 @@ function listVehicles(request, response) {
 }
 
 module.exports = {
-	form: showForm,
-	add: addProfile,
-	edit: editProfile,
-	remove: removeProfile,
-	show: showProfile,
-	list: listVehicles
+	showRegistrationForm: showRegistrationForm,
+	addProfile: addProfile,
+	editProfile: editProfile,
+	removeProfile: removeProfile,
+	showProfile: showProfile,
+	listVehicles: listVehicles
 };

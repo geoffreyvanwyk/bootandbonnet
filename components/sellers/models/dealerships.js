@@ -17,7 +17,7 @@ var dealershipSchema = mongoose.Schema({
 		province: String,
 		country: String
 	},
-	sellerId: mongoose.Schema.ObjectId
+	seller: {type: mongoose.Schema.Types.ObjectId, ref: 'Seller'}
 });
 
 var Dealership = mongoose.model('Dealership', dealershipSchema);

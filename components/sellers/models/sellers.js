@@ -3,12 +3,17 @@
 var mongoose = require('mongoose');
 
 var sellerSchema = mongoose.Schema({
-	emailAddress: String,
-	passwordHash: String,
-	emailAddressVerified: {type: Boolean, default: false}
+	emailAddress: {type: String, unique: true, required: true},
+	passwordHash: {type: String, required: true},
+	emailAddressVerified: {type: Boolean, default: false},
+	vehicles: {
+		type: [{
+			type: mongoose.Schema.Types.ObjectId, 
+			ref: 'Vehicle'
+		}],
+		default: []
+	}
 });
-
-sellerSchema.index({emailAddress: 1}, {unique: true});
 
 var Seller = mongoose.model('Seller', sellerSchema);
 	

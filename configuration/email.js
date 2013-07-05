@@ -15,5 +15,5 @@ var server = email.server.connect({
 });
 
 module.exports = {
-	server: server
+	server: server 
 };

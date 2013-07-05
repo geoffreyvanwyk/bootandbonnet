@@ -1,3 +1,11 @@
+/**
+ * HTTP Server Component: vehicles 
+ * 
+ * File Name: index.js
+ * 
+ * Purpose: Used to register new vehicles and to view their profiles.
+ */
+
 "use strict";
 
 /**
@@ -14,21 +22,10 @@ var engine = require('ejs-locals');
 var path = require('path');
 
 /**
- * Configure application.
+ * Import libraries.
  */
 
-var app = module.exports = express();
-
-app.configure(function() {
-	app.engine('ejs', engine);
-	app.set('views', __dirname + '/views');
-	app.set('view engine', 'ejs');
-	app.use('/assets', express.static(path.join(__dirname, 'assets')));
-});
-
-app.configure('development', function() {
-	app.use(express.errorHandler());
-});
+var map = require('../../library/route-map').map; // Maps URL paths to route functions.
 
 /**
  * Import routes.
@@ -37,30 +34,53 @@ app.configure('development', function() {
 var registration = require('./routes/registration');
 
 /**
+ * Configure application.
+ */
+
+var app = express();
+
+app.configure(function () {
+	app.engine('ejs', engine);
+	app.set('views', __dirname + '/views');
+	app.set('view engine', 'ejs');
+	app.use('/static', express.static(path.join(__dirname, 'static')));
+});
+
+app.configure('development', function () {
+	app.use(express.errorHandler());
+});
+
+
+/**
  * Map urls and HTTP verbs to routes.
  */
 
-app.map = require('../../app').map;
+app.map = map;
 
 app.map(app, {
 	'/vehicle': {
 		'/add': {
-			get: profile.form,
-			post: profile.add
+			get: registration.showRegistrationForm,
+			post: registration.addProfile
 		},
-		'/:vid': {
-			get: profile.show,
-			'/image': {
-				'/:iid': {
-					get: profile.sendFile
+		'/view': {
+			'/:vehicleId': {
+				get: registration.showProfile,
+				'/image': {
+					'/:imageId': {
+						get: registration.sendFile
+					}
 				}
 			},
 		}
 	},
 	'/seller': {
 		'/vehicles': {
-			get: profile.list
+			get: registration.listVehicles
 		}
 	}
 });
 
+module.exports = {
+	app: app
+};

@@ -1,6 +1,12 @@
 "use strict";
 
 /**
+ * HTTP Server.
+ * 
+ * Filename: app.js
+ */
+
+/**
  * Import external modules.
  */
 
@@ -13,6 +19,31 @@ var express = require('express');
 
 var http = require('http');
 var path = require('path');
+
+/**
+ * Import components.
+ */
+
+var sellers = require('./components/sellers').app;
+var vehicles = require('./components/vehicles').app;
+
+/**
+ * Import libraries.
+ */
+
+var map = require('./library/route-map').map;
+
+/**
+ * Import configurations.
+ */
+
+var databaseServer = require('./configuration/database').mongodb;
+
+/**
+ * Import routes.
+ */
+
+var main = require('./routes/main');
 
 /**
  * Configure application.
@@ -28,13 +59,13 @@ app.configure(function() {
     app.use(express.favicon());
     app.use(express.logger('dev'));
     app.use(express.bodyParser({
-		uploadDir: __dirname.concat('/assets/img')
+		uploadDir: __dirname.concat('/static/img/vehicles')
 	}));
     app.use(express.methodOverride());
     app.use(express.cookieParser('xvrT4521ghqw0'));
     app.use(express.cookieSession());
     app.use(app.router);
-    app.use('/assets', express.static(path.join(__dirname + '/assets')));
+    app.use('/static', express.static(path.join(__dirname, 'static')));
 });
 
 app.configure('development', function() {
@@ -45,28 +76,10 @@ app.configure('development', function() {
  * Route requests.
  */
 
-var map = module.exports.map = function(app, a, route) {
-    route = route || '';
-    for (var key in a) {
-	switch (typeof a[key]) {
-	    case 'object': // { '/path': { ... }}
-		app.map(app, a[key], route + key);
-		break;
-	    case 'function': // get: function(){ ... }
-		app[key](route, a[key]);
-		break;
-	}
-    }
-};
-
-app.map = map;
-
-var main = require('./routes/main');
-var sellers = require('./components/sellers');
-var vehicles = require('./components/vehicles');
-
 app.use(sellers);
 app.use(vehicles);
+
+app.map = map;
 
 app.map(app, {
     '/': {
@@ -80,6 +93,5 @@ app.map(app, {
 
 http.createServer(app).listen(app.get('port'), function() {
     console.log("Express server listening on port " + app.get('port'));
-	/* Connect with database. */
-	var mongoose = require('./database').mongoose;
+	databaseServer.connect();
 });

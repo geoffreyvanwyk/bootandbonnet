@@ -27,7 +27,7 @@ var login = require('./login');
 /**
  * Responds to HTTP GET /seller/add and HTTP GET /seller/edit.
  *
- * Displays seller-registration-form, to either add or edit a seller profile. If a seller is already
+ * Displays seller registration-form, to either add or edit a seller profile. If a seller is already
  * logged-in, a new profile cannot be added, so the function will do nothing. If a seller is not
  * logged-in, a profile cannot be edited, so the function will do nothing.
  *
