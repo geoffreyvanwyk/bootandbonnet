@@ -2,7 +2,7 @@
 
 /**
  * HTTP Server.
- * 
+ *
  * Filename: app.js
  */
 
@@ -83,7 +83,7 @@ app.map = map;
 
 app.map(app, {
     '/': {
-	get: main.showHomePage
+		get: main.showHomePage
     }
 });
 

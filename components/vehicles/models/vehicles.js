@@ -3,6 +3,7 @@
 var mongoose = require('mongoose');
 
 var vehicleSchema = mongoose.Schema({
+	market: {type: String, required: true}, // new or used
 	type: {
 		make: {type: String, required: true},
 		model: {type: String, required: true},
@@ -17,14 +18,14 @@ var vehicleSchema = mongoose.Schema({
 		engineCapacity: {type: Number, min: 0, required: true},
 		fuel: {type: String, required: true},
 		transmission: {type: String, required: true},
-		powerSteering: {type: Boolean, default: false},
 		absBrakes: {type: Boolean, default: false},
+		powerSteering: {type: Boolean, default: false}
 	},
 	luxuries: {
-		radio: {type: Boolean, default: false},
-		cdPlayer: {type: Boolean, default: false},
+		electricWindows: {type: String, default: 'None'},
 		airConditioning: {type: Boolean, default: false},
-		electricWindows: {type: String, default: 'None'}
+		cdPlayer: {type: Boolean, default: false},
+		radio: {type: Boolean, default: false}
 	},
 	security: {
 		alarm: {type: Boolean, default: false},

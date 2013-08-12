@@ -27,8 +27,9 @@ var login = require('./login');
 /**
  * Responds to HTTP GET /seller/add and HTTP GET /seller/edit.
  *
- * Displays seller registration-form, to either add or edit a seller profile. If a seller is already
- * logged-in, a new profile cannot be added, so the function will do nothing. If a seller is not
+ * Displays seller registration-form, to either add or edit a seller profile. 
+ * 
+ * If a seller is already logged-in, a new profile cannot be added, so the function will do nothing. If a seller is not
  * logged-in, a profile cannot be edited, so the function will do nothing.
  *
  * @param		{object}		request     An HTTP request object received from the express.get() method.
@@ -42,7 +43,7 @@ function showRegistrationForm(request, response) {
 	Province.find(function (err, provinces) {
 		if (err) {
 			console.log(err);
-			return main.showErrorPage(request, response);
+			main.showErrorPage(request, response);
 		} else if ((action === 'add') && (!isSellerLoggedIn)) {
 			var locals = {
 				validation: request.session.registrationFormValidation,
@@ -108,7 +109,7 @@ function showRegistrationForm(request, response) {
 				loggedIn: isSellerLoggedIn
 			};
 		}
-		return response.render('registration-form', locals, function (err, html) {
+		response.render('registration-form', locals, function (err, html) {
 			request.session.emailError = null;
 			request.session.registrationFormValidation = null;
 			response.send(html);
@@ -150,14 +151,14 @@ function validateInputs(request, response) {
 		isDealershipNameProvided: (function () {
 			if (formSeller.type === 'dealership') {
 				return formSeller.dealershipName !== '';
-			} else if (formSeller.type === 'privateSeller') {
+			} else if (formSeller.type === 'private seller') {
 				return true;
 			}
 		}()),
 		isDealershipAddressProvided: (function () {
 			if (formSeller.type === 'dealership') {
 				return formSeller.streetAddress1 !== '';
-			} else if (formSeller.type === 'privateSeller') {
+			} else if (formSeller.type === 'private seller') {
 				return true;
 			}
 		}())
@@ -165,13 +166,13 @@ function validateInputs(request, response) {
 	var fv = request.session.registrationFormValidation;
 	for (var c in fv){
 		if (!fv[c]) {
-			return showRegistrationForm(request, response);
+			showRegistrationForm(request, response);
 		}
 	}
 	if (action === 'add' && !isSellerLoggedIn) {
-		return addProfile(request, response);
+		addProfile(request, response);
 	} else if (action === 'edit' && isSellerLoggedIn) {
-		return editProfile(request, response);
+		editProfile(request, response);
 	}
 }
 
@@ -190,7 +191,7 @@ function addProfile(request, response) {
 	bcrypt.hash(formSeller.password, 10, function (err, passwordHash) {
 		if (err) {
 			console.log(err);
-			return main.showErrorPage(request, response);
+			main.showErrorPage(request, response);
 		} else {
 			var seller = new Seller({
 				emailAddress: formSeller.emailAddress,
@@ -202,8 +203,8 @@ function addProfile(request, response) {
 					showRegistrationForm(request, response);
 				} else if (err) {
 					console.log(err);
-					return main.showErrorPage(request, response);
-				} else if (formSeller.type === 'privateSeller') {
+					main.showErrorPage(request, response);
+				} else if (formSeller.type === 'private seller') {
 					var privateSeller = new PrivateSeller({
 						name: {
 							firstname: formSeller.firstname,
@@ -215,17 +216,17 @@ function addProfile(request, response) {
 							town: formSeller.town,
 							province: formSeller.province,
 						},
-						sellerId: seller._id
+						account: seller._id
 					});
 					privateSeller.save(function (err, privateSeller) {
 						if (err) {
 							console.log(err);
-							return main.showErrorPage(request, response);
+							main.showErrorPage(request, response);
 						} else {
 							var dealership = null;
 							login.setSession(request, response, seller, dealership, privateSeller,
 								function () {
-									return showProfile(request, response, eav.sendEmail);
+									showProfile(request, response, eav.sendEmail);
 								}
 							);
 						}
@@ -245,17 +246,17 @@ function addProfile(request, response) {
 						},
 						telephone: formSeller.telephone,
 						cellphone: formSeller.cellphone,
-						sellerId: seller._id
+						account: seller._id
 					});
 					dealership.save(function (err, dealership) {
 						if (err) {
 							console.log(err);
-							return main.showErrorPage(request, response);
+							main.showErrorPage(request, response);
 						} else {
 							var privateSeller = null;
 							login.setSession(request, response, seller, dealership, privateSeller,
 								function () {
-									return showProfile(request, response, eav.sendEmail);
+									showProfile(request, response, eav.sendEmail);
 								}
 							);
 						}
@@ -293,7 +294,7 @@ function showProfile(request, response, callback) {
 	}
 	response.render('profile-page', {
 		method: 'delete',
-		sellerType: request.session.dealership ? 'dealership' : 'privateSeller',
+		sellerType: request.session.dealership ? 'dealership' : 'private seller',
 		email: request.session.seller.emailAddress,
 		fullname: fullname,
 		telephone: seller.telephone,

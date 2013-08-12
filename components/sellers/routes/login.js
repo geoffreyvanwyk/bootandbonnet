@@ -100,12 +100,12 @@ function authenticateSeller(request, response) {
 					console.log(err);
 					main.showErrorPage(request, response);
 				} else if (isMatch) {
-					PrivateSeller.findOne({sellerId: seller._id}, function (err, privateSeller) {
+					PrivateSeller.findOne({account: seller._id}, function (err, privateSeller) {
 						if (err) {
 							console.log(err);
 							main.showErrorPage(request, response);
 						} else if (!privateSeller) {
-							Dealership.findOne({sellerId: seller._id}, function (err, dealership) {
+							Dealership.findOne({account: seller._id}, function (err, dealership) {
 								if (err) {
 									console.log(err);
 									main.showErrorPage(request, response);
@@ -159,7 +159,7 @@ function setSession(request, response, seller, dealership, privateSeller, callba
 			telephone: privateSeller.telephone,
 			cellphone: privateSeller.cellphone,
 			address: privateSeller.address,
-			sellerId: privateSeller.sellerId
+			account: privateSeller.account
 		};
 	} else {
 		request.session.dealership = {
@@ -169,7 +169,7 @@ function setSession(request, response, seller, dealership, privateSeller, callba
 			contactPerson: dealership.contactPerson,
 			telephone: dealership.telephone,
 			cellphone: dealership.cellphone,
-			sellerId: dealership.sellerId
+			account: dealership.account
 		};
 	}
 	if (typeof(callback) === "function") {

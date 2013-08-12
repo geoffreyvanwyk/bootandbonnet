@@ -46,7 +46,7 @@ app.configure(function () {
 	app.engine('ejs', engine);
 	app.set('views', __dirname + '/views');
 	app.set('view engine', 'ejs');
-    app.use('/static', express.static('static'));
+    app.use('/static', express.static(path.join(__dirname, 'static')));
 });
 
 app.configure('development', function () {

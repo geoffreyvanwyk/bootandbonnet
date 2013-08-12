@@ -1,5 +1,5 @@
 <% layout('../../../views/layout') -%>
-<% script('../assets/js/registration-form.js') -%>
+<% script('../static/js/sellers/registration-form.js') -%>
 
 <%
 var provincesString = JSON.stringify(provinces);
@@ -158,7 +158,7 @@ var dealershipAddressAlertType = validation && !validation.isDealershipAddressPr
 			<div class="span3">
 				<label class="radio">
 					<input type="radio" id="privateSeller" name="seller[type]"
-							value="privateSeller" />Private seller
+							value="private seller" />Private seller
 				</label>
 			</div>
 	<!-- Dealership -->

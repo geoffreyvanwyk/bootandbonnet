@@ -14,7 +14,7 @@ var privateSellerSchema = mongoose.Schema({
 		province: String,
 		country: String
 	},
-	seller: {type: mongoose.Schema.Types.ObjectId, ref: 'Seller'}
+	account: {type: mongoose.Schema.Types.ObjectId, ref: 'Seller'}
 });
 
 var PrivateSeller = mongoose.model('PrivateSeller', privateSellerSchema);

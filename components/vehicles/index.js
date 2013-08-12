@@ -1,8 +1,8 @@
 /**
- * HTTP Server Component: vehicles 
- * 
+ * HTTP Server Component: vehicles
+ *
  * File Name: index.js
- * 
+ *
  * Purpose: Used to register new vehicles and to view their profiles.
  */
 
@@ -72,7 +72,11 @@ app.map(app, {
 					}
 				}
 			},
-		}
+		},
+		'/edit': {
+			get: registration.showRegistrationForm,
+			post: registration.editProfile
+		},
 	},
 	'/seller': {
 		'/vehicles': {
