@@ -1,6 +1,12 @@
 <% layout('../../../views/layout') -%>
 
 <%
+
+var photo1 = vehicle.photos[0] ? "/vehicle/view/".concat(vehicle._id).concat("/photo/1") : "/static/img/image-placeholder.png";
+var photo2 = vehicle.photos[1] ? "/vehicle/view/".concat(vehicle._id).concat("/photo/2") : "/static/img/image-placeholder.png";
+var photo3 = vehicle.photos[2] ? "/vehicle/view/".concat(vehicle._id).concat("/photo/3") : "/static/img/image-placeholder.png";
+var photo4 = vehicle.photos[3] ? "/vehicle/view/".concat(vehicle._id).concat("/photo/4") : "/static/img/image-placeholder.png";
+
 if (vehicle.price.negotiable) {
 var negotiable = 'negotiable';
 } else {
@@ -111,16 +117,16 @@ var formActionsDisplay = isSameSeller ? '' : 'none';
 		<div class="span6"> <!-- Thumbnails -->
 			<ul class="thumbnails">
 				<li class="span6">
-					<img class="thumbnail" src="<%=vehicle.photos[0]%>"/>
+					<img class="thumbnail" src="<%=photo1%>"/>
 				</li>
 				<li class="span2">
-					<img class="thumbnail" src="<%=vehicle.photos[1]%>"/>
+					<img class="thumbnail" src="<%=photo2%>"/>
 				</li>
 				<li class="span2">
-					<img class="thumbnail" src="<%=vehicle.photos[2]%>"/>
+					<img class="thumbnail" src="<%=photo3%>"/>
 				</li>
 				<li class="span2">
-					<img class="thumbnail" src="<%=vehicle.photos[3]%>"/>
+					<img class="thumbnail" src="<%=photo4%>"/>
 				</li>
 			</ul>
 		</div>
@@ -132,17 +138,17 @@ var formActionsDisplay = isSameSeller ? '' : 'none';
 						<legend>Description</legend>
 
 						<p>
-							<strong>Mileage:</strong> 
+							<strong>Mileage:</strong>
 							<%=vehicle.description.mileage%> km
 						</p>
 
 						<p>
-							<strong>Colour:</strong> 
+							<strong>Colour:</strong>
 							<%=vehicle.description.color%>
 						</p>
 
 						<p>
-							<strong>Full service history:</strong> 
+							<strong>Full service history:</strong>
 							<span style="color:<%=colorFullServiceHistory%>">
 								<%=fullServiceHistory%>
 							</span>
@@ -155,22 +161,22 @@ var formActionsDisplay = isSameSeller ? '' : 'none';
 						<legend>Mechanics</legend>
 
 						<p>
-							<strong>Engine capacity:</strong> 
+							<strong>Engine capacity:</strong>
 							<%=vehicle.mechanics.engineCapacity%> L
 						</p>
 
 						<p>
-							<strong>Fuel type:</strong> 
+							<strong>Fuel type:</strong>
 							<%=vehicle.mechanics.fuel%>
 						</p>
 
 						<p>
-							<strong>Transmission:</strong> 
+							<strong>Transmission:</strong>
 							<%=vehicle.mechanics.transmission%>
 						</p>
 
 						<p>
-							<strong>ABS Brakes:</strong> 
+							<strong>ABS Brakes:</strong>
 							<span style="color:<%=colorAbsBrakes%>">
 								<%=absBrakes%>
 							</span>
@@ -185,28 +191,28 @@ var formActionsDisplay = isSameSeller ? '' : 'none';
 						<legend>Security</legend>
 
 						<p>
-							<strong>Alarm:</strong> 
+							<strong>Alarm:</strong>
 							<span style="color:<%=colorAlarm%>">
 								<%=alarm%>
 							</span>
 						</p>
 
 						<p>
-							<strong>Central locking:</strong> 
+							<strong>Central locking:</strong>
 							<span style="color:<%=colorCentralLocking%>">
 								<%=centralLocking%>
 							</span>
 						</p>
 
 						<p>
-							<strong>Immobiliser:</strong> 
+							<strong>Immobiliser:</strong>
 							<span style="color:<%=colorImmobilizer%>">
 								<%=immobilizer%>
 							</span>
 						</p>
 
 						<p>
-							<strong>Gear lock:</strong> 
+							<strong>Gear lock:</strong>
 							<span style="color:<%=colorGearLock%>">
 								<%=gearLock%>
 							</span>
@@ -219,26 +225,26 @@ var formActionsDisplay = isSameSeller ? '' : 'none';
 						<legend>Luxuries</legend>
 
 						<p>
-							<strong>Electrical windows:</strong> 
+							<strong>Electrical windows:</strong>
 							<%=vehicle.luxuries.electricWindows%>
 						</p>
 
 						<p>
-							<strong>Air conditioning:</strong> 
+							<strong>Air conditioning:</strong>
 							<span style="color:<%=colorAirConditioning%>">
 								<%=airConditioning%>
 							</span>
 						</p>
 
 						<p>
-							<strong>CD player:</strong> 
+							<strong>CD player:</strong>
 							<span style="color:<%=colorCDPlayer%>">
 								<%=cdPlayer%>
 							</span>
 						</p>
 
 						<p>
-							<strong>Radio:</strong> 
+							<strong>Radio:</strong>
 							<span style="color:<%=colorRadio%>">
 								<%=radio%>
 							</span>
@@ -253,7 +259,7 @@ var formActionsDisplay = isSameSeller ? '' : 'none';
 						<legend>Safety</legend>
 
 						<p>
-							<strong>Air bags:</strong> 
+							<strong>Air bags:</strong>
 							<%=vehicle.safety.airBags%>
 						</p>
 					</fieldset>
@@ -307,7 +313,7 @@ var formActionsDisplay = isSameSeller ? '' : 'none';
 							<p><i class="icon-envelope"></i>&nbsp; <%=seller.account.emailAddress%></p>
 							<p>
 								<i class="icon-map-marker"></i>&nbsp;
-								<%=seller.address.town%>, 
+								<%=seller.address.town%>,
 								<%=seller.address.province %>
 							</p>
 						</div>

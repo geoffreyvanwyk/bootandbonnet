@@ -3,12 +3,12 @@ var mongoose = require('mongoose');
 var mongodb = {
 	connect: function () {
 		mongoose.connect('mongodb://localhost/bootandbonnet');
-		mongoose.connection.on('error', 
-							   console.error.bind(console, 'Failed to connect to MongoDB.'));
+		mongoose.connection.on('error',
+							   console.error.bind(console, 'Failed to connect to database server.'));
 		mongoose.connection.once('open', function () {
-			console.log('Successfully connected with MongoDB.');
+			console.log('Database server listening on port 27017.');
 		});
-}
+	}
 };
 
 var mysql = require('mysql').createConnection({

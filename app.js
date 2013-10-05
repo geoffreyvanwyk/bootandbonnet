@@ -59,7 +59,7 @@ app.configure(function() {
     app.use(express.favicon());
     app.use(express.logger('dev'));
     app.use(express.bodyParser({
-		uploadDir: __dirname.concat('/static/img/vehicles')
+		uploadDir: __dirname.concat('/uploads/img/vehicles')
 	}));
     app.use(express.methodOverride());
     app.use(express.cookieParser('xvrT4521ghqw0'));
@@ -72,7 +72,7 @@ app.configure('development', function() {
     app.use(express.errorHandler());
 });
 
-/**
+/*
  * Route requests.
  */
 
@@ -92,6 +92,6 @@ app.map(app, {
  */
 
 http.createServer(app).listen(app.get('port'), function() {
-    console.log("Express server listening on port " + app.get('port'));
+    console.log("Web server listening on port " + app.get('port') + '.');
 	databaseServer.connect();
 });

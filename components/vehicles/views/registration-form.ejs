@@ -1,5 +1,6 @@
 <% layout('../../../views/layout') -%>
 <% script('../static/js/vehicles/registration-form.js') -%>
+<% script('../../../static/js/bootstrap.file-input.js') -%>
 
 <%
 var manufacturersString = JSON.stringify(makes);
@@ -7,9 +8,42 @@ var currentDateObject = new Date(Date.now());
 var thisYear = currentDateObject.getFullYear();
 
 var _id = vehicle ? vehicle._id : '';
+
+var market = vehicle ? vehicle.market : '';
+
 var mileage = vehicle ? vehicle.description.mileage : '';
+var fullServiceHistory = vehicle ? vehicle.description.fullServiceHistory : '';
+
 var engineCapacity = vehicle ? vehicle.mechanics.engineCapacity : '';
+var absBrakes = vehicle ? vehicle.mechanics.absBrakes : '';
+var powerSteering = vehicle ? vehicle.mechanics.powerSteering : '';
+
+var airConditioning = vehicle ? vehicle.luxuries.airConditioning : '';
+var cdPlayer = vehicle ? vehicle.luxuries.cdPlayer : '';
+var radio = vehicle ? vehicle.luxuries.radio : '';
+
+var alarm = vehicle ? vehicle.security.alarm : '';
+var centralLocking = vehicle ? vehicle.security.centralLocking : '';
+var immobilizer = vehicle ? vehicle.security.immobilizer : '';
+var gearLock = vehicle ? vehicle.security.gearLock : '';
+
+var photo1 = vehicle && vehicle.photos[0]
+				? "/vehicle/view/".concat(vehicle._id).concat("/photo/1")
+				: "/static/img/image-placeholder.png";
+var photo2 = vehicle && vehicle.photos[1]
+				? "/vehicle/view/".concat(vehicle._id).concat("/photo/2")
+				: "/static/img/image-placeholder.png";
+var photo3 = vehicle && vehicle.photos[2]
+				? "/vehicle/view/".concat(vehicle._id).concat("/photo/3")
+				: "/static/img/image-placeholder.png";
+var photo4 = vehicle && vehicle.photos[3]
+				? "/vehicle/view/".concat(vehicle._id).concat("/photo/4")
+				: "/static/img/image-placeholder.png";
+
 var price = vehicle ? vehicle.price.value : '';
+var negotiable = vehicle ? vehicle.price.negotiable : '';
+
+var comments = vehicle ? vehicle.comments : '';
 %>
 
 <form method="post" action="/vehicle/<%=method%>" enctype="multipart/form-data">
@@ -30,7 +64,7 @@ var price = vehicle ? vehicle.price.value : '';
 		</span>
 
 		<input type="hidden" id="market"
-				name="vehicle[market]" value="<%=vehicle.market%>" />
+			   name="vehicle[market]" value="<%=market%>" />
 	</p>
 
 	<br /><br />
@@ -46,15 +80,15 @@ var price = vehicle ? vehicle.price.value : '';
 
 				<select id="makes" name="vehicle[type][make]">
 
-				<% if (vehicle) { %>
+					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.type.make%>"><%=vehicle.type.make%></option>
-				<% } else { %>
+					<% } else { %>
 					<option selected="selected">Please select ...</option>
-				<% } %>
+					<% } %>
 
-				<% for (m in makes) { %>
+					<% for (m in makes) { %>
 					<option><%=makes[m].name %></option>
-				<% } %>
+					<% } %>
 
 				</select>
 
@@ -62,11 +96,11 @@ var price = vehicle ? vehicle.price.value : '';
 
 				<select id="models" name="vehicle[type][model]">
 
-				<% if (vehicle) { %>
+					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.type.model%>"><%=vehicle.type.model%></option>
-				<% } else { %>
+					<% } else { %>
 					<option selected="selected">Please select ...</option>
-				<% } %>
+					<% } %>
 
 				</select>
 
@@ -74,15 +108,15 @@ var price = vehicle ? vehicle.price.value : '';
 
 				<select id="year" name="vehicle[type][year]">
 
-				<% if (vehicle) { %>
+					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.type.year%>"><%=vehicle.type.year%></option>
-				<% } else { %>
+					<% } else { %>
 					<option selected="selected">Please select ...</option>
-				<% } %>
+					<% } %>
 
-				<% for (var year = thisYear; year >= 1886; year--) { %>
+					<% for (var year = thisYear; year >= 1886; year--) { %>
 					<option value="<%=year%>"><%=year %></option>
-				<% } %>
+					<% } %>
 
 				</select>
 
@@ -107,17 +141,17 @@ var price = vehicle ? vehicle.price.value : '';
 
 				<select id="color" name="vehicle[description][color]">
 
-				<% if (vehicle) { %>
+					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.description.color%>">
 						<%=vehicle.description.color%>
 					</option>
-				<% } else { %>
+					<% } else { %>
 					<option selected="selected">Please select ...</option>
-				<% } %>
+					<% } %>
 
-				<% for (var i = 0; i < colors.length; i++) { %>
+					<% for (var i = 0; i < colors.length; i++) { %>
 					<option value="<%=colors[i]%>"><%=colors[i]%></option>
-				<% } %>
+					<% } %>
 
 				</select>
 
@@ -134,8 +168,8 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="fullServiceHistory"
-							name="vehicle[description][fullServiceHistory]"
-							value="<%=vehicle.description.fullServiceHistory%>" />
+						   name="vehicle[description][fullServiceHistory]"
+						   value="<%=fullServiceHistory%>" />
 				</p>
 			</fieldset>
 		</div>
@@ -149,8 +183,8 @@ var price = vehicle ? vehicle.price.value : '';
 				<div class="input-append">
 					<label>Engine Capacity:</label>
 					<input class="input-small" type="text" id="engineCapacity"
-							name="vehicle[mechanics][engineCapacity]"
-							value="<%=engineCapacity%>" />
+						   name="vehicle[mechanics][engineCapacity]"
+						   value="<%=engineCapacity%>" />
 					<span class="add-on">L</span>
 				</div>
 
@@ -160,17 +194,17 @@ var price = vehicle ? vehicle.price.value : '';
 
 				<select id="fuelTypes" name="vehicle[mechanics][fuel]">
 
-				<% if (vehicle) { %>
+					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.mechanics.fuel%>">
 						<%=vehicle.mechanics.fuel%>
 					</option>
-				<% } else { %>
+					<% } else { %>
 					<option selected="selected">Please select ...</option>
-				<% } %>
+					<% } %>
 
-				<% for (var i = 0; i < fuels.length; i++) { %>
+					<% for (var i = 0; i < fuels.length; i++) { %>
 					<option value="<%=fuels[i]%>"><%=fuels[i]%></option>
-				<% } %>
+					<% } %>
 
 				</select>
 
@@ -180,17 +214,17 @@ var price = vehicle ? vehicle.price.value : '';
 
 				<select id="transmissionTypes" name="vehicle[mechanics][transmission]">
 
-				<% if (vehicle) { %>
+					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.mechanics.transmission%>">
 						<%=vehicle.mechanics.transmission%>
 					</option>
-				<% } else { %>
+					<% } else { %>
 					<option selected="selected">Please select ...</option>
-				<% } %>
+					<% } %>
 
-				<% for (var i = 0; i < transmissions.length; i++) { %>
+					<% for (var i = 0; i < transmissions.length; i++) { %>
 					<option value="<%=transmissions[i]%>"><%=transmissions[i]%></option>
-				<% } %>
+					<% } %>
 
 				</select>
 
@@ -207,7 +241,7 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="absBrakes" name="vehicle[mechanics][absBrakes]"
-						   value="<%=vehicle.mechanics.absBrakes%>" />
+						   value="<%=absBrakes%>" />
 
 					<br /><br />
 
@@ -221,8 +255,8 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="powerSteering"
-							name="vehicle[mechanics][powerSteering]"
-							value="<%=vehicle.mechanics.powerSteering%>" />
+						   name="vehicle[mechanics][powerSteering]"
+						   value="<%=powerSteering%>" />
 				</p>
 			</fieldset>
 		</div>
@@ -235,13 +269,13 @@ var price = vehicle ? vehicle.price.value : '';
 
 				<select id="electricWindows" name="vehicle[luxuries][electricWindows]">
 
-				<% if (vehicle) { %>
+					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.luxuries.electricWindows%>">
 						<%=vehicle.luxuries.electricWindows%>
 					</option>
-				<% } else { %>
+					<% } else { %>
 					<option selected="selected">Please select ...</option>
-				<% } %>
+					<% } %>
 					<option value="None">None</option>
 					<option value="Front Only">Front Only</option>
 					<option value="Front and Back">Front and Back</option>
@@ -254,14 +288,14 @@ var price = vehicle ? vehicle.price.value : '';
 
 					<span class="btn-group pull-right" data-toggle="buttons-radio">
 						<button id="airConditioningYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('airConditiong').value = true;">Yes</button>
+								onclick="document.getElementById('airConditioning').value = true;">Yes</button>
 						<button id="airConditioningNo" type="button" class="btn btn-small"
 								onclick="document.getElementById('airConditioning').value = false;">No</button>
 					</span>
 
 					<input type="hidden" id="airConditioning"
-							name="vehicle[luxuries][airConditioning]"
-							value="<%=vehicle.luxuries.airConditioning%>" />
+						   name="vehicle[luxuries][airConditioning]"
+						   value="<%=airConditioning%>" />
 
 					<br /><br />
 
@@ -275,8 +309,8 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="cdPlayer"
-							name="vehicle[luxuries][cdPlayer]"
-							value="<%=vehicle.luxuries.cdPlayer%>" />
+						   name="vehicle[luxuries][cdPlayer]"
+						   value="<%=cdPlayer%>" />
 
 					<br /><br />
 
@@ -290,8 +324,8 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="radio"
-							name="vehicle[luxuries][radio]"
-							value="<%=vehicle.luxuries.radio%>" />
+						   name="vehicle[luxuries][radio]"
+						   value="<%=radio%>" />
 				</p>
 			</fieldset>
 		</div>
@@ -313,8 +347,8 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="alarm"
-							name="vehicle[security][alarm]"
-							value="<%=vehicle.security.alarm%>" />
+						   name="vehicle[security][alarm]"
+						   value="<%=alarm%>" />
 
 					<br /><br />
 
@@ -324,14 +358,14 @@ var price = vehicle ? vehicle.price.value : '';
 						<button id="centralLockingYes" type="button" class="btn btn-small"
 								onclick="document.getElementById('centralLocking').value = true;">Yes</button>
 						<button id="centralLockingNo" type="button" class="btn btn-small"
-							onclick="document.getElementById('centralLocking').value = false; this.style.backgroundColor = rgb(81,163, 81);">
+								onclick="document.getElementById('centralLocking').value = false;">
 							No
 						</button>
 					</span>
 
 					<input type="hidden" id="centralLocking"
-							name="vehicle[security][centralLocking]"
-							value="<%=vehicle.security.centralLocking%>" />
+						   name="vehicle[security][centralLocking]"
+						   value="<%=centralLocking%>" />
 
 					<br /><br />
 
@@ -345,8 +379,8 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="immobilizer"
-							name="vehicle[security][immobilizer]"
-							value="<%=vehicle.security.immobilizer%>" />
+						   name="vehicle[security][immobilizer]"
+						   value="<%=immobilizer%>" />
 
 					<br /><br />
 
@@ -360,8 +394,8 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="gearLock"
-							name="vehicle[security][gearLock]"
-							value="<%=vehicle.security.gearLock%>" />
+						   name="vehicle[security][gearLock]"
+						   value="<%=gearLock%>" />
 				</p>
 			</fieldset>
 		</div>
@@ -370,23 +404,23 @@ var price = vehicle ? vehicle.price.value : '';
 			<fieldset>
 				<legend>Safety</legend>
 
-					<label>Air Bags:</label>
+				<label>Air Bags:</label>
 
-					<select id="airBags" name="vehicle[safety][airBags]">
+				<select id="airBags" name="vehicle[safety][airBags]">
 
 					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.safety.airBags%>">
-							<%=vehicle.safety.airBags%>
-						</option>
+					<option selected="selected" value="<%=vehicle.safety.airBags%>">
+						<%=vehicle.safety.airBags%>
+					</option>
 					<% } else { %>
-						<option selected="selected">Please select ...</option>
+					<option selected="selected">Please select ...</option>
 					<% } %>
-						<option value=0>0</option>
-						<option value=1>1</option>
-						<option value=2>2</option>
-						<option value=3>3</option>
-						<option value=4>4</option>
-					</select>
+					<option value=0>0</option>
+					<option value=1>1</option>
+					<option value=2>2</option>
+					<option value=3>3</option>
+					<option value=4>4</option>
+				</select>
 			</fieldset>
 		</div>
 	</div>
@@ -395,20 +429,69 @@ var price = vehicle ? vehicle.price.value : '';
 		<legend>Photos</legend>
 
 		<div class="row">
-			<div class="span6">
-				<label>Photo 1:</label>
-				<input type="file" name="photo1" />
-
-				<label>Photo 2:</label>
-				<input type="file" name="photo2" />
-			</div>
-
-			<div class="span6">
-				<label>Photo 3:</label>
-				<input type="file" name="photo3" />
-
-				<label>Photo 4:</label>
-				<input type="file" name="photo4" />
+			<div class="span12">
+            <ul class="thumbnails">
+				<li class="span3">
+					<div class="thumbnail">
+						<img id="photo1" src="<%=photo1%>" alt="">
+							<div class="caption">
+								<h4 >Photo 1</h4>
+								<p>
+									<input type="file" class="bootandbonnet-input-file" name="photo1"
+										   title="Browse" accept="images/*" />
+									<button type="button" class="btn-link bootandbonnet-remove-file">
+										Remove
+									</button>
+								</p>
+							</div>
+					</div>
+				</li>
+				<li class="span3">
+					<div class="thumbnail">
+						<img id="photo2"  src="<%=photo2%>" alt="">
+							<div class="caption">
+								<h4>Photo 2</h4>
+								<p>
+									<input type="file" class="bootandbonnet-input-file" name="photo2"
+										   title="Browse" accept="images/*" />
+									<button type="button" class="btn-link bootandbonnet-remove-file">
+										Remove
+									</button>
+								</p>
+							</div>
+					</div>
+				</li>
+				<li class="span3">
+					<div class="thumbnail">
+						<img id="photo3" src="<%=photo3%>" alt="">
+							<div class="caption">
+								<h4>Photo 3</h4>
+								<p>
+									<input type="file" class="bootandbonnet-input-file" name="photo3"
+										   title="Browse" accept="images/*" />
+									<button type="button" class="btn-link bootandbonnet-remove-file">
+										Remove
+									</button>
+								</p>
+							</div>
+					</div>
+				</li>
+				<li class="span3">
+					<div class="thumbnail">
+						<img id="photo4" src="<%=photo4%>" alt="">
+							<div class="caption">
+								<h4>Photo 4</h4>
+								<p>
+									<input type="file" class="bootandbonnet-input-file" name="photo4"
+										   title="Browse" accept="images/*" />
+									<button type="button" class="btn-link bootandbonnet-remove-file">
+										Remove
+									</button>
+								</p>
+							</div>
+					</div>
+				</li>
+            </ul>
 			</div>
 		</div>
 	</fieldset>
@@ -445,8 +528,8 @@ var price = vehicle ? vehicle.price.value : '';
 					</span>
 
 					<input type="hidden" id="negotiable"
-							name="vehicle[price][negotiable]"
-							value="<%=vehicle.price.negotiable%>" />
+						   name="vehicle[price][negotiable]"
+						   value="<%=negotiable%>" />
 				</p>
 			</div>
 		</div>
@@ -456,11 +539,7 @@ var price = vehicle ? vehicle.price.value : '';
 
 	<label>Comments:</label>
 
-	<textarea class="span5" cols="1" rows="3" id="comments" name="vehicle[comments]">
-	<% if (vehicle) { %>
-		<%=vehicle.comments%>
-	<% } %>
-	</textarea>
+	<textarea class="span5" cols="1" rows="3" id="comments" name="vehicle[comments]"><%=comments%></textarea>
 
 	<div class="form-actions">
 		<button type="submit" class="btn btn-primary" ><%=buttonCaption%></button>

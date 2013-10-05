@@ -66,9 +66,9 @@ app.map(app, {
 		'/view': {
 			'/:vehicleId': {
 				get: registration.showProfile,
-				'/image': {
-					'/:imageId': {
-						get: registration.sendFile
+				'/photo': {
+					'/:photoId': {
+						get: registration.sendPhoto
 					}
 				}
 			},

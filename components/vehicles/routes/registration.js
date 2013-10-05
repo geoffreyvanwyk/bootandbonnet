@@ -1,24 +1,27 @@
-"use strict";
+/*jslint node: true */
 
-/**
+'use strict';
+
+/*
  * Import external modules.
  */
 
-var async = require('async');
+var async = require('async'); // For asynchronous iteration.
 
-/**
+/*
  * Import built-in modules.
  */
 
 var fs = require('fs'); // For uploading photos.
+var path = require('path'); // For concatenating file paths.
 
-/**
+/*
  * Import libraries.
  */
 
 var sanitize = require('../../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
-/**
+/*
  * Import models.
  */
 
@@ -28,11 +31,74 @@ var Make = require('../models/makes').Make;
 var PrivateSeller = require('../../sellers/models/private-sellers').PrivateSeller;
 var Vehicle = require('../models/vehicles').Vehicle;
 
-/**
+/*
  * Import routes.
  */
 
 var main = require('../../../routes/main');
+
+/* Helper functions */
+
+function movePhotos(vehicle, files, vehicleDir, webDir, callback) {
+	var counter, file, newPath, oldPath, photos;
+
+	photos = [];
+
+	for (file in files) {
+		if (files.hasOwnProperty(file)) {
+			if (files[file].size > 0) {
+				photos.push(files[file]);
+			} else {
+				fs.unlinkSync(files[file].path);
+			}
+		}
+	}
+
+	counter = vehicle.photos.length;
+
+	async.forEach(photos, function (photo, callback1) {
+		counter = counter + 1;
+		oldPath = photo.path;
+		newPath = path.join(vehicleDir, counter.toString());
+		vehicle.photos.push(path.join(webDir, counter.toString()));
+
+		fs.rename(oldPath, newPath, function (err) {
+			if (err) {
+				return callback(err);
+			}
+			callback1();
+		});
+
+	}, function () {
+		return callback(null, vehicle);
+	});
+}
+
+function makeDirectory(vehicle, files, vehicleDir, webDir, callback) {
+	fs.mkdir(vehicleDir, '0755', function (err) {
+		if (err) {
+			return callback(err);
+		}
+		movePhotos(vehicle, files, vehicleDir, webDir, callback);
+	});
+}
+
+function checkDirectory(vehicle, files, callback) {
+	var vehicleDir, webDir;
+
+	webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
+	vehicleDir = path.join(__dirname, '..', '..', '..', webDir);
+
+	fs.exists(vehicleDir, function (exists) {
+		if (exists) {
+			movePhotos(vehicle, files, vehicleDir, webDir, callback);
+		} else {
+			makeDirectory(vehicle, files, vehicleDir, webDir, callback);
+		}
+	});
+}
+
+/* Routes */
 
 /**
  * Responds to HTTP GET /vehicle/add and HTTP GET /vehicle/edit.
@@ -53,9 +119,8 @@ function showRegistrationForm(request, response) {
 		Make.find(function (err, makes) {
 			if (err) {
 				return callback(err);
-			} else {
-				return callback(null, makes, lookups);
 			}
+			return callback(null, makes, lookups);
 		});
 	}
 
@@ -63,9 +128,8 @@ function showRegistrationForm(request, response) {
 		Lookups.find(function (err, lookups) {
 			if (err) {
 				return callback(err);
-			} else {
-				getMakes(lookups, callback);
 			}
+			getMakes(lookups, callback);
 		});
 	}
 
@@ -75,28 +139,28 @@ function showRegistrationForm(request, response) {
 			if (err) {
 				console.log(err);
 				main.showErrorPage(request, response);
-			} else {
-				locals = {
-					makes: makes,
-					colors: lookups[0].colors,
-					fuels: lookups[0].fuels,
-					transmissions: lookups[0].transmissions,
-					loggedIn: true
-				};
-				action = request.path.split('/').slice(-1)[0];
-				if (action === 'add') {
-					locals.method = 'add';
-					locals.heading = 'Add Vehicle';
-					locals.buttonCaption = 'Register';
-					locals.vehicle = null;
-				} else if (action === 'edit') {
-					locals.method = 'edit';
-					locals.heading = 'Edit Vehicle';
-					locals.buttonCaption = 'Save Changes';
-					locals.vehicle = request.session.vehicle;
-				}
-				response.render('registration-form', locals);
+				return;
 			}
+			locals = {
+				makes: makes,
+				colors: lookups[0].colors,
+				fuels: lookups[0].fuels,
+				transmissions: lookups[0].transmissions,
+				loggedIn: true
+			};
+			action = request.path.split('/').slice(-1)[0];
+			if (action === 'add') {
+				locals.method = 'add';
+				locals.heading = 'Add Vehicle';
+				locals.buttonCaption = 'Register';
+				locals.vehicle = null;
+			} else if (action === 'edit') {
+				locals.method = 'edit';
+				locals.heading = 'Edit Vehicle';
+				locals.buttonCaption = 'Save Changes';
+				locals.vehicle = request.session.vehicle;
+			}
+			response.render('registration-form', locals);
 		});
 	}
 }
@@ -110,71 +174,102 @@ function showRegistrationForm(request, response) {
  * @returns	{undefined}
  */
 function addProfile(request, response) {
-	var sessionSeller, formVehicle, uploadDir, newDir, photos, photoPaths, file;
 
-	sessionSeller = request.session.seller;
-	formVehicle = request.body.vehicle;
-	uploadDir = '/static/img/vehicles/'.concat(sessionSeller._id);
-	newDir = __dirname.concat('/../../..').concat(uploadDir);
-	photos = [];
-	photoPaths = [];
+	function instantiateVehicle(callback) {
+		var formVehicle, seller, vehicle;
 
-	for (file in request.files) {
-		if (request.files.hasOwnProperty(file)) {
-			if (request.files[file].size > 0) {
-				photos.push(request.files[file]);
-			} else {
-				fs.unlinkSync(request.files[file].path);
+		seller = request.session.seller;
+		formVehicle = request.body.vehicle;
+		vehicle = new Vehicle({
+			market: sanitize(formVehicle.market),
+			type: {
+				make: sanitize(formVehicle.type.make),
+				model: sanitize(formVehicle.type.model),
+				year: sanitize(formVehicle.type.year)
+			},
+			description: {
+				mileage: sanitize(formVehicle.description.mileage),
+				color: sanitize(formVehicle.description.color),
+				fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory)
+			},
+			mechanics: {
+				engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
+				fuel: sanitize(formVehicle.mechanics.fuel),
+				transmission: sanitize(formVehicle.mechanics.transmission),
+				absBrakes: sanitize(formVehicle.absBrakes),
+				powerSteering: sanitize(formVehicle.mechanics.powerSteering)
+			},
+			luxuries: {
+				airConditioning: sanitize(formVehicle.luxuries.airConditioning),
+				electricWindows: sanitize(formVehicle.luxuries.electricWindows),
+				radio: sanitize(formVehicle.luxuries.radio),
+				cdPlayer: sanitize(formVehicle.luxuries.cdPlayer)
+			},
+			security: {
+				alarm: sanitize(formVehicle.security.alarm),
+				centralLocking: sanitize(formVehicle.security.centralLocking),
+				immobilizer: sanitize(formVehicle.security.immobilizer),
+				gearLock: sanitize(formVehicle.security.gearLock)
+			},
+			safety: {
+				airBags: sanitize(formVehicle.safety.airBags)
+			},
+			price: {
+				value: sanitize(formVehicle.price.value),
+				negotiable: sanitize(formVehicle.price.negotiable)
+			},
+			photos: [],
+			comments: sanitize(formVehicle.comments),
+			seller: seller._id
+		});
+
+		checkDirectory(vehicle, request.files, callback);
+	}
+
+	function insertVehicle(vehicle, callback) {
+		vehicle.save(function (err, vehicle) {
+			if (err) {
+				return callback(err);
 			}
+			return callback(null, vehicle);
+		});
+	}
+
+	function createVehicle(callback) {
+		instantiateVehicle(function (err, vehicle) {
+			if (err) {
+				return callback(err);
+			}
+			insertVehicle(vehicle, callback);
+		});
+	}
+
+	createVehicle(function (err, vehicle) {
+		if (err) {
+			console.log(err);
+			main.showErrorPage(request, response);
+			return;
 		}
-	}
+		response.redirect(302, path.join('/vehicle/view', vehicle._id.toString()));
+	});
+}
 
-	function uploadPhotos(vehicle, callback) {
-		var counter = 0;
-		async.forEach(photos, function (photo, callback1) {
-			counter = counter + 1;
-			var oldPath = photo.path;
-			var newFileName = sessionSeller._id
-								.concat('-')
-								.concat(vehicle._id)
-								.concat('-')
-								.concat(counter);
-			var newPath = newDir.concat('/').concat(newFileName);
-			fs.rename(oldPath, newPath, function (err) {
-				if (err) {
-					return callback(err);
-				}
-				photoPaths.push(uploadDir.concat('/').concat(newFileName));
-				callback1();
-			});
-		}, function () {
-			vehicle.photos = photoPaths;
-			vehicle.save(function (err, vehicle) {
-				if (err) {
-					return callback(err);
-				}
-				return callback(null, vehicle);
-			});
-		});
-	}
+/**
+ * Responds to HTTP POST /vehicle/edit.
+ *
+ * @param		{object}		request     An HTTP request object received from the express.post() method.
+ * @param		{object}		response    An HTTP response object received from the express.post() method.
+ *
+ * @returns	{undefined}
+ */
+function editProfile(request, response) {
+	var formVehicle = request.body.vehicle;
 
-	function checkDirectory(vehicle, callback) {
-		fs.exists(newDir, function (exists) {
-			if (exists) {
-				uploadPhotos(vehicle, callback);
-			} else {
-				fs.mkdir(newDir, '0755', function (err) {
-					if (err) {
-						return callback(err);
-					}
-					uploadPhotos(vehicle, callback);
-				});
-			}
-		});
-	}
-
-	function addVehicle(callback) {
-		var vehicle = new Vehicle({
+	function instantiateVehicle(callback) {
+		var sessionVehicle, vehicle;
+		sessionVehicle = request.session.vehicle;
+		vehicle = {
+			_id: sanitize(formVehicle._id),
 			market: sanitize(formVehicle.market),
 			type: {
 				make: sanitize(formVehicle.type.make),
@@ -213,80 +308,16 @@ function addProfile(request, response) {
 				negotiable: sanitize(formVehicle.price.negotiable)
 			},
 			comments: sanitize(formVehicle.comments),
-			seller: sessionSeller._id
-		});
+			photos: sessionVehicle.photos
+		};
 
-		vehicle.save(function (err, vehicle) {
-			if (err) {
-				return callback(err);
-			}
-			checkDirectory(vehicle, callback);
-		});
+		checkDirectory(vehicle, request.files, callback);
 	}
 
-	addVehicle(function (err, vehicle) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-		} else {
-			response.redirect(302, '/vehicle/view/'.concat(vehicle._id));
-		}
-	});
-}
-
-/**
- * Responds to HTTP POST /vehicle/edit.
- *
- * @param		{object}		request     An HTTP request object received from the express.post() method.
- * @param		{object}		response    An HTTP response object received from the express.post() method.
- *
- * @returns	{undefined}
- */
-function editProfile(request, response) {
-
-	function editVehicle(callback) {
-		var formVehicle = request.body.vehicle;
+	function updateVehicle(vehicle, callback) {
+		delete vehicle._id;
 		Vehicle.findByIdAndUpdate(formVehicle._id, {
-			$set: {
-				market: sanitize(formVehicle.market),
-				type: {
-					make: sanitize(formVehicle.type.make),
-					model: sanitize(formVehicle.type.model),
-					year: sanitize(formVehicle.type.year)
-				},
-				description: {
-					mileage: sanitize(formVehicle.description.mileage),
-					color: sanitize(formVehicle.description.color),
-					fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory)
-				},
-				mechanics: {
-					engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
-					fuel: sanitize(formVehicle.mechanics.fuel),
-					transmission: sanitize(formVehicle.mechanics.transmission),
-					absBrakes: sanitize(formVehicle.absBrakes),
-					powerSteering: sanitize(formVehicle.mechanics.powerSteering)
-				},
-				luxuries: {
-					airConditioning: sanitize(formVehicle.luxuries.airConditioning),
-					electricWindows: sanitize(formVehicle.luxuries.electricWindows),
-					radio: sanitize(formVehicle.luxuries.radio),
-					cdPlayer: sanitize(formVehicle.luxuries.cdPlayer)
-				},
-				security: {
-					alarm: sanitize(formVehicle.security.alarm),
-					centralLocking: sanitize(formVehicle.security.centralLocking),
-					immobilizer: sanitize(formVehicle.security.immobilizer),
-					gearLock: sanitize(formVehicle.security.gearLock)
-				},
-				safety: {
-					airBags: sanitize(formVehicle.safety.airBags)
-				},
-				price: {
-					value: sanitize(formVehicle.price.value),
-					negotiable: sanitize(formVehicle.price.negotiable)
-				},
-				comments: sanitize(formVehicle.comments)
-			}
+			$set: vehicle
 		}, function (err, vehicle) {
 			if (err) {
 				return callback(err);
@@ -295,12 +326,21 @@ function editProfile(request, response) {
 		});
 	}
 
+	function editVehicle(callback) {
+		instantiateVehicle(function (err, vehicle) {
+			if (err) {
+				return callback(err);
+			}
+			updateVehicle(vehicle, callback);
+		});
+	}
+
 	editVehicle(function (err, vehicle) {
 		if (err) {
 			console.log(err);
 			main.showErrorPage(request, response);
 		} else {
-			response.redirect(302, '/vehicle/view/'.concat(vehicle._id));
+			response.redirect(302, path.join('/vehicle/view/', vehicle._id.toString()));
 		}
 	});
 }
@@ -377,10 +417,11 @@ function showProfile(request, response) {
 }
 
 /**
- * Responds to HTTP GET /vehicle/:vid/image/:iid.
+ * Responds to HTTP GET /vehicle/:vehicleId/photo/:photoId.
  */
-function sendFile(request, response) {
-	response.send(path.resolve('./assets/img/vehicles/2/'.concat(request.params.iid)));
+function sendPhoto(request, response) {
+	response.sendfile(path.join(__dirname, '..', '..', '..', 'uploads/img/vehicles',
+							request.params.vehicleId, request.params.photoId));
 }
 
 function listVehicles(request, response) {
@@ -405,8 +446,9 @@ function listVehicles(request, response) {
 module.exports = {
 	showRegistrationForm: showRegistrationForm,
 	addProfile: addProfile,
+	showProfile: showProfile,
 	editProfile: editProfile,
 	removeProfile: removeProfile,
-	showProfile: showProfile,
+	sendPhoto: sendPhoto,
 	listVehicles: listVehicles
 };
