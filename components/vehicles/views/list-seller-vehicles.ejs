@@ -13,14 +13,14 @@
 		</tr>
 	</thead>
 	<tbody>
-	<% for (v in vehicles) { %>
-		<form action="/vehicle/<%=vehicles[v].id %>" method="get">
+	<% for (var i = 0; i < vehicles.length; i++) { %>
+		<form action="/vehicle/view/<%=vehicles[i]._id%>" method="get">
 			<tr>
-				<td><%=vehicles[v].id %></td>
-				<td><%=vehicles[v].model.manufacturer.name %></td>
-				<td><%=vehicles[v].model.name %></td>
-				<td><%=vehicles[v].year %></td>
-				<td><%=vehicles[v].price %></td>
+				<td><%=vehicles[i]._id %></td>
+				<td><%=vehicles[i].type.make %></td>
+				<td><%=vehicles[i].type.model %></td>
+				<td><%=vehicles[i].type.year %></td>
+				<td><%=vehicles[i].price.value %></td>
 				<td><button class="btn btn-info">View</button></td>
 			</tr>
 		</form>

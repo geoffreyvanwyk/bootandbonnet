@@ -29,6 +29,7 @@ var Dealership = require('../../sellers/models/dealerships').Dealership;
 var Lookups = require('../../../models/lookups').Lookups;
 var Make = require('../models/makes').Make;
 var PrivateSeller = require('../../sellers/models/private-sellers').PrivateSeller;
+var Seller = require('../../sellers/models/sellers').Seller;
 var Vehicle = require('../models/vehicles').Vehicle;
 
 /*
@@ -354,7 +355,24 @@ function editProfile(request, response) {
  * @returns	{undefined}
  */
 function removeProfile(request, response) {
+	var sessionVehicle;
+	sessionVehicle = request.session.vehicle;
+	Vehicle.findById(sessionVehicle._id, function (err, vehicle) {
+		if (err) {
+			console.log(err);
+			main.showErrorPage(request, response);
+		} else {
+			vehicle.remove(function (err) {
+				if (err) {
+					console.log(err);
+					main.showErrorPage(request, response);
+				} else {
+					listSellerVehicles(request, response);
+				}
 
+			});
+		}
+	});
 }
 
 /**
@@ -424,20 +442,19 @@ function sendPhoto(request, response) {
 							request.params.vehicleId, request.params.photoId));
 }
 
-function listVehicles(request, response) {
-	var seller = request.session.seller;
-	var vehicles = Object.create(vehiclesPrototype);
-	var sellerId = {
-		name: 'sellerId',
-		value: seller.sellerId
-	};
-	vehicles.readBy(sellerId, function (err, vehicles) {
+function listSellerVehicles(request, response) {
+	var seller;
+
+	seller = request.session.seller;
+
+	Vehicle.find({seller: seller._id}, function (err, vehicles) {
 		if (err) {
-			throw err;
+			console.log(err);
+			main.showErrorPage(request, response);
 		} else {
-			response.render('list', {
+			response.render('list-seller-vehicles', {
 				loggedIn: true,
-				vehicles: vehicles.objects
+				vehicles: vehicles
 			});
 		}
 	});
@@ -450,5 +467,5 @@ module.exports = {
 	editProfile: editProfile,
 	removeProfile: removeProfile,
 	sendPhoto: sendPhoto,
-	listVehicles: listVehicles
+	listSellerVehicles: listSellerVehicles
 };

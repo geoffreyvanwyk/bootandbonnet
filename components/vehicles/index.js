@@ -77,10 +77,13 @@ app.map(app, {
 			get: registration.showRegistrationForm,
 			post: registration.editProfile
 		},
+		'/remove': {
+			get: registration.removeProfile
+		}
 	},
 	'/seller': {
 		'/vehicles': {
-			get: registration.listVehicles
+			get: registration.listSellerVehicles
 		}
 	}
 });
