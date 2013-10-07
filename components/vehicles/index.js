@@ -71,14 +71,14 @@ app.map(app, {
 						get: registration.sendPhoto
 					}
 				}
-			},
+			}
 		},
-		'/edit': {
+		'/edit': { //TODO Add :vehicleId
 			get: registration.showRegistrationForm,
 			post: registration.editProfile
 		},
-		'/remove': {
-			get: registration.removeProfile
+		'/remove': { //TODO Add :vehicleId
+			get: registration.removeProfile //TODO Change to post
 		}
 	},
 	'/seller': {

@@ -355,6 +355,7 @@ function editProfile(request, response) {
  * @returns	{undefined}
  */
 function removeProfile(request, response) {
+	// TODO Make sure that a seller is logged-in and the he is the seller of the vehicle.
 	var sessionVehicle;
 	sessionVehicle = request.session.vehicle;
 	Vehicle.findById(sessionVehicle._id, function (err, vehicle) {
