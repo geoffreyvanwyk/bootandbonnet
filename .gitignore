@@ -1,6 +1,6 @@
-static/img/vehicles/
 nbproject/
 node_modules/
+uploads/
 *~
 *.swp
 *.directory

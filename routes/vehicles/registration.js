@@ -3,40 +3,38 @@
 'use strict';
 
 /*
- * Import external modules.
+ * Component: vehicles
+ *
+ * File: routes/vehicles/registration.js
+ *
+ * Purpose: Contains routes for handling registration of new vehicles and modification of existing vehicles.
  */
+
+/* Import external modules. */
 
 var async = require('async'); // For asynchronous iteration.
 
-/*
- * Import built-in modules.
- */
+/* Import built-in modules. */
 
 var fs = require('fs'); // For uploading photos.
 var path = require('path'); // For concatenating file paths.
 
-/*
- * Import libraries.
- */
+/* Import libraries. */
 
-var sanitize = require('../../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
+var sanitize = require('../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
-/*
- * Import models.
- */
+/* Import models. */
 
-var Dealership = require('../../sellers/models/dealerships').Dealership;
-var Lookups = require('../../../models/lookups').Lookups;
-var Make = require('../models/makes').Make;
-var PrivateSeller = require('../../sellers/models/private-sellers').PrivateSeller;
-var Seller = require('../../sellers/models/sellers').Seller;
-var Vehicle = require('../models/vehicles').Vehicle;
+var Dealership = require('../../models/sellers/dealerships').Dealership;
+var Lookups = require('../../models/lookups').Lookups;
+var Make = require('../../models/vehicles/makes').Make;
+var PrivateSeller = require('../../models/sellers/private-sellers').PrivateSeller;
+var Seller = require('../../models/sellers/sellers').Seller;
+var Vehicle = require('../../models/vehicles/vehicles').Vehicle;
 
-/*
- * Import routes.
- */
+/* Import routes. */
 
-var main = require('../../../routes/main');
+var main = require('../../routes/main');
 
 /* Helper functions */
 
@@ -88,7 +86,7 @@ function checkDirectory(vehicle, files, callback) {
 	var vehicleDir, webDir;
 
 	webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
-	vehicleDir = path.join(__dirname, '..', '..', '..', webDir);
+	vehicleDir = path.join(__dirname, '..', '..', webDir);
 
 	fs.exists(vehicleDir, function (exists) {
 		if (exists) {
@@ -161,7 +159,7 @@ function showRegistrationForm(request, response) {
 				locals.buttonCaption = 'Save Changes';
 				locals.vehicle = request.session.vehicle;
 			}
-			response.render('registration-form', locals);
+			response.render('vehicles/registration-form', locals);
 		});
 	}
 }
@@ -423,7 +421,7 @@ function showProfile(request, response) {
 					} else {
 						var isSameSeller = false;
 					}
-					response.render('profile-page', {
+					response.render('vehicles/profile-page', {
 						vehicle: vehicle,
 						seller: seller,
 						isSameSeller: isSameSeller,
@@ -437,9 +435,12 @@ function showProfile(request, response) {
 
 /**
  * Responds to HTTP GET /vehicle/:vehicleId/photo/:photoId.
+ *
+ * @param		{object}		request     An HTTP request object received from the express.get() method.
+ * @param		{object}		response    An HTTP response object received from the express.get() method.
  */
 function sendPhoto(request, response) {
-	response.sendfile(path.join(__dirname, '..', '..', '..', 'uploads/img/vehicles',
+	response.sendfile(path.join(__dirname, '..', '..', 'uploads/img/vehicles',
 							request.params.vehicleId, request.params.photoId));
 }
 
@@ -453,7 +454,7 @@ function listSellerVehicles(request, response) {
 			console.log(err);
 			main.showErrorPage(request, response);
 		} else {
-			response.render('list-seller-vehicles', {
+			response.render('vehicles/list-seller-vehicles', {
 				loggedIn: true,
 				vehicles: vehicles
 			});

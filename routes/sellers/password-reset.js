@@ -1,29 +1,31 @@
+/*jslint node: true */
+
 "use strict";
 
-/**
- * Import external modules.
+/*
+ * Component: sellers
+ *
+ * File: routes/sellers/password-reset.js
+ *
+ * Purpose: Contains routes for resetting a seller's password.
  */
+
+/* Import external modules. */
 
 var bcrypt = require('bcrypt');
 
-/**
- * Import local modules.
- */
+/* Import local modules. */
 
-var email = require('../../../configuration/email').server;
+var email = require('../../configuration/email').server;
 
-/**
- * Import models.
- */
+/* Import models. */
 
-var Seller = require('../models/sellers').Seller;
+var Seller = require('../../models/sellers/sellers').Seller;
 
-/**
- * Import routes.
- */
+/* Import routes. */
 
 var login = require('./login');
-var main = require('../../../routes/main');
+var main = require('../../routes/main');
 
 /**
  * Responds to HTTP GET /seller/password/forgot.
@@ -45,7 +47,7 @@ function showPasswordForgottenForm(request, response) {
 		var emailAddress = request.session.passwordReset.email;
 		request.session.passwordReset = null;
 	}
-	response.render('password-forgotten-form', {
+	response.render('sellers/password-forgotten-form', {
 		emailError: emailError || '',
 		emailAddress: emailAddress || '',
 		loggedIn: false
@@ -102,7 +104,7 @@ function sendPasswordResetEmail(request, response) {
 						subject: "Password Reset"
 					}, function(err, message) {
 						console.log(err || message);
-						response.render('password-reset-email-sent-page', {
+						response.render('sellers/password-reset-email-sent-page', {
 							loggedIn: false
 						});
 					});
@@ -130,7 +132,7 @@ function showPasswordResetForm(request, response) {
 			console.log(err);
 			main.showErrorPage(request, response);
 		} else if (isMatch) {
-			response.render('password-reset-form', {
+			response.render('sellers/password-reset-form', {
 				emailAddress: emailAddress,
 				loggedIn: false
 			});

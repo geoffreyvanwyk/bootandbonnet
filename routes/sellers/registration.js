@@ -1,34 +1,41 @@
-"use strict";
+/*jslint node: true */
 
-/**
- * Import external modules.
+'use strict';
+
+/*
+ * Component: sellers
+ *
+ * File: routes/sellers/registration.js
+ *
+ * Purpose: Contains routes that handle registration of new sellers and modification of existing sellers.
  */
+
+/* Import external modules. */
 
 var bcrypt = require('bcrypt'); // For hashing and comparing passwords.
-var sanitize = require('sanitizer').sanitize; // For removing scripts from user input.
 
-/**
- * Import models.
- */
+/* Import libraries. */
 
-var Seller = require('../models/sellers').Seller;
-var PrivateSeller = require('../models/private-sellers').PrivateSeller;
-var Dealership = require('../models/dealerships').Dealership;
-var Province = require('../../../models/provinces').Province;
+var sanitize = require('../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
-/**
- * Import routes.
- */
+/* Import models. */
+
+var Seller = require('../../models/sellers/sellers').Seller;
+var PrivateSeller = require('../../models/sellers/private-sellers').PrivateSeller;
+var Dealership = require('../../models/sellers/dealerships').Dealership;
+var Province = require('../../models/provinces').Province;
+
+/* Import routes. */
 
 var eav = require('./email-address-verification');
-var main = require('../../../routes/main');
+var main = require('../../routes/main');
 var login = require('./login');
 
 /**
  * Responds to HTTP GET /seller/add and HTTP GET /seller/edit.
  *
- * Displays seller registration-form, to either add or edit a seller profile. 
- * 
+ * Displays seller registration-form, to either add or edit a seller profile.
+ *
  * If a seller is already logged-in, a new profile cannot be added, so the function will do nothing. If a seller is not
  * logged-in, a profile cannot be edited, so the function will do nothing.
  *
@@ -109,7 +116,7 @@ function showRegistrationForm(request, response) {
 				loggedIn: isSellerLoggedIn
 			};
 		}
-		response.render('registration-form', locals, function (err, html) {
+		response.render('sellers/registration-form', locals, function (err, html) {
 			request.session.emailError = null;
 			request.session.registrationFormValidation = null;
 			response.send(html);
@@ -274,6 +281,7 @@ function addProfile(request, response) {
  *
  * @param		{object}		request		An HTTP request object received from the express.get() method.
  * @param		{object}		response	An HTTP response object received from the express.get() method.
+ * @param 		{function} 		callback 	A callback function.
  *
  * @returns	{undefined}		Returns the request and response objects to a callback function.
  */
@@ -292,7 +300,7 @@ function showProfile(request, response, callback) {
 		var streetAddress1 = seller.address.street;
 		var streetAddress2 = seller.address.suburb;
 	}
-	response.render('profile-page', {
+	response.render('sellers/profile-page', {
 		method: 'delete',
 		sellerType: request.session.dealership ? 'dealership' : 'private seller',
 		email: request.session.seller.emailAddress,

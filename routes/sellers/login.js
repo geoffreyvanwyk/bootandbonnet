@@ -1,11 +1,13 @@
+/*jslint node: true */
+
 "use strict";
 
 /*
- * Module: sellers 
- * 
- * File name: login.js
- * 
- * Purpose: Routes handling login
+ * Component: sellers
+ *
+ * File: routes/sellers/login.js
+ *
+ * Purpose: Contains routes that handle seller login.
  */
 
 /* Import external modules. */
@@ -14,13 +16,13 @@ var bcrypt = require('bcrypt');
 
 /* Import models. */
 
-var Seller = require('../models/sellers').Seller;
-var PrivateSeller = require('../models/private-sellers').PrivateSeller;
-var Dealership = require('../models/dealerships').Dealership;
+var Seller = require('../../models/sellers/sellers').Seller;
+var PrivateSeller = require('../../models/sellers/private-sellers').PrivateSeller;
+var Dealership = require('../../models/sellers/dealerships').Dealership;
 
 /* Import routes. */
 
-var main = require('../../../routes/main');
+var main = require('../../routes/main');
 
 /**
  * Responds to HTTP GET /seller/login.
@@ -62,7 +64,7 @@ function showLoginForm(request, response) {
 		if (isPasswordReset) {
 			request.session.isPasswordReset = null;
 		}
-		response.render('login-form', {
+		response.render('sellers/login-form', {
 			emailAddress: emailAddress || '',
 			emailError: emailError || '',
 			passwordError: passwordError || '',

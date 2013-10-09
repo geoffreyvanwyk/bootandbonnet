@@ -1,28 +1,30 @@
+/*jslint node: true */
+
 "use strict";
 
-/**
- * Import external modules.
+/*
+ * Component: sellers
+ *
+ * File: routes/sellers/email-address-verification.js
+ *
+ * Purpose: Contains routes for verifying the email addresses of sellers.
  */
+
+/* Import external modules. */
 
 var bcrypt = require('bcrypt');
 
-/**
- * Import local modules.
- */
+/* Import local modules. */
 
-var email = require('../../../configuration/email').server;
+var email = require('../../configuration/email').server;
 
-/**
- * Import models.
- */
+/* Import models. */
 
-var Seller = require('../models/sellers').Seller;
+var Seller = require('../../models/sellers/sellers').Seller;
 
-/**
- * Import routes.
- */
+/* Import routes. */
 
-var main = require('../../../routes/main');
+var main = require('../../routes/main');
 
 /**
  * Sends an email to a seller to verify the email address provided.
@@ -124,7 +126,7 @@ function showEmailAddressVerifiedPage(request, response) {
 	} else {
 		var loggedIn = false;
 	}
-	response.render('email-address-verified-page', {
+	response.render('sellers/email-address-verified-page', {
 		isSellerNotExist: request.session.isSellerNotExist || '',
 		isHashNotMatch: request.session.isHashNotMatch || '',
 		loggedIn: loggedIn
