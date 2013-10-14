@@ -1,4 +1,14 @@
-"use strict";
+/*jslint node: true */
+
+'use strict';
+
+/*
+ * Component: vehicles
+ *
+ * File: models/vehicles/vehicles.js
+ *
+ * Purpose: Defines Mongoose model for vehicle objects.
+ */
 
 var mongoose = require('mongoose');
 
@@ -42,6 +52,10 @@ var vehicleSchema = mongoose.Schema({
 		negotiable: {type: Boolean,	default: false}
 	},
 	comments: {type: String, default: ''},
+	expiryDate: { // Date on which advertisement of this vehicle expires.
+		type: Date,
+		default: Date.now
+	},
 	seller: {type: mongoose.Schema.Types.ObjectId, ref: 'Seller'}
 });
 

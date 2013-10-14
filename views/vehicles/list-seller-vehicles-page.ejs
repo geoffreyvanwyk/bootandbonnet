@@ -1,0 +1,51 @@
+<% layout('../../views/layout') -%>
+<% script('../../static/js/vehicles/list-seller-vehicles-page.js') -%>
+
+<div class="row">
+	<div class="span6">
+		<h2>My Vehicles</h2>
+	</div>
+</div>
+
+<form id="items" action="/order/add" method="get">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>&nbsp;</th>
+				<th>Make</th>
+				<th>Model</th>
+				<th>Year</th>
+				<th>Price</th>
+				<th>Expires</th>
+			</tr>
+		</thead>
+		<tbody>
+			<% for (var i = 0; i < vehicles.length; i++) { %>
+			<tr>
+				<td><%=i+1%></td>
+				<td><%=vehicles[i].type.make %></td>
+				<td><%=vehicles[i].type.model %></td>
+				<td><%=vehicles[i].type.year %></td>
+				<td><%=vehicles[i].price.value %></td>
+				<% if (vehicles[i].expiryDate < Date.now()) { var vehicle = JSON.stringify(vehicles[i]); %>
+				<td><button type="button" name="<%=vehicles[i]._id%>"
+							class="cardog-btn-advertise btn btn-success"
+							value="<%=vehicle%>">
+						Advertise</button></td>
+				<% } else  { %>
+				<td><%=vehicle[i].expiryDate %></td>
+				<% } %>
+				<td><a href="/vehicle/view/<%=vehicles[i]._id%>">View</a></td>
+			</tr>
+			<% } %>
+		</tbody>
+	</table>
+
+	<div class="form-actions">
+		<a href="/vehicle/add" class="btn btn-primary">Add Vehicle</a>
+		<span class="btn-group">
+			<button id="viewCart" type="submit" class="btn btn-info">View Cart</button>
+			<button id="nrOfItems" type="button" class="btn btn-info">0</button>
+		</span>
+	</div>
+</form>

@@ -42,6 +42,7 @@ var email = require('./routes/sellers/email-address-verification');
 var login = require('./routes/sellers/login');
 var password = require('./routes/sellers/password-reset');
 var vehicle = require('./routes/vehicles/registration');
+var order = require('./routes/orders/registration');
 
 /**
  * Configure application.
@@ -137,6 +138,11 @@ app.map(app, {
 		},
 		'/remove': { //TODO Add :vehicleId
 			get: vehicle.removeProfile //TODO Change to post
+		}
+	},
+	'/order': {
+		'/add': {
+			get: order.showCart
 		}
 	}
 });

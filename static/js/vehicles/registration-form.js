@@ -2,7 +2,7 @@
 /*global FileReader*/
 /*global $*/
 
-"use strict";
+'use strict';
 
 window.onload = function () {
 	var photoInputs, index, makesSelect, modelsSelect, removePhotoButtons;

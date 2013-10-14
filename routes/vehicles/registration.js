@@ -454,7 +454,7 @@ function listSellerVehicles(request, response) {
 			console.log(err);
 			main.showErrorPage(request, response);
 		} else {
-			response.render('vehicles/list-seller-vehicles', {
+			response.render('vehicles/list-seller-vehicles-page', {
 				loggedIn: true,
 				vehicles: vehicles
 			});
