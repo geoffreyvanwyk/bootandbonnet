@@ -1,41 +1,31 @@
-"use strict";
+/*jslint node: true*/
 
-/**
- * HTTP Server.
+'use strict';
+
+/*
+ * Component: main 
  *
  * Filename: app.js
+ *
+ * Purpose: Starts the web server, connects to the database server and to online payments service.
  */
 
-/**
- * Import external modules.
- */
-
+/* Import external modules. */
 var engine = require('ejs-locals');
 var express = require('express');
 
-/**
- * Import built-in modules.
- */
-
+/* Import built-in modules. */
 var http = require('http');
 var path = require('path');
 
-/**
- * Import libraries.
- */
-
+/* Import libraries. */
 var map = require('./library/route-map').map;
 
-/**
- * Import configurations.
- */
-
+/* Import configurations. */
 var databaseServer = require('./configuration/database').mongodb;
+var paypal = require('./configuration/paypal/connect.js');
 
-/**
- * Import routes.
- */
-
+/* Import routes. */
 var main = require('./routes/main');
 var seller = require('./routes/sellers/registration');
 var email = require('./routes/sellers/email-address-verification');
@@ -44,13 +34,10 @@ var password = require('./routes/sellers/password-reset');
 var vehicle = require('./routes/vehicles/registration');
 var order = require('./routes/orders/registration');
 
-/**
- * Configure application.
- */
-
+/* Configure application. */
 var app = express();
 
-app.configure(function() {
+app.configure(function () {
     app.set('port', process.env.PORT || 3000);
     app.engine('ejs', engine);
     app.set('views', __dirname + '/views');
@@ -71,10 +58,7 @@ app.configure('development', function() {
     app.use(express.errorHandler());
 });
 
-/*
- * Route requests.
- */
-
+/* Route requests. */
 app.map = map;
 
 app.map(app, {
@@ -142,16 +126,18 @@ app.map(app, {
 	},
 	'/order': {
 		'/add': {
-			get: order.showCart
+			get: order.showCart,
+			post: order.confirm
+		},
+		'/pay': {
+			get: order.pay
 		}
 	}
 });
 
-/**
- * Start web server and connect to database.
- */
-
+/* Start web server, then connect to database server and PayPal. */
 http.createServer(app).listen(app.get('port'), function() {
-    console.log("Web server listening on port " + app.get('port') + '.');
+    console.log("Web server listening on port ".concat(app.get('port')).concat('.'));
 	databaseServer.connect();
+	paypal.connect();
 });

@@ -13,9 +13,12 @@
 		<tbody>
 			<% for (var i = 0; i < items.length; i++) { var item = JSON.parse(items[i]); %>
 			<tr>
-				<td><%=item.type.make%>&nbsp;<%=item.type.model%>&nbsp;<%=item.type.year%></td>
 				<td>
-					<select name="<%=item._id%>" class="span1 cardog-weeks">
+					<%=item.type.make%>&nbsp;<%=item.type.model%>&nbsp;<%=item.type.year%>
+					<input type="hidden" name="items[][_id]" value="<%=item._id%>" >
+				</td>
+				<td>
+					<select name="items[][weeks]"  class="span1 cardog-weeks" data-custom="<%=item._id%>">
 						<option>1</option>
 						<option>2</option>
 						<option>3</option>
@@ -24,7 +27,7 @@
 						<option>6</option>
 					</select>
 				</td>
-				<td id="<%=item._id%>" class="cardog-cost"></td>
+				<td name="items[][cost]" value="" class="cardog-cost" data-custom="<%=item._id%>"></td>
 			</tr>
 			<% } %>
 			<tr>
@@ -35,6 +38,6 @@
 	</table>
 
 	<div class="form-actions">
-		<button type="submit" class="btn btn-success">Pay Now</button>
+		<button type="submit" class="btn btn-success">Checkout</button>
 	</div>
 </form>
