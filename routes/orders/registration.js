@@ -42,58 +42,14 @@ function showCart(request, response) {
  * @returns	{undefined}
  */
 function confirmOrder(request, response) {
-	var index, item, items, payment, redirectUrl, transactions;
+	var item, items;
 
-	transactions = [];
-	items = request.body.items;
-	console.log('Items: ');
-	console.log(items);
+	items = request.body;
+	
 	for (item in items) {
-		if (items.hasOwnPropery(item)) {
-			transaction = {
-				amount: {
-					total: items[item].cost,
-					currency: 'USD'
-				},
-				description: 'Vehicle adverisement for '.concat(items[item].weeks).concat('weeks.') 
-			};
-
-			transactions.push(item);
+		if (items.hasOwnProperty(item)) {
 		}
 	}
-
-	console.log('The transactions:');
-	console.log(transactions);
-
-	payment = {
-		intent: 'sale',
-		payer: {
-			payment_method: 'paypal'
-		},
-		redirect_urls: {
-			return_url: 'http://localhost:3000/order/pay',
-			cancel_url: 'http://yoururl.com/cancel'
-		},
-		transactions: transactions
-	};
-
-	paypal.payment.create(payment, function (err, payment) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-		} else {
-			if(payment.payer.payment_method === 'paypal') {
-				request.session.paymentId = payment.id;
-				for(index = 0; index < payment.links.length; index++) {
-					link = payment.links[index];
-					if (link.method === 'REDIRECT') {
-						redirectUrl = link.href;
-					}
-				}
-				response.redirect(redirectUrl);
-			}
-		}
-	});
 }
 
 /**
@@ -105,19 +61,6 @@ function confirmOrder(request, response) {
  * @returns	{undefined}
  */
 function payOrder(request, response) {
-	var details, payerId, paymentId;
-
-	paymentId = request.session.paymentId;
-	payerId = request.param('PayerID');
-	details = { "payer_id": payerId };
-
-	paypal.payment.execute(paymentId, details, function (error, payment) {
-		if (error) {
-			console.log(error);
-		} else {
-			response.send("Hell yeah!");
-		}
-	});
 }
 
 module.exports = {

@@ -7,14 +7,14 @@ $(window).on({
 		'use strict';
 		
 		/**
-		 * Updates the total cost of all items in the cart.
+		 * Calculates the total cost of all items in the cart.
 		 *
-		 * @returns	{number}
+		 * @returns	{number}	The total cost of all items in the cart.
 		 */
-		function updateTotal() {
+		function totalCost() {
 			var total = 0;
 
-			$('.cardog-cost').each(function () {
+			$('td.cardog-cost').each(function () {
 				total += Number($(this).text());
 			});
 
@@ -22,14 +22,14 @@ $(window).on({
 		}
 
 		/**
-		 * Calculates the cost for one item in the cart, based in the number of weeks selected, then updates 
-		 * the total cost as well.
+		 * Calculates the cost for one item in the cart (based on the number of weeks selected), updates 
+		 * the value in the corresponding table cell, then updates the total cost.
 		 *
-		 * @param	{object}	select	The select element displaying the number of weeks.
+		 * @param	{object}		select	The select element displaying the number of weeks.
 		 * @returns	{undefined}
 		 */
-		function calculateCost(select) {
-				$('.cardog-cost[data-custom="'
+		function calculateItemCost(select) {
+				$('td.cardog-cost[data-custom="'
 					.concat($(select).attr('data-custom'))
 					.concat('"]'))
 					.attr('value', $(select).val() * 70)
@@ -37,28 +37,22 @@ $(window).on({
 						return $(this).attr('value');
 				});
 
-				$('#total').text(updateTotal);
+				$('input.cardog-cost[data-custom="'
+					.concat($(select).attr('data-custom'))
+					.concat('"]'))
+					.val($(select).val() * 70);
+
+				$('#total').text(totalCost);
 		}
 
 		$('.cardog-weeks').on({
 			change: function () {
-				calculateCost(this);
+				calculateItemCost(this);
 			}
 		});
 
 		$('.cardog-weeks').each(function () {
-			calculateCost(this);
+			calculateItemCost(this);
 		});
-
-//	$('.cardog-cost').each(function () {
-//			$(this).text(function () {
-//				return $('.cardog-weeks[data-custom="'
-//					.concat($(this).attr('data-custom'))
-//					.concat('"]'))
-//					.val() * 70;
-//			});
-//		});
-
-//	$('#total').text(updateTotal);
 	}
 });
