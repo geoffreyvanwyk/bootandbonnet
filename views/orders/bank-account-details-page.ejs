@@ -1,0 +1,43 @@
+<% layout('../../views/layout') -%>
+
+<div class="page-header">
+	<h1>Banking Details</h1>
+</div>
+
+<div class="alert alert-success" >
+	<button type="button" class="close" data-dismiss="alert">&times;</button>
+	<strong>Thank you for your order!</strong> Please deposit the required amount into the bank account below, using the reference number given. As soon as we have received your payment, the vehicle(s) will be advertised.
+</div>
+
+<table class="table">
+	<tbody>
+		<tr>
+			<th><span class="pull-right">Amount due</span>&nbsp;&nbsp;</th>
+			<td>R&nbsp;<%=amountDue%>.00</td>
+		</tr>	
+		<tr>
+			<th><span class="pull-right">Reference number</span>&nbsp;&nbsp;</th>
+			<td><%=referenceNumber%></td>
+		</tr>	
+		<tr>
+			<th><span class="pull-right">Bank</span>&nbsp;&nbsp;</th>
+			<td>First National Bank</td>
+		</tr>	
+		<tr>
+			<th><span class="pull-right">Branch (code)</span>&nbsp;&nbsp;</th>
+			<td>Hatfield (250111)</td>
+		</tr>	
+		<tr>
+			<th><span class="pull-right">Account number</span>&nbsp;&nbsp;</th>
+			<td>3427785693920</td>
+		</tr>	
+		<tr>
+			<th><span class="pull-right">Account name</span>&nbsp;&nbsp;</th>
+			<td>Bernadine Computing</td>
+		</tr>	
+	</tbody>
+</table>
+
+<div class="form-actions" >
+	<a href="/seller/vehicles" class="btn btn-primary">My Orders</a>
+</div>

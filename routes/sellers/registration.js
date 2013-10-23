@@ -11,33 +11,37 @@
  */
 
 /* Import external modules. */
-
 var bcrypt = require('bcrypt'); // For hashing and comparing passwords.
 
 /* Import libraries. */
-
 var sanitize = require('../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
 /* Import models. */
-
 var Seller = require('../../models/sellers/sellers').Seller;
 var PrivateSeller = require('../../models/sellers/private-sellers').PrivateSeller;
 var Dealership = require('../../models/sellers/dealerships').Dealership;
 var Province = require('../../models/provinces').Province;
 
 /* Import routes. */
-
-var eav = require('./email-address-verification');
+var email = require('./email-address-verification');
 var main = require('../../routes/main');
 var login = require('./login');
 
 /**
- * Responds to HTTP GET /seller/add and HTTP GET /seller/edit.
+ * Responds to HTTP GET /seller/:id.
+ *
+ * If a seller is not logged-in, the login-form is displayed. and the logged-in seller's id corresponds with :id, then the next route function
+ * is called; else, if 
+ * 
+
+
+/**
+ * Responds to HTTP GET /seller/add and HTTP GET /seller/:sellerId/edit.
  *
  * Displays seller registration-form, to either add or edit a seller profile.
  *
- * If a seller is already logged-in, a new profile cannot be added, so the function will do nothing. If a seller is not
- * logged-in, a profile cannot be edited, so the function will do nothing.
+ * If the url is /seller/add, but a seller is logged-in, a new profile cannot be added, so the function will 
+ * do nothing. If the url is /seller/edit, but a seller is not logged-in, a profile cannot be edited, so the function will do nothing.
  *
  * @param		{object}		request     An HTTP request object received from the express.get() method.
  * @param		{object}		response    An HTTP response object received from the express.get() method.
@@ -233,7 +237,7 @@ function addProfile(request, response) {
 							var dealership = null;
 							login.setSession(request, response, seller, dealership, privateSeller,
 								function () {
-									showProfile(request, response, eav.sendEmail);
+									showProfile(request, response, email.sendEmail);
 								}
 							);
 						}
@@ -263,7 +267,7 @@ function addProfile(request, response) {
 							var privateSeller = null;
 							login.setSession(request, response, seller, dealership, privateSeller,
 								function () {
-									showProfile(request, response, eav.sendEmail);
+									showProfile(request, response, email.sendEmail);
 								}
 							);
 						}
@@ -418,7 +422,7 @@ function editProfile(request, response) {
 					request.session.privateSeller = privateSeller;
 					showProfile(request, response, function (request, response) {
 						if (isEmailChanged) {
-							return eav.sendEmail(request, response);
+							return email.sendEmail(request, response);
 						}
 						return;
 					});
@@ -449,7 +453,7 @@ function editProfile(request, response) {
 					request.session.dealership = dealership;
 					showProfile(request, response, function (request, response) {
 						if (isEmailChanged) {
-							return eav.sendEmail(request, response);
+							return email.sendEmail(request, response);
 						}
 						return;
 					});
@@ -487,7 +491,7 @@ function editProfile(request, response) {
 						} else {
 							showProfile(request, response, function (request, response) {
 								if (isEmailChanged) {
-									return eav.sendEmail(request, response);
+									return email.sendEmail(request, response);
 								}
 								return;
 							});
@@ -524,7 +528,7 @@ function editProfile(request, response) {
 						} else {
 							showProfile(request, response, function (request, response) {
 								if (isEmailChanged) {
-									return eav.sendEmail(request, response);
+									return email.sendEmail(request, response);
 								}
 								return;
 							});

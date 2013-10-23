@@ -14,12 +14,12 @@ var mongoose = require('mongoose');
 
 var itemSchema = mongoose.Schema({
 	order: {
-		type: mongoose.Schema.Types.Objectid,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Order',
 		required: true
 	},
 	vehicle: {
-		type: mongoose.Schema.Types.Objectid,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Vehicle',
 		required: true
 	},

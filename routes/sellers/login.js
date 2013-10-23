@@ -183,7 +183,7 @@ function setSession(request, response, seller, dealership, privateSeller, callba
 }
 
 module.exports = {
-	showLoginForm: showLoginForm,
-	authenticateSeller: authenticateSeller,
+	form: showLoginForm,
+	authenticate: authenticateSeller,
 	setSession: setSession
 };

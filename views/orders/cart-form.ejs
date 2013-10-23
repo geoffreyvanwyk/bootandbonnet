@@ -1,7 +1,9 @@
 <% layout('../../views/layout') -%>
 <% script('../../static/js/orders/cart-form.js') -%>
 
-<h2>Cart</h2>
+<div class="page-header">
+	<h2>Cart</h2>
+</div>
 
 <form id="items" action="/order/add" method="post">
 	<table class="table">
@@ -11,16 +13,12 @@
 			<th>Cost</th>
 		</thead>
 		<tbody>
-			<% for (var i = 0; i < items.length; i++) { var item = JSON.parse(items[i]); %>
+		<% for (var i = 0; i < items.length; i++) { var item = JSON.parse(items[i]); %>
 			<input	type="hidden" name="item<%=i%>[_id]" value="<%=item._id%>" >
 			<input	type="hidden" name="item<%=i%>[cost]" value="" class="cardog-cost" 
 					data-custom="<%=item._id%>"	>
 			<tr>
-				<td>
-					<%=item.type.make%>&nbsp;
-					<%=item.type.model%>&nbsp;
-					<%=item.type.year%>
-				</td>
+				<td><%=item.type.make%>&nbsp;<%=item.type.model%>&nbsp;<%=item.type.year%></td>
 				<td>
 					<select	name="item<%=i%>[weeks]" class="cardog-weeks span1" data-custom="<%=item._id%>"	>
 						<option>1</option>
@@ -33,7 +31,7 @@
 				</td>
 				<td	class="cardog-cost" data-custom="<%=item._id%>"	></td>
 			</tr>
-			<% } %>
+		<% } %>
 			<tr>
 				<th colspan="2" >Total</th>
 				<th id="total"></th>

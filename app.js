@@ -7,7 +7,7 @@
  *
  * Filename: app.js
  *
- * Purpose: Starts the web server, connects to the database server and to online payments service.
+ * Purpose: Starts the web server, then connects to the database server. 
  */
 
 /* Import external modules. */
@@ -23,7 +23,6 @@ var map = require('./library/route-map').map;
 
 /* Import configurations. */
 var databaseServer = require('./configuration/database').mongodb;
-var paypal = require('./configuration/paypal/connect.js');
 
 /* Import routes. */
 var main = require('./routes/main');
@@ -65,79 +64,97 @@ app.map(app, {
     '/': {
 		get: main.showHomePage
     },
-	'/seller': {
+	'/sellers': {
 		'/add': {
 			get: seller.showRegistrationForm,
 			post: seller.validateInputs
 		},
-		'/view': {
-			get: seller.showProfile
-		},
-		'/edit': {
-			get: seller.showRegistrationForm,
-			post: seller.validateInputs
-		},
-		'/remove': {
-			get: seller.removeProfile
-		},
-		'/verify-email-address': {
-			get: email.verifyEmailAddress
-		},
-		'/login': {
-			get: login.showLoginForm,
-			post: login.authenticateSeller
-		},
-		'/password': {
-			'/forgot': {
-				get: password.showPasswordForgottenForm,
-				post: password.sendPasswordResetEmail
-			},
-			'/reset': {
-				get: password.showPasswordResetForm,
-				post: password.resetPassword
-			}
-		},
-		'/vehicles': {
-				get: vehicle.listSellerVehicles
+		'/list': { // Only dealerships should be visible to the public.
 		}
 	},
-	'/vehicle': {
-		'/add': {
-			get: vehicle.showRegistrationForm,
-			post: vehicle.addProfile
-		},
-		'/view': {
-			'/:vehicleId': {
-				get: vehicle.showProfile,
-				'/photo': {
-					'/:photoId': {
-						get: vehicle.sendPhoto
+	'/seller': {
+		'/:sellerId': {
+			get: seller.checkSession,
+			'/view': {
+				get: seller.showProfile
+			},
+			'/edit': {
+				get: seller.showRegistrationForm,
+				post: seller.validateInputs
+			},
+			'/remove': {
+				get: seller.removeProfile
+			},
+			'/verify-email-address': {
+				get: email.verifyEmailAddress
+			},
+			'/vehicle': {
+				'/add': {
+					get: vehicle.showRegistrationForm,
+					post: vehicle.addProfile
+				},
+				'/list': {
+						get: vehicle.listSellerVehicles
+				},
+				'/:vehicleId': {
+					'/view': {
+						get: vehicle.showProfile
+					},
+					'/photo': {
+						'/:photoId': {
+							get: vehicle.sendPhoto
+						}
+					},
+					'/edit': { //TODO Add :vehicleId
+						get: vehicle.showRegistrationForm,
+						post: vehicle.editProfile
+					},
+					'/remove': { //TODO Add :vehicleId
+						get: vehicle.removeProfile //TODO Change to post
+					}
+				}
+			},
+			'/order': {
+				'/add': {
+					get: order.showCart,
+					post: order.checkout
+				},
+				'/list': {
+					get: order.list
+				},
+				'/:orderid': {
+					'/view': {
+						get: order.show
+					},
+					'/edit': {
+						get: order.showCart,
+						post: order.edit
+					},
+					'/remove': {
+						get: order.remove
 					}
 				}
 			}
-		},
-		'/edit': { //TODO Add :vehicleId
-			get: vehicle.showRegistrationForm,
-			post: vehicle.editProfile
-		},
-		'/remove': { //TODO Add :vehicleId
-			get: vehicle.removeProfile //TODO Change to post
 		}
 	},
-	'/order': {
-		'/add': {
-			get: order.showCart,
-			post: order.confirm
+	'/login': {
+		get: login.form,
+		post: login.authenticate
+	},
+	'/password': {
+		'/forgot': {
+			get: password.forgottenForm,
+			post: password.email
 		},
-		'/pay': {
-			get: order.pay
+		'/reset': {
+			get: password.resetForm,
+			post: password.reset
 		}
 	}
 });
 
-/* Start web server, then connect to database server and PayPal. */
+/* Start web server, then connect to database server. */
 http.createServer(app).listen(app.get('port'), function() {
     console.log("Web server listening on port ".concat(app.get('port')).concat('.'));
 	databaseServer.connect();
-	paypal.connect();
 });

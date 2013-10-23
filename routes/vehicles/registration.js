@@ -11,20 +11,16 @@
  */
 
 /* Import external modules. */
-
 var async = require('async'); // For asynchronous iteration.
 
 /* Import built-in modules. */
-
 var fs = require('fs'); // For uploading photos.
 var path = require('path'); // For concatenating file paths.
 
 /* Import libraries. */
-
 var sanitize = require('../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
 /* Import models. */
-
 var Dealership = require('../../models/sellers/dealerships').Dealership;
 var Lookups = require('../../models/lookups').Lookups;
 var Make = require('../../models/vehicles/makes').Make;
@@ -37,6 +33,7 @@ var Vehicle = require('../../models/vehicles/vehicles').Vehicle;
 var main = require('../../routes/main');
 
 /* Helper functions */
+
 
 function movePhotos(vehicle, files, vehicleDir, webDir, callback) {
 	var counter, file, newPath, oldPath, photos;

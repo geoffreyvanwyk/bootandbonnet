@@ -176,8 +176,8 @@ function resetPassword (request, response) {
 }
 
 module.exports = {
-	showPasswordForgottenForm: showPasswordForgottenForm,
-	sendPasswordResetEmail: sendPasswordResetEmail,
-	showPasswordResetForm: showPasswordResetForm,
-	resetPassword: resetPassword
+	forgottenForm: showPasswordForgottenForm,
+	email: sendPasswordResetEmail,
+	resetForm: showPasswordResetForm,
+	reset: resetPassword
 };
