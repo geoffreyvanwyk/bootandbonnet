@@ -1,24 +1,79 @@
-"use strict";
+/*jshint node: true*/
 
+'use strict';
+
+/*
+ * Component: sellers
+ *
+ * File: models/sellers/private-sellers.js
+ *
+ * Purpose: Defines the Mongoose model for private seller objects.
+ */
+
+/* Import external modules. */
 var mongoose = require('mongoose');
 
-var privateSellerSchema = mongoose.Schema({
-	name: {
-		firstname: String,
-		surname: String
+/* Model */
+var sellerSchema = mongoose.Schema({
+	dealershipName: {
+		type: String,
+		default: ''
 	},
-	telephone: String,
-	cellphone: String,
+	contactPerson: {
+		firstname: {
+			type: String,
+			required: true
+		},
+		surname: {
+			type: String,
+			required: true
+		}
+	},
+	contactNumbers: {
+		type: Array,
+		required: true,
+		validate: [
+			function (list) {
+				for (var index = 0; index < list.length; index++) {
+					if (!/\d{10}/.test(list[index])) {
+						return false;
+					}
+				}
+				return true;
+			},
+			'invalid contact number'
+		]
+	},
 	address: {
-		town: String,
-		province: String,
-		country: String
+		street: {
+			type: String,
+			default: ''
+		},
+		suburb: {
+			type: String,
+			default: ''
+		},
+		town: {
+			type: String,
+			required: true,
+			validate: /[^(Please select ...)]/
+		},
+		province: {
+			type: String,
+			required: true,
+			validate: /[^(Please select ...)]/
+		},
+		country: {
+			type: String,
+			required: false,
+			default: 'South Africa'
+		}
 	},
-	account: {type: mongoose.Schema.Types.ObjectId, ref: 'Seller'}
+	account: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'Seller',
+		required: true
+	}
 });
 
-var PrivateSeller = mongoose.model('PrivateSeller', privateSellerSchema);
-
-module.exports = {
-	PrivateSeller: PrivateSeller
-};
+module.exports = mongoose.model('Seller', sellerSchema);

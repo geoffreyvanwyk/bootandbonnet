@@ -1,12 +1,12 @@
 <% layout('../../views/layout') -%>
 
 <%
-var emailAlertType = emailError === '' ? '' : 'error';
-var passwordAlertType = passwordError === '' ? '' : 'error';
+var emailAlertType = loginError.emailError === '' ? '' : 'error';
+var passwordAlertType = loginError.passwordError === '' ? '' : 'error';
 var resetDisplay = isPasswordReset ? '' : 'none';
 %>
 
-<form method="post" action="/seller/login">
+<form method="post" action="/login">
     <fieldset>
         <legend>Log In</legend>
 		<div class="alert alert-success" style="display: <%=resetDisplay %>;">
@@ -18,22 +18,24 @@ var resetDisplay = isPasswordReset ? '' : 'none';
 				<div class="control-group <%=emailAlertType%>">
 					<label class="control-label">Email</label>
 					<div class="controls">
-						<input type="email" name="seller[emailAddress]" value="<%=emailAddress %>" required="required"/>
-						<span class="help-block" ><%=emailError%></span>
+						<input type="email" name="seller[emailAddress]" value="<%=loginError.emailAddress%>"
+							   required="required"/>
+						<span class="help-block" ><%=loginError.emailError%></span>
 					</div>
 				</div>
 
 				<div class="control-group <%=passwordAlertType%>">
 					 <label class="control-label">Password</label>
 					<div class="controls">
-						<input type="password" name="seller[password]" required="required"/>
-						<span class="help-block" ><%=passwordError %></span>
+						<input type="password" name="seller[password]" value="<%=loginError.password%>"
+							   required="required"/>
+						<span class="help-block" ><%=loginError.passwordError %></span>
 					</div>
 				</div>
 
 				<div class="controls">
 					<button type="submit" class="btn btn-primary" >Log in</button>
-					<a href="/seller/password/forgot">Forgot password?</a>
+					<a href="/password/forgot">Forgot password?</a>
 				</div>
 			</div>
 		</div>

@@ -1,13 +1,13 @@
-/*jslint node: true*/
+/*jshint node: true*/
 
 'use strict';
 
 /*
- * Component: main 
+ * Component: main
  *
  * Filename: app.js
  *
- * Purpose: Starts the web server, then connects to the database server. 
+ * Purpose: Configures and starts the web server, then connects to the database server.
  */
 
 /* Import external modules. */
@@ -21,17 +21,17 @@ var path = require('path');
 /* Import libraries. */
 var map = require('./library/route-map').map;
 
-/* Import configurations. */
-var databaseServer = require('./configuration/database').mongodb;
-
 /* Import routes. */
-var main = require('./routes/main');
-var seller = require('./routes/sellers/registration');
 var email = require('./routes/sellers/email-address-verification');
 var login = require('./routes/sellers/login');
+var main = require('./routes/main');
+var orders = require('./routes/orders/registration');
 var password = require('./routes/sellers/password-reset');
-var vehicle = require('./routes/vehicles/registration');
-var order = require('./routes/orders/registration');
+var sellers = require('./routes/sellers/registration');
+var vehicles = require('./routes/vehicles/registration');
+
+/* Import configurations. */
+var databaseServer = require('./configuration/database').mongodb;
 
 /* Configure application. */
 var app = express();
@@ -59,95 +59,98 @@ app.configure('development', function() {
 
 /* Route requests. */
 app.map = map;
-
 app.map(app, {
     '/': {
 		get: main.showHomePage
     },
+	'/error': {
+		get: main.showErrorPage
+	},
 	'/sellers': {
 		'/add': {
-			get: seller.showRegistrationForm,
-			post: seller.validateInputs
-		},
-		'/list': { // Only dealerships should be visible to the public.
+			get: sellers.showRegistrationForm,
+			post: sellers.addProfile
 		}
 	},
 	'/seller': {
 		'/:sellerId': {
-			get: seller.checkSession,
 			'/view': {
-				get: seller.showProfile
+				get: sellers.showProfile
 			},
 			'/edit': {
-				get: seller.showRegistrationForm,
-				post: seller.validateInputs
+				get: sellers.showRegistrationForm,
+				post: sellers.validateInputs
 			},
 			'/remove': {
-				get: seller.removeProfile
+				get: sellers.removeProfile
 			},
 			'/verify-email-address': {
 				get: email.verifyEmailAddress
 			},
-			'/vehicle': {
+			'/vehicles': {
 				'/add': {
-					get: vehicle.showRegistrationForm,
-					post: vehicle.addProfile
+					get: vehicles.showRegistrationForm,
+					post: vehicles.addProfile
 				},
 				'/list': {
-						get: vehicle.listSellerVehicles
-				},
+					get: vehicles.listSellerVehicles
+				}
+			},
+			'/vehicle': {
 				'/:vehicleId': {
 					'/view': {
-						get: vehicle.showProfile
+						get: vehicles.showProfile
 					},
 					'/photo': {
 						'/:photoId': {
-							get: vehicle.sendPhoto
+							get: vehicles.sendPhoto
 						}
 					},
-					'/edit': { //TODO Add :vehicleId
-						get: vehicle.showRegistrationForm,
-						post: vehicle.editProfile
+					'/edit': {
+						get: vehicles.showRegistrationForm,
+						post: vehicles.editProfile
 					},
-					'/remove': { //TODO Add :vehicleId
-						get: vehicle.removeProfile //TODO Change to post
+					'/remove': {
+						get: vehicles.removeProfile
 					}
 				}
 			},
-			'/order': {
+			'/orders': {
 				'/add': {
-					get: order.showCart,
-					post: order.checkout
+					get: orders.showCart,
+					post: orders.checkout
 				},
 				'/list': {
-					get: order.list
-				},
-				'/:orderid': {
+					get: orders.list
+				}
+			},
+			'/order': {
+				'/:orderId': {
 					'/view': {
-						get: order.show
+						get: orders.showCart
 					},
 					'/edit': {
-						get: order.showCart,
-						post: order.edit
+						get: orders.showCart,
+						post: orders.edit
 					},
 					'/remove': {
-						get: order.remove
+						get: orders.remove
 					}
 				}
 			}
 		}
 	},
 	'/login': {
-		get: login.form,
+		get: login.showForm,
 		post: login.authenticate
 	},
 	'/password': {
 		'/forgot': {
-			get: password.forgottenForm,
-			post: password.email
+			get: password.showForgotForm,
+			post: password.sendLink
 		},
 		'/reset': {
-			get: password.resetForm,
+			get: password.showResetForm,
 			post: password.reset
 		}
 	}

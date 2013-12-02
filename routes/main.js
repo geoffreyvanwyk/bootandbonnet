@@ -1,32 +1,50 @@
-"use strict";
+/*jshint node: true*/
 
-/**
- * Displays the home-page.
+'use strict';
+
+/*
+ * Component: main
+ *
+ * File: routes/main.js
+ *
+ * Purpose: Displays the home-page and the error page.
  */
 
+/* Import built-in modules. */
 var path = require('path');
 
-function showHomePage(request, response) {
-	if (request.session.seller && request.query.logout) {
-		request.session = null;
-		var loggedIn = false;
-	} else if (request.session.seller) {
-		var loggedIn = true;
-	} else {
-		var loggedIn = false;
-	}
-	response.render(path.join(__dirname, '../views/home'), {
-		loggedIn: loggedIn 
-	});
-};
-
-function showErrorPage(request, response) {
-	response.render(path.join(__dirname, '../views/error-page'), {
-		loggedIn: request.session.seller ? true : false 
-	});
-}
-
 module.exports = {
-	showHomePage: showHomePage,
-	showErrorPage: showErrorPage
+	showHomePage: function (request, response) {
+		var locals;
+		if (request.query.logout) {
+			request.session = null;
+		} 
+		if (request.session && request.session.seller) {
+			locals = {
+				isLoggedIn: true,
+				sellerId: request.session.seller._id
+			};
+		} else {
+			locals = {
+				isLoggedIn: false,
+				sellerId: ''
+			};
+		}
+		response.render(path.join(__dirname, '../views/home'), locals);
+	},
+	showErrorPage: function (request, response) {
+		var locals;
+		if (request.session && request.session.seller) {
+			locals = {
+				isLoggedIn: true,
+				sellerId: request.session.seller._id
+			};
+		} else {
+			locals = {
+				isLoggedIn: false,
+				sellerId: ''
+			};
+		}
+		response.render(path.join(__dirname, '../views/error-page'), locals);
+	}
 };

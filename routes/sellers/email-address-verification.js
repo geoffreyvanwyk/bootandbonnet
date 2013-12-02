@@ -36,12 +36,15 @@ var main = require('../../routes/main');
  */
 function sendEmail(request, response) {
 	var emailAddress = request.session.seller.emailAddress;
+	var sellerId = request.params.sellerId;
 	bcrypt.hash(emailAddress, 10, function(err, hash) {
 		if (err) {
 			console.log(err);
 			main.showErrorPage(reques, response);
 		} else {
-			var link = 'http://localhost:3000/seller/verify-email-address/?emailAddress='
+			var link = 'http://localhost:3000/seller/'
+							.concat(encodeURIComponent(sellerId))
+							.concat('/verify-email-address/?emailAddress=')
 							.concat(encodeURIComponent(emailAddress))
 							.concat('&hash=')
 							.concat(hash);
@@ -65,7 +68,7 @@ function sendEmail(request, response) {
 }
 
 /**
- * Responds to HTTP GET /seller/verify-email-address.
+ * Responds to HTTP GET /seller/:sellerId/verify-email-address.
  *
  * It checks whether the hash of the email address and the hash in the query string match. It
  * then displays the email-address-verified-page. If the email address does not exist in the database anymore

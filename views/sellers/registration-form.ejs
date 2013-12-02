@@ -4,65 +4,84 @@
 <%
 var provincesString = JSON.stringify(provinces);
 
-var emailAlertType = emailError === '' ? '' : 'error';
+if (validationErrors) {
+	if (validationErrors.emailError) {
+		var emailError = validationErrors.emailError;
+		var emailAlertType = 'error';
+	} else {
+		var emailError = '';
+		var emailAlertType = '';
+	}
 
-emailError = validation && !validation.isEmailValid
-				? 'The email address is invalid.'
-				: '';
+	if (validationErrors.passwordError) {
+		var passwordError = validationErrors.passwordError;
+		var passwordAlertType = 'error';
+	} else {
+		var passwordError = '';
+		var passwordAlertType = '';
+	}
 
-emailAlertType = validation && !validation.isEmailValid
-					? 'error'
-					: '';
+	if (validationErrors.isContactNumbersError) {
+		var contactNumbersAlertDisplay = '';
+	} else {
+		var contactNumbersAlertDisplay = 'none';
+	}
 
-var passwordError = validation && !validation.isPasswordValid
-						? 'The password must be at least 8 characters long.'
-						: '';
+	if (validationErrors.isSellerTypeError) {
+		var sellerTypeAlertDisplay = '';
+	} else {
+		var sellerTypeAlertDisplay = 'none';
+	}
 
-var passwordAlertType = validation && !validation.isPasswordValid
-						? 'error'
-						: '';
+	if (validationErrors.isLocationError) {
+		var locationAlertDisplay = '';
+	} else {
+		var locationAlertDisplay = 'none';
+	}
 
-var passwordConfirmedError = validation && !validation.isPasswordConfirmed
-								? 'The passwords do not match.'
-								: '';
+	if (validationErrors.townError) {
+		var townError = validationErrors.townError;
+		var townAlertType = 'error';
+	} else {
+		var townError = '';
+		var townAlertType = '';
+	}
 
-var passwordConfirmedAlertType = validation && !validation.isPasswordConfirmed
-								? 'error'
-								: '';
+	if (validationErrors.dealershipNameError) {
+		var dealershipNameError = validationErrors.dealershipNameError;
+		var dealershipNameAlertType = '';
+	} else {
+		var dealershipNameError = '';
+		var dealershipNameAlertType = 'error';
+	}
 
-var phonesAlertDisplay = validation && !validation.isTelephoneProvided
-								? ''
-								: 'none';
-
-var sellerTypeAlertDisplay = validation && !validation.isSellerTypeProvided
-								? ''
-								: 'none';
-
-var locationAlertDisplay = validation && !validation.isLocationProvided
-								? ''
-								: 'none';
-
-var dealershipNameError = validation && !validation.isDealershipNameProvided
-							? 'Please provide the name of the dealership.'
-							: '';
-
-var dealershipNameAlertType = validation && !validation.isDealershipNameProvided
-							? 'error'
-							: '';
-
-
-var dealershipAddressError = validation && !validation.isDealershipAddressProvided
-							? 'Please provide the address of the dealership.'
-							: '';
-
-var dealershipAddressAlertType = validation && !validation.isDealershipAddressProvided
-							? 'error'
-							: '';
+	if (validationErrors.dealershipAddressError) {
+		var dealershipAddressError = validationErrors.dealershipAddressError;
+		var dealershipAddressAlertType = '';
+	} else {
+		var dealershipAddressError = '';
+		var dealershipAddressAlertType = 'error';
+	}
+} else {
+		var emailError = '';
+		var emailAlertType = '';
+		var passwordError = '';
+		var passwordAlertType = '';
+		var passwordConfirmedError = '';
+		var passwordConfirmedAlertType = '';
+		var contactNumbersAlertDisplay = 'none';
+		var sellerTypeAlertDisplay = 'none';
+		var locationAlertDisplay = 'none';
+		var dealershipNameError = '';
+		var dealershipNameAlertType = '';
+		var dealershipAddressError = '';
+		var dealershipAddressAlertType = '';
+}
 %>
 
 
 <form id="register" method="post" action="<%=action%>">
-	<input type="hidden" id="loggedIn" value="<%=loggedIn%>" />
+	<input type="hidden" id="loggedIn" value="<%=isLoggedIn%>" />
     <h2><%=heading%></h2>
     <fieldset>
 		<legend>Account credentials</legend>
@@ -73,7 +92,7 @@ var dealershipAddressAlertType = validation && !validation.isDealershipAddressPr
 					<label class="control-label" for="email">Email address</label>
 					<div class="controls">
 						<input type="email" id="email" name="seller[emailAddress]" value="<%=emailAddress%>"
-							required="required"/>
+							/>
 						<span id="spanEmail" class="help-inline"><%=emailError %></span>
 					</div>
 				</div>
@@ -88,13 +107,12 @@ var dealershipAddressAlertType = validation && !validation.isDealershipAddressPr
 					</div>
 				</div>
 	<!-- Confirm password -->
-				<div id="divConfirmPassword" class="control-group <%=passwordConfirmedAlertType%>">
+				<div id="divConfirmPassword" class="control-group <%=passwordConfirmedAlertType || ''%>">
 					<label class="control-label" for="confirmPassword">Confirm password</label>
 					<div class="controls">
 						<input type="password" id="confirmPassword" name="seller[confirmPassword]"
 							value="<%=password%>"/>
-						<span id="spanConfirmPassword"
-								class="help-inline"><%=passwordConfirmedError%></span>
+						<span id="spanConfirmPassword" class="help-inline"></span>
 					</div>
 				</div>
 			</div>
@@ -105,41 +123,46 @@ var dealershipAddressAlertType = validation && !validation.isDealershipAddressPr
 		<div class="row">
 			<div class="span6">
 	<!-- First name -->
-				<div class="control-group">
+				<div id="divFirstName" class="control-group">
 					<label class="control-label" for="first_name">First name</label>
 					<div class="controls">
-						<input type="text" id="first_name" name="seller[firstname]" value="<%=firstname%>" />
-						<span class="help-inline">&nbsp;</span>
+						<input type="text" id="first_name" name="seller[firstname]" value="<%=firstname%>"
+								/>
+						<span id="spanFirstName" class="help-inline">&nbsp;</span>
 					</div>
 				</div>
 	<!-- Surname -->
-				<div class="control-group">
+				<div id="divSurname" class="control-group">
 					<label class="control-label"  for="surname">Surname</label>
 					<div class="controls">
-						<input type="text" id="surname" name="seller[surname]" value="<%=surname%>" />
-						<span class="help-inline">&nbsp;</span>
+						<input type="text" id="surname" name="seller[surname]" value="<%=surname%>"
+								/>
+						<span id="spanSurname" class="help-inline">&nbsp;</span>
 					</div>
 				</div>
 			</div>
 			<div class="span6">
-				<div id="phonesAlert" class="alert alert-error" style="display: <%=phonesAlertDisplay%>">
+				<div id="contactNumbersAlert" class="alert alert-error"
+						style="display: <%=contactNumbersAlertDisplay%>">
 					<button type="button" class="close" data-dismiss="alert">&times;</button>
-					Please supply either a telephone or a cellphone number, or both.
+					Please supply either a telephone or a cellphone number, or both. Use only digits, e.g. 0123456789.
 				</div>
 	<!-- Telephone -->
 				<div id="divTelephone" class="control-group">
 					<label class="control-label" for="telephone">Telephone</label>
 					<div class="controls">
-						<input type="tel" id="telephone" name="seller[telephone]" value="<%=telephone%>"/>
-						<span class="help-inline">&nbsp;</span>
+						<input type="tel" id="telephone" name="seller[telephone]"
+								value="<%=contactNumbers.telephone%>"/>
+						<span id="spanTelephone" class="help-inline">&nbsp;</span>
 					</div>
 				</div>
 	<!-- Cellphone -->
-				<div class="control-group">
+				<div id="divCellphone" class="control-group">
 					<label class="control-label" for="cellphone">Cell phone</label>
 					<div class="controls">
-						<input type="tel" id="cellphone" name="seller[cellphone]" value="<%=cellphone%>"/>
-						<span class="help-inline">&nbsp;</span>
+						<input type="tel" id="cellphone" name="seller[cellphone]"
+								value="<%=contactNumbers.cellphone%>"/>
+						<span id="spanCellphone" class="help-inline">&nbsp;</span>
 					</div>
 				</div>
 			</div>
@@ -192,10 +215,10 @@ var dealershipAddressAlertType = validation && !validation.isDealershipAddressPr
 					<div class="control-group <%=dealershipAddressAlertType%>">
 						<label class="control-label" for="streetAddress1">Street address</label>
 						<div class="controls">
-							<input type="text" id="streetAddress1" name="seller[streetAddress1]"
-								   value="<%=streetAddress1%>" /><br />
-							<input type="text" id="streetAddress2" name="seller[streetAddress2]"
-								   value="<%=streetAddress2%>" />
+							<input type="text" id="streetAddress1" name="seller[street]"
+								   value="<%=address.street%>" /><br />
+							<input type="text" id="streetAddress2" name="seller[suburb]"
+								   value="<%=address.suburb%>" />
 							<span class="help-inline"><%=dealershipAddressError%></span>
 						</div>
 					</div>
@@ -205,12 +228,12 @@ var dealershipAddressAlertType = validation && !validation.isDealershipAddressPr
 					<label>Province</label>
 					<select id="provinces" name="seller[province]">
 					<% if (province) { %>
-						<option selected="selected" value="<%=province %>"><%=province %></option>
+						<option selected="selected" value="<%=address.province%>"><%=address.province%></option>
 					<% } else { %>
 						<option selected="selected">Please select ...</option>
 					<% } %>
 					<% for (p in provinces) { %>
-						<option value="<%=provinces[p].name %>"><%=provinces[p].name %></option>
+						<option value="<%=provinces[p].name%>"><%=provinces[p].name%></option>
 					<% } %>
 					</select>
 				</div>
@@ -222,14 +245,14 @@ var dealershipAddressAlertType = validation && !validation.isDealershipAddressPr
 					<label>Town</label>
 					<select id="towns" name="seller[town]">
 					<% if (town) { %>
-						<option selected="selected" value="<%=town %>"><%=town %></option>
+						<option selected="selected" value="<%=address.town%>"><%=address.town%></option>
 					<% } else { %>
 						<option selected="selected">Please select ...</option>
 					<% } %>
 					</select>
 				</div>
 			</div>
-		</div>
+			</div>
     </fieldset>
 
     <div class="form-actions">

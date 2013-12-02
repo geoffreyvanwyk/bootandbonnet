@@ -1,4 +1,4 @@
-/*jslint node: true */
+/*jshint node: true */
 
 'use strict';
 
@@ -29,11 +29,9 @@ var Seller = require('../../models/sellers/sellers').Seller;
 var Vehicle = require('../../models/vehicles/vehicles').Vehicle;
 
 /* Import routes. */
-
 var main = require('../../routes/main');
 
 /* Helper functions */
-
 
 function movePhotos(vehicle, files, vehicleDir, webDir, callback) {
 	var counter, file, newPath, oldPath, photos;

@@ -1,16 +1,17 @@
 window.onload = function() {
+	'use strict';
 
 	/**
 	 * Sets the type of alert-span and the span content for the relevant control.
 	 */
-	function setValidationState(control, state, message) {
+	var setValidationState = function (control, state, message) {
 		var textNode = document.createTextNode(message);
 		var spanElement = document.getElementById("span".concat(control));
 		var divElement = document.getElementById("div".concat(control));
 		divElement.className = "control-group ".concat(state);
 		spanElement.textContent = "";
 		spanElement.appendChild(textNode);
-	}
+	};
 
 	var emailBox = document.getElementById("email");
 
@@ -32,55 +33,21 @@ window.onload = function() {
 	 * user registering. When editing his/her profile, a user might not want to change the
 	 * the password, in which case the passwordBox may be left blank.
 	 */
-	function isPasswordValid() {
+	var isPasswordValid = function () {
 		if (isUserLoggedIn) {
-			return (passwordBox.value.length >= 8) || (passwordBox.value.length === 0)
+			return (passwordBox.value.length >= 10) || (passwordBox.value.length === 0);
 		}
-		return (passwordBox.value.length >= 8);
-	}
+		return (passwordBox.value.length >= 10);
+	};
 
-	function isPasswordConfirmed() {
+	var isPasswordConfirmed = function () {
 		return (passwordBox.value === confirmPasswordBox.value);
-	}
+	};
 
 	passwordBox.required = !isUserLoggedIn;
 	confirmPasswordBox.required = !isUserLoggedIn;
 
-	passwordBox.onfocus = function() {
-		if (!isPasswordValid()) {
-			setValidationState("Password", "info", "Minimum 8 characters.");
-		}
-	};
-
-	passwordBox.onkeyup = function() {
-		if (isPasswordValid()) {
-			setValidationState("Password", "success", "Good!");
-		} else {
-			setValidationState("Password", "info", "Minimum 8 characters.");
-		}
-
-		if (confirmPasswordBox.value.length > 0) {
-			confirmPasswordOnKeyUp();
-		}
-	};
-
-	passwordBox.onblur = function() {
-		if (passwordBox.value.length !== 0 && !isPasswordValid()) {
-			setValidationState("Password", "error", "Too short! Minimum 8 characters.");
-		} else if (!isPasswordValid()) {
-			setValidationState("Password", "", "");
-		}
-	};
-
-	confirmPasswordBox.onfocus = function() {
-		if (!isPasswordValid() || confirmPasswordBox.value.length === 0) {
-			setValidationState("ConfirmPassword", "", "");
-		} else if (!isPasswordConfirmed()) {
-			setValidationState("ConfirmPassword", "info", "The passwords do not match yet.");
-		}
-	};
-
-	var confirmPasswordOnKeyUp = confirmPasswordBox.onkeyup = function() {
+	var confirmPasswordOnKeyUp = function() {
 		if (!isPasswordValid()) {
 			setValidationState("ConfirmPassword", "", "");
 		} else if (!isPasswordConfirmed()) {
@@ -90,35 +57,78 @@ window.onload = function() {
 		}
 	};
 
-	confirmPasswordBox.onblur = function() {
-		if (!isPasswordValid()) {
-			setValidationState("ConfirmPassword", "", "");
-		} else if (!isPasswordConfirmed()) {
-			setValidationState("ConfirmPassword", "error", "The passwords do not match!");
+	$('#password').on({
+		focus:function() {
+			if (!isPasswordValid()) {
+				setValidationState("Password", "info", "Minimum ten characters.");
+			}
+		},
+		keyup: function() {
+			if (isPasswordValid()) {
+				setValidationState("Password", "success", "Good!");
+			} else {
+				setValidationState("Password", "info", "Minimum ten characters.");
+			}
+
+			if (confirmPasswordBox.value.length > 0) {
+				confirmPasswordOnKeyUp();
+			}
+		},
+		blur: function() {
+			if (passwordBox.value.length !== 0 && !isPasswordValid()) {
+				setValidationState("Password", "error", "Too short! Minimum ten characters.");
+			} else if (!isPasswordValid()) {
+				setValidationState("Password", "", "");
+			}
 		}
+	});
+
+	$('#confirmPassword').on({
+		focus: function() {
+			if (!isPasswordValid() || confirmPasswordBox.value.length === 0) {
+				setValidationState("ConfirmPassword", "", "");
+			} else if (!isPasswordConfirmed()) {
+				setValidationState("ConfirmPassword", "info", "The passwords do not match yet.");
+			}
+		},
+		keyup: confirmPasswordOnKeyUp,
+		blur: function() {
+			if (!isPasswordValid()) {
+				setValidationState("ConfirmPassword", "", "");
+			} else if (!isPasswordConfirmed()) {
+				setValidationState("ConfirmPassword", "error", "The passwords do not match!");
+			}
+		}
+	});
+
+	var isContactNumberProvided = function () {
+		return ($('#telephone').val() !== "") || ($('#cellphone').val() !== "");
 	};
 
-	var telephoneBox = document.getElementById("telephone");
-	var cellphoneBox = document.getElementById("cellphone");
+	$('#telephone').on({
+		focus: function () {
+			setValidationState("Telephone", "info", "Use digits only, e.g. 0123456789.");
+		},
+		blur: function () {
+			setValidationState("Telephone", "", "");
+		}
+	});
 
-	function isPhoneNumberProvided() {
-		return (telephoneBox.value !== "") || (cellphoneBox.value !== "");
-	}
-
-	telephoneBox.onfocus = function() {
-		setValidationState("Telephone", "info", "Include the area code.");
-	};
-
-	telephoneBox.onblur = function() {
-		setValidationState("Telephone", "", "");
-	};
-
+	$('#cellphone').on({
+		focus: function () {
+			setValidationState("Cellphone", "info", "Use digits only, e.g. 0834567819.");
+		},
+		blur: function () {
+			setValidationState("Cellphone", "", "");
+		}
+	});
+			
 	var privateSellerOption = document.getElementById("privateSeller");
 	var dealershipOption = document.getElementById("dealership");
 
-	function isSellerTypeProvided() {
+	var isSellerTypeProvided = function () {
 		return (privateSellerOption.checked || dealershipOption.checked);
-	}
+	};
 
 	/**
 	 * The sellerType element is a hidden input element. Its value is an empty string
@@ -166,65 +176,70 @@ window.onload = function() {
 		}
 	};
 
-	var provincesSelect = document.getElementById("provinces");
-	var townsSelect = document.getElementById("towns");
+	var isProvinceProvided = function () {
+		if ($('#provinces').val() === 'Please select ...') {
+			return false;
+		}
+		return true;
+	};
 
-	function isProvinceProvided() {
-		return (provincesSelect.value !== "Please select ...");
-	}
-
-	function isTownProvided() {
-		return (townsSelect.value !== "Please select ...");
-	}
-
+	var isTownProvided = function () {
+		if ($('#towns').val() === 'Please select ...') {
+			return false;
+		}
+		return true;
+	};
+	
+	var provinces = JSON.parse($('#locations').val());
 	/**
-	 * Fills the towns select element with the towns in the province selected in the provinces
+	 * Fills the #towns select element with the towns in the province selected in the #provinces
 	 * select element.
 	 */
-	provincesSelect.onchange = function() {
-		var currentProvince = this.value;
-		var provinces = JSON.parse(document.getElementById("locations").value);
-		townsSelect.innerHTML = "<option selected='selected'>Please select ..</option>";
+	$('#provinces').change(function() {
+		var currentProvince = $(this).val();
+		var p, t;
+		$('#towns').html('<option selected="selected">Please select ...</option>');
 		for (p in provinces) {
 			if (provinces[p].name === currentProvince) {
 				for (t in provinces[p].towns) {
-					var townOption = document.createElement("option");
-					townOption.textContent = provinces[p].towns[t];
-					townsSelect.appendChild(townOption);
+					jQuery('<option/>', {
+						text: provinces[p].towns[t]
+					}).appendTo('#towns');
 				}
 				break;
 			}
 		}
-	};
+	});
 
 	var cancelButton = document.getElementById("cancelButton");
 	cancelButton.onclick = function() {
 		window.history.back();
 	};
 
-	function showPhonesAlert() {
-		document.getElementById("phonesAlert").style.display = "";
-	}
+	/* Showing and hiding alert messages. */
+	var showContactNumbersAlert = function () {
+		document.getElementById("contactNumbersAlert").style.display = "";
+	};
 
-	function hidePhonesAlert() {
-		document.getElementById("phonesAlert").style.display = "none";
-	}
+	var hideContactNumbersAlert = function () {
+		document.getElementById("contactNumbersAlert").style.display = "none";
+	};
 
-	function showSellerTypeAlert() {
+	var showSellerTypeAlert = function () {
 		document.getElementById("sellerTypeAlert").style.display = "";
-	}
+	};
 
-	function hideSellerTypeAlert() {
+	var hideSellerTypeAlert = function () {
 		document.getElementById("sellerTypeAlert").style.display = "none";
-	}
+	};
 
-	function showLocationAlert() {
+	var showLocationAlert = function () {
 		document.getElementById("locationAlert").style.display = "";
-	}
+	};
 
-	function hideLocationAlert() {
+	var hideLocationAlert = function () {
 		document.getElementById("locationAlert").style.display = "none";
-	}
+	};
 
 	var registrationForm = document.getElementById("register");
 	/**
@@ -236,11 +251,11 @@ window.onload = function() {
 			return false;
 		}
 
-		if (!isPhoneNumberProvided()) {
-			showPhonesAlert();
+		if (!isContactNumberProvided()) {
+			showContactNumbersAlert();
 			return false;
 		} else {
-			hidePhonesAlert();
+			hideContactNumbersAlert();
 		}
 
 		if (!isSellerTypeProvided()) {

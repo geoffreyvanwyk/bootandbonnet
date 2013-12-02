@@ -29,7 +29,7 @@
 			    <li><a href="#sell">Sell</a></li>
 			</ul>
 			<ul class="nav nav-pills pull-right">
-			    <% if (loggedIn) { %>
+			    <% if (isLoggedIn) { %>
 			    <li class="dropdown">
 				<a class="dropdown-toggle" data-toggle="dropdown"
 				   href="#">
@@ -37,15 +37,15 @@
 				    <b class="caret"></b>
 				</a>
 				<ul class="dropdown-menu">
-				    <li><a href="/seller/view">Profile</a></li>
-				    <li><a href="/seller/vehicles">Vehicles</a></li>
+				    <li><a href="/seller/<%=sellerId%>/view">Profile</a></li>
+				    <li><a href="/seller/<%=sellerId%>/vehicles/list">Vehicles</a></li>
 					<li class="divider"></li>
 				    <li><a href="/?logout=true">Log out</a></li>
 				</ul>
 			    </li>
 			    <% } else { %>
-			    <li><a href="/seller/login">Login</a></li>
-			    <li><a href="/seller/add">Register</a></li>
+			    <li><a href="/login">Login</a></li>
+			    <li><a href="/sellers/add">Register</a></li>
 			    <% } %>
 			</ul>
 		    </div><!--/.nav-collapse -->

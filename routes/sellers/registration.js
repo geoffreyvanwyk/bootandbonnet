@@ -1,11 +1,11 @@
-/*jslint node: true */
+/*jshint node: true */
 
 'use strict';
 
-/*
- * Component: sellers
+/**
+ * @file routes/sellers/registration.js
  *
- * File: routes/sellers/registration.js
+ * Component: sellers
  *
  * Purpose: Contains routes that handle registration of new sellers and modification of existing sellers.
  */
@@ -17,586 +17,825 @@ var bcrypt = require('bcrypt'); // For hashing and comparing passwords.
 var sanitize = require('../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
 /* Import models. */
-var Seller = require('../../models/sellers/sellers').Seller;
-var PrivateSeller = require('../../models/sellers/private-sellers').PrivateSeller;
-var Dealership = require('../../models/sellers/dealerships').Dealership;
+var Dealership = require('../../models/sellers/dealerships');
+var PrivateSeller = require('../../models/sellers/private-sellers');
 var Province = require('../../models/provinces').Province;
+var Seller = require('../../models/sellers/sellers');
+var Vehicle = require('../../models/vehicles/vehicles').Vehicle;
 
-/* Import routes. */
+/* Import functions. */
 var email = require('./email-address-verification');
-var main = require('../../routes/main');
 var login = require('./login');
+var main = require('../../routes/main');
 
-/**
- * Responds to HTTP GET /seller/:id.
- *
- * If a seller is not logged-in, the login-form is displayed. and the logged-in seller's id corresponds with :id, then the next route function
- * is called; else, if 
- * 
+var handleErrors = function (err, seller, form) {
+	console.log('==================== BEGIN ERROR MESSAGE ====================');
+	console.log(err);
+	console.log('==================== END ERROR MESSAGE ======================');
 
+	var isEmailDuplicateError = (
+		err.message.indexOf('duplicate key error index') !== -1 &&
+		err.message.indexOf('emailAddress') !== -1
+	) ? true : false;
 
-/**
- * Responds to HTTP GET /seller/add and HTTP GET /seller/:sellerId/edit.
- *
- * Displays seller registration-form, to either add or edit a seller profile.
- *
- * If the url is /seller/add, but a seller is logged-in, a new profile cannot be added, so the function will 
- * do nothing. If the url is /seller/edit, but a seller is not logged-in, a profile cannot be edited, so the function will do nothing.
- *
- * @param		{object}		request     An HTTP request object received from the express.get() method.
- * @param		{object}		response    An HTTP response object received from the express.get() method.
- *
- * @returns	{undefined}
- */
-function showRegistrationForm(request, response) {
-	var action = request.path.split('/').slice(-1)[0];
-	var isSellerLoggedIn = request.session.seller ? true : false;
-	Province.find(function (err, provinces) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-		} else if ((action === 'add') && (!isSellerLoggedIn)) {
-			var locals = {
-				validation: request.session.registrationFormValidation,
-				provinces: provinces,
-				action: '/seller/add',
-				heading: 'New Seller',
-				buttonCaption: 'Register',
-				/* request.session.emailError is set by addProfile if the email address is already
-				* registered.*/
-				emailError: request.session.emailError || '',
-				sellerType: '',
-				emailAddress: '',
-				password: '',
-				firstname: '',
-				surname: '',
-				telephone: '',
-				cellphone: '',
-				dealershipName: '',
-				streetAddress1: '',
-				streetAddress2: '',
-				province: '',
-				town: '',
-				townId: '',
-				loggedIn: isSellerLoggedIn
-			};
-		} else if ((action === 'edit') && (isSellerLoggedIn)) {
-			if (request.session.privateSeller) {
-				var seller = request.session.privateSeller;
-				var firstname = seller.name.firstname;
-				var surname = seller.name.surname;
-				var dealershipName = '';
-				var streetAddress1 = '';
-				var streetAddress2 = '';
-			} else {
-				var seller = request.session.dealership;
-				var firstname = seller.contactPerson.firstname;
-				var surname = seller.contactPerson.surname;
-				var dealershipName = seller.name;
-				var streetAddress1 = seller.address.street;
-				var streetAddress2 = seller.address.suburb;
+	var isEmailInvalidError = (
+		err.name === 'ValidationError' &&
+		err.errors.emailAddress &&
+		err.errors.emailAddress.message === 'invalid email address'
+	) ? true : false;
+
+	var isEmailMissingError = (
+		err.name == 'ValidationError' &&
+		err.errors.emailAddress &&
+		err.errors.emailAddress.type === 'required'
+	) ? true : false;
+
+	/* Accounts for both a missing password, and an invalid password. See models/sellers/sellers.js. */
+	var isPasswordError = (
+		err.name === 'ValidationError' &&
+		err.errors.passwordHash &&
+		err.errors.passwordHash.type === 'required'
+	) ? true : false;
+
+	var isSellerTypeMissingError = (
+		err.message === 'Seller type must be specified.'
+	) ? true : false;
+
+	var isFirstnameInvalidError = (
+		err.name === 'ValidationError' &&
+		((
+			err.errors['name.firstname'] &&
+			err.errors['name.firstname'].message === 'invalid firstname'
+		) || (
+			err.errors['contactPerson.firstname'] &&
+			err.errors['contactPerson.firstname'].message === 'invalid firstname'
+		))
+	) ? true : false;
+
+	var isFirstnameMissingError = (
+		err.name === 'ValidationError' &&
+		((
+			err.errors['name.firstname'] &&
+			err.errors['name.firstname'].type === 'required'
+		) || (
+			err.errors['contactPerson.firstname'] &&
+			err.errors['contactPerson.firstname'].type === 'required'
+		))
+	) ? true : false;
+
+	var isSurnameInvalidError = (
+		err.name === 'ValidationError' &&
+		((
+			err.errors['name.surname'] &&
+			err.errors['name.surname'].message === 'invalid surname'
+		) || (
+			err.errors['contactPerson.surname'] &&
+			err.errors['contactPerson.surname'].message === 'invalid surname'
+		))
+	) ? true : false;
+
+	var isSurnameMissingError = (
+		err.name === 'ValidationError' &&
+		((
+			err.errors['name.surname'] &&
+			err.errors['name.surname'].type === 'required'
+		) || (
+			err.errors['contactPerson.surname'] &&
+			err.errors['contactPerson.surname'].type === 'required'
+		))
+	) ? true : false;
+
+	var isContactNumbersInvalidError = (
+		err.name === 'ValidationError' &&
+		err.errors.contactNumbers &&
+		err.errors.contactNumbers.message === 'invalid contact number'
+	) ? true : false;
+
+	var isContactNumbersMissingError = (
+		err.name === 'ValidationError' &&
+		err.errors.contactNumbers &&
+		err.errors.contactNumbers.type === 'required'
+	) ? true : false;
+
+	var isDealershipNameMissingError = (
+		err.name === 'ValidationError' &&
+		err.errors.name &&
+		err.errors.name.type === 'required'
+	) ? true : false;
+
+	var isStreetAddressMissingError = (
+		err.name === 'ValidationError' &&
+		err.errors.street &&
+		err.errors.street.type === 'required'
+	) ? true : false;
+
+	var isProvinceMissingError = (
+		err.errors &&
+		err.errors['address.province']
+	) ? true : false;
+
+	var isTownMissingError = (
+		err.errors &&
+		err.errors['address.town']
+	) ? true : false;
+
+	var isAccountError = (
+		isEmailDuplicateError ||
+		isEmailInvalidError ||
+		isEmailMissingError ||
+		isPasswordError
+	) ? true : false;
+
+	var isNameError = (
+		isFirstnameInvalidError ||
+		isFirstnameMissingError ||
+		isSurnameInvalidError ||
+		isSurnameMissingError ||
+		isDealershipNameMissingError
+	) ? true : false;
+
+	var isContactNumbersError = (
+		isContactNumbersInvalidError ||
+		isContactNumbersMissingError
+	) ? true : false;
+
+	var isLocationError = (
+		isStreetAddressMissingError ||
+		isProvinceMissingError ||
+		isTownMissingError
+	) ? true : false;
+
+	var isDetailsError = (
+		isNameError ||
+		isContactNumbersError ||
+		isLocationError
+	) ? true : false;
+
+	var isSellerError = (
+		isAccountError ||
+		isDecallbacksError
+	) ? true : false;
+
+	var isCreationDetailsError = (
+		isDetailsError &&
+		seller
+	) ? true : false;
+
+	var validationErrors = {};
+
+	var remove = function (seller) {
+		Seller.findByIdAndRemove(seller._id, function (err) {
+			if (err) {
+				handleErrors(err, seller);
 			}
-			var locals = {
-				validation: request.session.registrationFormValidation,
-				provinces: provinces,
-				action: '/seller/edit',
-				heading: 'Edit Seller',
-				buttonCaption: 'Save Changes',
-				/* request.session.emailError is set by addProfile if the email address is already
-				* registered.*/
-				emailError: request.session.emailError || '',
-				sellerType: request.session.privateSeller ? 'privateSeller' : 'dealership',
-				emailAddress: request.session.seller.emailAddress,
-				password: '',
-				firstname: firstname,
-				surname: surname,
-				telephone: seller.telephone,
-				cellphone: seller.cellphone,
-				dealershipName: dealershipName,
-				streetAddress1: streetAddress1,
-				streetAddress2: streetAddress2,
-				province: seller.address.province,
-				town: seller.address.town,
-				loggedIn: isSellerLoggedIn
-			};
-		}
-		response.render('sellers/registration-form', locals, function (err, html) {
-			request.session.emailError = null;
-			request.session.registrationFormValidation = null;
-			response.send(html);
 		});
-	});
-}
-
-/**
- * Responds to HTTP POST /seller/add and HTTP POST /seller/edit.
- *
- * Validates the inputs on the seller registration form. If any of the inputs are invalid, it redisplays the
- * registration form; otherwise, it calls the addProfile or editProfile functions.
- *
- * @param		{object}		request     An HTTP request object received from the express.post() method.
- * @param		{object}		response    An HTTP response object received from the express.post() method.
- *
- * @returns	{undefined}
- */
-function validateInputs(request, response) {
-	var action = request.path.split('/').slice(-1)[0];
-	var isSellerLoggedIn = request.session.seller ? true : false;
-	var formSeller = request.body.seller;
-	var regExpStr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$";
-	var regExp = new RegExp(regExpStr, 'gim');
-	request.session.registrationFormValidation = {
-		isEmailValid: regExp.test(formSeller.emailAddress),
-		isPasswordValid: (function () {
-			if (action === 'add' && !isSellerLoggedIn) {
-				return (formSeller.password.length >= 8);
-			} else if (action === 'edit' && isSellerLoggedIn) {
-				return (formSeller.password.length >= 8 || formSeller.password.length === 0);
-			}
-		}()),
-		isPasswordConfirmed: formSeller.password === formSeller.confirmPassword,
-		isTelephoneProvided: (formSeller.telephone !== '' || formSeller.cellphone !== ''),
-		isLocationProvided: (formSeller.province !== 'Please select ...' &&
-							formSeller.town !== 'Please select ...'),
-		isSellerTypeProvided: formSeller.type ? true : false,
-		isDealershipNameProvided: (function () {
-			if (formSeller.type === 'dealership') {
-				return formSeller.dealershipName !== '';
-			} else if (formSeller.type === 'private seller') {
-				return true;
-			}
-		}()),
-		isDealershipAddressProvided: (function () {
-			if (formSeller.type === 'dealership') {
-				return formSeller.streetAddress1 !== '';
-			} else if (formSeller.type === 'private seller') {
-				return true;
-			}
-		}())
 	};
-	var fv = request.session.registrationFormValidation;
-	for (var c in fv){
-		if (!fv[c]) {
-			showRegistrationForm(request, response);
-		}
-	}
-	if (action === 'add' && !isSellerLoggedIn) {
-		addProfile(request, response);
-	} else if (action === 'edit' && isSellerLoggedIn) {
-		editProfile(request, response);
-	}
-}
 
-/**
- * Inserts a new seller into the sellers database collection, a new dealership into the dealerships database
- * collection (if the seller type is 'dealership'), creates a seller session object, logs-in the new seller,
- * and displays the seller profile page.
- *
- * @param		{object}		request     An HTTP request object received from the express.post() method.
- * @param		{object}		response    An HTTP response object received from the express.post() method.
- *
- * @returns	{undefined}
- */
-function addProfile(request, response) {
-	var formSeller = request.body.seller;
-	bcrypt.hash(formSeller.password, 10, function (err, passwordHash) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-		} else {
+	if (isEmailDuplicateError) {
+		validationErrors.emailError = 'The email address has been registered already.';
+	} else if (isEmailInvalidError) {
+		validationErrors.emailError = 'The email address is invalid.';
+	} else if (isEmailMissingError) {
+		validationErrors.emailError = 'An email address is required.';
+	}
+
+	if (isPasswordError) {
+		validationErrors.passwordError = 'A password is required.';
+	}
+
+	if (isSellerTypeMissingError) {
+		validationErrors.isSellerTypeError = true;
+	}
+
+	if (isFirstnameInvalidError) {
+		validationErrors.firstnameError = "Use only letters, spaces, hyphens (-) and apostrophes (').";
+	} else if (isFirstnameMissingError) {
+		validationErrors.firstnameError = "A firstname is required.";
+	}
+
+	if (isSurnameInvalidError) {
+		validationErrors.surnameError = "Use only letters, spaces, hyphesn (-) and apostrophes (').";
+	} else if (isSurnameMissingError) {
+		validationErrors.surnameError = 'A surname is required.';
+	}
+
+	if (isContactNumbersInvalidError) {
+		validationErrors.contacNumbersError = 'Use only digits in a contact number, e.g. 0123431915.';
+	} else if (isContactNumbersMissingError) {
+		validationErrors.contacNumbersError = 'At least one contact number is required.';
+	}
+
+	if (isDealershipNameMissingError) {
+		validationErrors.dealershipNameError = 'A dealership name is required.';
+	}
+
+	if (isStreetAddressMissingError) {
+		validationErrors.streetError = 'A street address is required.';
+	}
+
+	if (isProvinceMissingError) {
+		validationErrors.provinceError = 'A province is required.';
+	}
+
+	if (isTownMissingError) {
+		validationErrors.townError = 'A town is required.';
+	}
+
+	if (isSellerError) {
+		request.session.validationErrors = validationErrors;
+		form(request, response);
+		if (isCreationDetailsError) {
+			remove(seller);
+		}
+	} else {
+		main.showErrorPage(request, response);
+	}
+};
+
+var sellers = module.exports = {
+	/**
+	 * @summary Responds to HTTP GET /sellers/add. Displays views/sellers/registration-form, unless a seller is
+	 * logged-in, in which case it does nothing.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns {undefined}
+	 */
+	showRegistrationForm: function (request, response) {
+		var isLoggedIn = request.session.seller ? true : false;
+		if (!isLoggedIn) {
+			Province.find(function (err, provinces) {
+				if (err) {
+					console.log('==================== BEGIN ERROR MESSAGE ====================');
+					console.log(err);
+					console.log('==================== END ERROR MESSAGE ======================');
+					main.showErrorPage(request, response);
+				} else {
+					response.render('sellers/registration-form', {
+						validationErrors: request.session.validationErrors,
+						provinces: provinces,
+						action: '/sellers/add',
+						heading: 'New Seller',
+						buttonCaption: 'Register',
+						sellerType: '',
+						emailAddress: '',
+						password: '',
+						firstname: '',
+						surname: '',
+						telephone: '',
+						cellphone: '',
+						dealershipName: '',
+						streetAddress1: '',
+						streetAddress2: '',
+						province: '',
+						town: '',
+						townId: '',
+						isLoggedIn: isLoggedIn
+					}, function (err, html) {
+						request.session.validationErrors = null;
+						if (err) {
+							console.log('==================== BEGIN ERROR MESSAGE ====================');
+							console.log(err);
+							console.log('==================== END ERROR MESSAGE ======================');
+						} else {
+							response.send(html);
+						}
+					});
+				}
+			});
+		}
+	},
+	/**
+	 * @summary Responds to HTTP GET /seller/:sellerId/edit. Displays views/sellers/registration-form, unless a seller
+	 * is not logged-in, in which case it does nothing.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns {undefined}
+	 */
+	showEditForm: function (request, response) {
+		var ssnSeller = request.session.seller;
+		var dtlSeller = request.session.privateSeller || request.session.dealership;
+		var isLoggedIn = request.session.seller ? true : false;
+		if (isLoggedIn) {
+			Province.find(function (err, provinces) {
+				if (err) {
+					console.log('==================== BEGIN ERROR MESSAGE ====================');
+					console.log(err);
+					console.log('==================== END ERROR MESSAGE ======================');
+					main.showErrorPage(request, response);
+				} else {
+					response.render('sellers/registration-form', {
+						validationErrors: request.session.validationErrors,
+						provinces: provinces,
+						action: '/seller/:'.concat(ssnSeller._id).concat('/edit'),
+						heading: 'Edit Seller',
+						buttonCaption: 'Edit',
+						sellerType: '',
+						emailAddress: ssnSeller.emailAddress,
+						password: '',
+						firstname: dtlSeller.name,
+						surname: '',
+						contactNumbers: dtlSeller.contactNumbers,
+						dealershipName: '',
+						streetAddress1: '',
+						streetAddress2: '',
+						province: '',
+						town: '',
+						townId: '',
+						isLoggedIn: isLoggedIn
+					}, function (err, html) {
+						request.session.validationErrors = null;
+						if (err) {
+							console.log('==================== BEGIN ERROR MESSAGE ====================');
+							console.log(err);
+							console.log('==================== END ERROR MESSAGE ======================');
+						} else {
+							response.send(html);
+						}
+					});
+				}
+			});
+		}
+	},
+	/**
+	 * @summary Responds to HTTP POST /sellers/add. Creates a new seller profile; then displays the profile page.
+	 *
+	 * @description Inserts a new seller into the sellers database collection, a new dealership into the dealerships
+	 * database collection or a new private seller into the privatesellers database collection, creates a
+	 * seller session object, logs-in the new seller, then displays views/sellers/profile-page.
+	 *
+	 * @param {object} request An HTTP request object received from the express.post() method.
+	 * @param {object} response An HTTP response object received from the express.post() method.
+	 *
+	 * @returns {undefined}
+	 */
+	addProfile: function (request, response) {
+		var frmSeller = request.body.seller;
+		var isPrivateSeller = frmSeller.type === 'private seller';
+		var isDealership = frmSeller.type === 'dealership';
+		var privateSeller, dealership;
+
+		var createPrivateSeller = function (seller, callback) {
+			var privateSeller = new PrivateSeller({
+				name: {
+					firstname: sanitize(frmSeller.firstname),
+					surname: sanitize(frmSeller.surname)
+				},
+				contactNumbers: [
+					sanitize(frmSeller.telephone),
+					sanitize(frmSeller.cellphone)
+				],
+				address: {
+					town: sanitize(frmSeller.town),
+					province: sanitize(frmSeller.province)
+				},
+				account: seller._id
+			});
+			privateSeller.save(function (err, privateSeller) {
+				if (err) {
+					return callback(err, seller);
+				}
+				return callback(null, seller, privateSeller);
+			});
+		};
+
+		var createDealership = function (seller, callback) {
+			var dealership = new Dealership({
+				name: sanitize(frmSeller.dealershipName),
+				contactPerson: {
+					firstname: sanitize(frmSeller.firstname),
+					surname: sanitize(frmSeller.surname)
+				},
+				contactNumbers: [
+					sanitize(frmSeller.telephone),
+					sanitize(frmSeller.cellphone)
+				],
+				address: {
+					street: sanitize(frmSeller.street),
+					suburb: sanitize(frmSeller.suburb),
+					town: sanitize(frmSeller.town),
+					province: sanitize(frmSeller.province)
+				},
+				account: seller._id
+			});
+			dealership.save(function (err, dealership) {
+				if (err) {
+					return callback(err, seller);
+				}
+				return callback(null, seller, dealership);
+			});
+		};
+
+		var createSeller = function (callback) {
 			var seller = new Seller({
-				emailAddress: formSeller.emailAddress,
-				passwordHash: passwordHash
+				emailAddress: frmSeller.emailAddress,
+				passwordHash: frmSeller.password
 			});
 			seller.save(function (err, seller) {
-				if (err && (err.message.substring('duplicate key error index') !== -1)) {
-					request.session.emailError = 'That email address has been registered already.';
-					showRegistrationForm(request, response);
-				} else if (err) {
-					console.log(err);
-					main.showErrorPage(request, response);
-				} else if (formSeller.type === 'private seller') {
-					var privateSeller = new PrivateSeller({
-						name: {
-							firstname: formSeller.firstname,
-							surname: formSeller.surname
-						},
-						telephone: formSeller.telephone,
-						cellphone: formSeller.cellphone,
-						address: {
-							town: formSeller.town,
-							province: formSeller.province,
-						},
-						account: seller._id
-					});
-					privateSeller.save(function (err, privateSeller) {
-						if (err) {
-							console.log(err);
-							main.showErrorPage(request, response);
-						} else {
-							var dealership = null;
-							login.setSession(request, response, seller, dealership, privateSeller,
-								function () {
-									showProfile(request, response, email.sendEmail);
-								}
-							);
-						}
-					});
-				} else {
-					var dealership = new Dealership({
-						name: formSeller.dealershipName,
-						contactPerson: {
-							firstname: formSeller.firstname,
-							surname: formSeller.surname
-						},
-						address: {
-							street: formSeller.streetAddress1,
-							suburb: formSeller.streetAddress2,
-							town: formSeller.town,
-							province: formSeller.province,
-						},
-						telephone: formSeller.telephone,
-						cellphone: formSeller.cellphone,
-						account: seller._id
-					});
-					dealership.save(function (err, dealership) {
-						if (err) {
-							console.log(err);
-							main.showErrorPage(request, response);
-						} else {
-							var privateSeller = null;
-							login.setSession(request, response, seller, dealership, privateSeller,
-								function () {
-									showProfile(request, response, email.sendEmail);
-								}
-							);
-						}
-					});
-				}
-			});
-		}
-	});
-}
-
-/**
- * Responds to HTTP GET /seller/view/:sid.
- *
- * Displays the seller's profile.
- *
- * @param		{object}		request		An HTTP request object received from the express.get() method.
- * @param		{object}		response	An HTTP response object received from the express.get() method.
- * @param 		{function} 		callback 	A callback function.
- *
- * @returns	{undefined}		Returns the request and response objects to a callback function.
- */
-function showProfile(request, response, callback) {
-	var isPrivateSeller = request.session.privateSeller ? true : false;
-	if (isPrivateSeller) {
-		var seller = request.session.privateSeller;
-		var fullname = seller.name.firstname.concat(' ').concat(seller.name.surname);
-		var dealershipName = '';
-		var streetAddress1 = '';
-		var streetAddress2 = '';
-	} else {
-		var seller = request.session.dealership;
-		var fullname = seller.contactPerson.firstname.concat(' ').concat(seller.contactPerson.surname);
-		var dealershipName = seller.name;
-		var streetAddress1 = seller.address.street;
-		var streetAddress2 = seller.address.suburb;
-	}
-	response.render('sellers/profile-page', {
-		method: 'delete',
-		sellerType: request.session.dealership ? 'dealership' : 'private seller',
-		email: request.session.seller.emailAddress,
-		fullname: fullname,
-		telephone: seller.telephone,
-		cellphone: seller.cellphone,
-		dealershipName: dealershipName,
-		streetAddress1: streetAddress1,
-		streetAddress2: streetAddress2,
-		province: seller.address.province,
-		town: seller.address.town,
-		loggedIn: true
-	});
-	return callback(request, response);
-}
-
-/**
- * Edits the seller profile, then displays it.
- *
- * @param		{object}		request     An HTTP request object received from the express.post() method.
- * @param		{object}		response    An HTTP response object received from the express.post() method.
- *
- * @returns	{undefined}
- */
-function editProfile(request, response) {
-	var formSeller = request.body.seller;
-	var sessionSeller = request.session.seller;
-	var isEmailChanged = formSeller.emailAddress.toLowerCase() !== sessionSeller.emailAddress.toLowerCase();
-	var isPasswordChanged = formSeller.password !== "";
-
-	function updateSeller(callback) {
-		if (isEmailChanged && isPasswordChanged) {
-			bcrypt.hash(formSeller.password, 10, function (err, hash) {
-				if (err) {
-					return callback(err)
-				} else {
-					Seller.findByIdAndUpdate(sessionSeller._id, {
-						$set: {
-							emailAddress: formSeller.emailAddress,
-							passwordHash: hash,
-							emailAddressVerified: false
-						}
-					}, function (err, seller) {
-						if (err) {
-							return callback(err);
-						}
-						sessionSeller.emailAddres = seller.emailAddress;
-						sessionSeller.passworsHash = seller.passwordHash;
-						return callback(null, seller);
-					});
-				}
-			});
-		} else if (isEmailChanged) {
-			Seller.findByIdAndUpdate(sessionSeller._id, {
-				$set: {
-					emailAddress: formSeller.emailAddress,
-					emailAddressVerified: false
-				}
-			}, function (err, seller) {
 				if (err) {
 					return callback(err);
 				}
-				sessionSeller.emailAddress = seller.emailAddress;
-				return callback(null, seller);
-			});
-		} else if (isPasswordChanged) {
-			bcrypt.hash(formSeller.password, 10, function (err, hash) {
-				if (err) {
-					return callback(err)
+				if (isPrivateSeller) {
+					createPrivateSeller(seller, callback);
+				} else if (isDealership) {
+					createDealership(seller, callback);
 				} else {
-					Seller.findByIdAndUpdate(sessionSeller._id, {
-						$set: {
-							passwordHash: hash,
-						}
-					}, function (err, seller) {
-						if (err) {
-							return callback(err);
-						}
-						sessionSeller.passworsHash = seller.passwordHash;
-						return callback(null, seller);
-					});
+					return callback(new Error('Seller type must be specified.'), seller);
 				}
 			});
+		};
+
+		createSeller(function (err, seller, privateOrDealer) {
+			if (err) {
+				handleErrors(err, seller, sellers.showRegistrationForm);
+			} else {
+				if (isPrivateSeller) {
+					dealership = null;
+					privateSeller = privateOrDealer;
+				} else if (isDealership) {
+					dealership = privateOrDealer;
+					privateSeller = null;
+				}
+				login.setSession(request, seller, dealership, privateSeller, function () {
+					response.redirect(302, '/seller/'.concat(seller._id.toString()).concat('/view'));
+					email.sendEmail(request, response);
+				});
+			}
+		});
+	},
+	/**
+	 * @summary Responds to HTTP GET /seller/:sellerId/view. Displays the views/sellers/profile-page.ejs for the
+	 * logged-in seller.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 * @param {function} callback A callback function.
+	 *
+	 * @returns {undefined} Returns the request and response objects to a callback function.
+	 */
+	showProfile: function (request, response, callback) {
+		/* Object containting the decallbacks of the logged-in seller. */
+		var dtlSeller = request.session.privateSeller || request.sesssion.dealership;
+
+		var isLoggedIn = request.session.seller ? true : false;
+		var isOwnProfile = request.session.seller._id === request.params.sellerId;
+		var isAuthorized = isLoggedIn && isOwnProfile;
+
+		var isPrivateSeller = request.session.privateSeller ? true : false;
+
+		var fullname;
+
+		if (isPrivateSeller) {
+			fullname = dtlSeller.name.firstname.concat(' ').concat(dtlSeller.name.surname);
 		} else {
-			return callback(null, sessionSeller);
+			fullname = dtlSeller.contactPerson.firstname.concat(' ').concat(dtlSeller.contactPerson.surname);
 		}
-	}
 
-	var sessionPrivateSeller = request.session.privateSeller;
-	var sessionDealership = request.session.dealership;
+		if (isAuthorized) {
+			response.render('sellers/profile-page', {
+				sellerId: request.session.seller._id,
+				sellerType: isPrivateSeller ? 'private seller': 'dealership',
+				email: request.session.seller.emailAddress,
+				dealershipName: dtlSeller.name,
+				fullname: fullname,
+				contactNumbers: dtlSeller.contactNumbers,
+				address: dtlSeller.address,
+				isLoggedIn: true
+			});
+			return callback(request, response);
+		}
+	},
+	/**
+	 * @summary Responds to HTTP POST /seller/:sellerid/edit. Edits the logged-in seller's' profile, then displays it.
+	 *
+	 * @param {object} request An HTTP request object received from the express.post() method.
+	 * @param {object} response An HTTP response object received from the express.post() method.
+	 *
+	 * @returns {undefined}
+	 */
+	editProfile: function (request, response) {
+		var frmSeller = request.body.seller;
+		var ssnSeller = request.session.seller;
 
-	updateSeller(function (err, seller) {
-		if (err) {
-			console.log(err);
-			return main.showErrorPage(request, response);
-		} else if (formSeller.type === 'privateSeller' && sessionPrivateSeller) {
-			PrivateSeller.findByIdAndUpdate(sessionPrivateSeller._id, {
+		var ssnPrivateSeller = request.session.privateSeller;
+		var ssnDealership = request.session.dealership;
+
+		var isEmailChanged = frmSeller.emailAddress.toLowerCase().trim() !== ssnSeller.emailAddress;
+		var isPasswordChanged = frmSeller.password !== "";
+
+		var isRemainPrivate = (
+			frmSeller.type === 'privateSeller' &&
+			ssnPrivateSeller
+		) ? true : false;
+
+		var isRemainDealer = (
+			frmSeller.type === 'dealership' &&
+			ssnDealership
+		) ? true : false;
+
+		var isChangeToDealer = (
+			frmSeller.type === 'dealership' &&
+			ssnPrivateSeller
+		) ? true : false;
+
+		var isChangeToPrivate = (
+			frmSeller.type === 'privateSeller' &&
+			ssnDealership
+		) ? true : false;
+
+		var callback = function (err) {
+			if (err) {
+				handleErrors(err, null, sellers.showEditForm);
+			} else {
+				sellers.showProfile(request, response);
+				if (isEmailChanged) {
+					email.sendEmail(request, response);
+				}
+			}
+		};
+
+		var updateSeller = function (callback) {
+			if (isEmailChanged && isPasswordChanged) {
+				Seller.findByIdAndUpdate(ssnSeller._id, {
+					$set: {
+						emailAddress: frmSeller.emailAddress.toLowerCase().trim,
+						passwordHash: frmSeller.password,
+						emailAddressVerified: false
+					}
+				}, function (err, seller) {
+					if (err) {
+						return callback(err);
+					}
+					ssnSeller.emailAddress = seller.emailAddress;
+					ssnSeller.passwordHash = seller.passwordHash;
+					return callback(null);
+				});
+			} else if (isEmailChanged) {
+				Seller.findByIdAndUpdate(ssnSeller._id, {
+					$set: {
+						emailAddress: frmSeller.emailAddress.toLowerCase().trim(),
+						emailAddressVerified: false
+					}
+				}, function (err, seller) {
+					if (err) {
+						return callback(err);
+					}
+					ssnSeller.emailAddress = seller.emailAddress;
+					return callback(null);
+				});
+			} else if (isPasswordChanged) {
+				Seller.findByIdAndUpdate(ssnSeller._id, {
+					$set: {
+						passwordHash: frmSeller.password,
+					}
+				}, function (err, seller) {
+					if (err) {
+						return callback(err);
+					}
+					ssnSeller.passwordHash = seller.passwordHash;
+					return callback(null);
+				});
+			} else {
+				return callback(null);
+			}
+		};
+
+		var updatePrivateSeller = function (callback) {
+			PrivateSeller.findByIdAndUpdate(ssnPrivateSeller._id, {
 				$set: {
 					name: {
-						firstname: formSeller.firstname,
-						surname: formSeller.surname
+						firstname: sanitize(frmSeller.firstname),
+						surname: sanitize(frmSeller.surname)
 					},
-					telephone: formSeller.telephone,
-					cellphone: formSeller.cellphone,
+					contactNumbers: [
+						sanitize(frmSeller.telephone),
+						sanitize(frmSeller.cellphone)
+					],
 					address: {
-						town: formSeller.town,
-						province: formSeller.province
+						town: sanitize(frmSeller.town),
+						province: sanitize(frmSeller.province)
 					}
 				}
 			}, function (err, privateSeller) {
 				if (err) {
-					console.log(err);
-					return main.showErrorPage(request, response);
-				} else {
-					request.session.privateSeller = privateSeller;
-					showProfile(request, response, function (request, response) {
-						if (isEmailChanged) {
-							return email.sendEmail(request, response);
-						}
-						return;
-					});
+					return callback(err);
 				}
+				request.session.privateSeller = privateSeller;
+				updateSeller(callback);
 			});
-		} else if ((formSeller.type === 'dealership') && sessionDealership) {
-			Dealership.findByIdAndUpdate(sessionDealership._id, {
+		};
+
+		var updateDealership = function (callback) {
+			Dealership.findByIdAndUpdate(ssnDealership._id, {
 				$set: {
-					name: formSeller.dealershipName,
+					name: sanitize(frmSeller.dealershipName),
 					contactPerson: {
-						firstname: formSeller.firstname,
-						surname: formSeller.surname
+						firstname: sanitize(frmSeller.firstname),
+						surname: sanitize(frmSeller.surname)
 					},
-					telephone: formSeller.telephone,
-					cellphone: formSeller.cellphone,
+					contactNumbers: [
+						sanitize(frmSeller.telephone),
+						sanitize(frmSeller.cellphone)
+					],
 					address: {
-						street: formSeller.streetAddress1,
-						suburb: formSeller.streetAddress2,
-						town: formSeller.town,
-						province: formSeller.province
+						street: sanitize(frmSeller.streetAddress1),
+						suburb: sanitize(frmSeller.streetAddress2),
+						town: sanitize(frmSeller.town),
+						province: sanitize(frmSeller.province)
 					}
 				}
 			}, function (err, dealership) {
 				if (err) {
-					console.log(err);
-					return main.showErrorPage(request, response);
-				} else {
-					request.session.dealership = dealership;
-					showProfile(request, response, function (request, response) {
-						if (isEmailChanged) {
-							return email.sendEmail(request, response);
-						}
-						return;
-					});
+					return callback(err);
 				}
+				request.session.dealership = dealership;
+				updateSeller(callback);
 			});
-		} else if ((formSeller.type === 'dealership') && sessionPrivateSeller) {
-			request.session.dealership = {
-				_id: sessionPrivateSeller._id,
-				name: formSeller.dealershipName,
+		};
+
+		var removePrivateSeller = function (id, callback) {
+			PrivateSeller.findByIdAndRemove(id, function (err) {
+				if (err) {
+					/** @todo Write to a special log file that this privateSeller has to be removed manually, or that a
+					 * clean-up script has to be run.
+					 */
+					return callback(err);
+				}
+				updateSeller(callback);
+			});
+		};
+
+		var removeDealership = function (id, callback) {
+			Dealership.findByIdAndRemove(id, function (err) {
+				if (err) {
+					/** @todo Write to a special log that this dealership has to be removed manually, or that a
+					 * clean-up script has to be run.
+					 */
+					return callback(err);
+				}
+				updateSeller(callback);
+			});
+		};
+
+		var changePrivateToDealer = function (callback) {
+			var dealership = new Dealership({
+				_id: ssnPrivateSeller._id,
+				name: sanitize(frmSeller.dealershipName),
 				contactPerson: {
-					firstname: formSeller.firstname,
-					surname: formSeller.surname
+					firstname: sanitize(frmSeller.firstname),
+					surname: sanitize(frmSeller.surname)
 				},
-				telephone: formSeller.telephone,
-				cellphone: formSeller.cellphone,
+				contactNumbers: [
+					sanitize(frmSeller.telephone),
+					sanitize(frmSeller.cellphone)
+				],
 				address: {
-					street: formSeller.streetAddress1,
-					suburb: formSeller.streetAddress2,
-					town: formSeller.town,
-					province: formSeller.province
+					street: sanitize(frmSeller.streetAddress1),
+					suburb: sanitize(frmSeller.streetAddress2),
+					town: sanitize(frmSeller.town),
+					province: sanitize(frmSeller.province)
 				},
-				sellerId: sessionPrivateSeller.sellerId
-			};
-			request.session.privateSeller = null;
-			var dealership = new Dealership(request.session.dealership);
+				account: ssnPrivateSeller.account
+			});
 			dealership.save(function (err, dealership) {
 				if (err) {
-					console.log(err);
-					return main.showErrorPage(request, response);
-				} else {
-					PrivateSeller.findByIdAndRemove(dealership._id, function (err) {
-						if (err) {
-							console.log(err);
-							return main.showErrorPage(request, response);
-						} else {
-							showProfile(request, response, function (request, response) {
-								if (isEmailChanged) {
-									return email.sendEmail(request, response);
-								}
-								return;
-							});
-						}
-					});
+					return callback(err);
 				}
+				request.session.dealership = dealership;
+				request.session.privateSeller = null;
+				removePrivateSeller(dealership._id, callback);
 			});
-		} else if ((formSeller.type === 'privateSeller') && sessionDealership) {
-			request.session.privateSeller = {
-				_id: sessionDealership._id,
+		};
+
+		var changeDealerToPrivate = function (callback) {
+			var privateSeller = new PrivateSeller({
+				_id: ssnDealership._id,
 				name: {
-					firstname: formSeller.firstname,
-					surname: formSeller.surname
+					firstname: sanitize(frmSeller.firstname),
+					surname: sanitize(frmSeller.surname)
 				},
-				telephone: formSeller.telephone,
-				cellphone: formSeller.cellphone,
+				contactNumbers: [
+					sanitize(frmSeller.telephone),
+					sanitize(frmSeller.cellphone)
+				],
 				address: {
-					town: formSeller.town,
-					province: formSeller.province
+					town: sanitize(frmSeller.town),
+					province: sanitize(frmSeller.province)
 				},
-				sellerId: sessionDealership.sellerId
-			};
-			request.session.dealership = null;
-			var privateSeller = new PrivateSeller(request.session.privateSeller);
+				account: ssnDealership.account
+			});
 			privateSeller.save(function (err, privateSeller) {
 				if (err) {
+					return callback(err);
+				}
+				request.session.privateSeller = privateSeller;
+				request.session.dealership = null;
+				removeDealership(privateSeller._id, callback);
+			});
+		};
+
+		if (isRemainPrivate) {
+			updatePrivateSeller(callback);
+		} else if (isRemainDealer) {
+			updateDealership(callback);
+		} else if (isChangeToDealer) {
+			changePrivateToDealer(callback);
+		} else if (isChangeToPrivate) {
+			changeDealerToPrivate(callback);
+		}
+	},
+	/**
+	 * @summary Responds to HTTP GET /seller/:sellerId/remove. Removes the logged-in seller's profile as well as the
+	 * profiles of all his/her vehicles; then displays the home page.
+	 *
+	 * @description A user is only allowed to remove his own profile, and he must be logged-in to do so.
+	 *
+	 * Using the removeVehicles() closure function, the logged-in seller's vehicles are removed from the vehicles
+	 * database collection.
+	 *
+	 * Then, depending on whether the logged-in seller is a private seller or a dealership, using either the removePrivateSeller() closure function or the removeDealership() closure function, the logged-in
+	 * seller is removed from the privatesellers or dealerships database collections.
+	 *
+	 * This is followed by deleting the seller from the sellers database collection.
+	 *
+	 * Lastly, the home page is displayed.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns {undefined}
+	 */
+	removeProfile: function (request, response) {
+		var isLoggedIn = request.session.seller ? true : false;
+		var loggedInId = isLoggedIn && request.session.seller._id;
+		var profileId = request.params.sellerId;
+		var isOwnProfile = loggedInId === profileId ? true : false;
+
+		var isAuthorized = (
+			isLoggedIn &&
+			isOwnProfile
+		) ? true : false;
+
+		isPrivateSeller = request.session.privateSeller ? true : false;
+		isDealership = request.session.dealership ? true : false;
+
+		var removeSeller = function (callback) {
+			Seller.findByIdAndRemove(request.session.seller._id, function (err) {
+				if (err) {
+					return callback(err);
+				}
+				request.session.seller = null;
+				return callback(null);
+			});
+		};
+
+		var removePrivateSeller = function (callback) {
+			PrivateSeller.findByIdAndRemove(request.session.privateSeller._id, function (err) {
+				if (err) {
+					return callback(err);
+				}
+				request.session.privateSeller = null;
+				removeSeller(callback);
+			});
+		};
+
+		var removeDealership = function (callback) {
+			Dealership.findByIdAndRemove(request.session.dealership._id, function (err) {
+				if (err) {
+					return callback(err);
+				}
+				request.session.dealership = null;
+				removeSeller(callback);
+			});
+		};
+
+		var removeVehicles = function (callback) {
+			Vehicle.remove({seller: request.session.seller._id}, function (err) {
+				if (err) {
+					return callback(err);
+				}
+				if (isPrivateSeller) {
+					removePrivateSeller(callback);
+				} else if (isDealership) {
+					removeDealership(callback);
+				}
+			});
+		};
+
+		if (isAuthorized) {
+			removeVehicles(function (err) {
+				if (err) {
+					console.log('==================== BEGIN ERROR MESSAGE ====================');
 					console.log(err);
-					return main.showErrorPage(request, response);
+					console.log('==================== END ERROR MESSAGE ======================');
+					main.showErrorPage(request, response);
 				} else {
-					Dealership.findByIdAndRemove(privateSeller._id, function (err) {
-						if (err) {
-							console.log(err);
-							return main.showErrorPage(request, response);
-						} else {
-							showProfile(request, response, function (request, response) {
-								if (isEmailChanged) {
-									return email.sendEmail(request, response);
-								}
-								return;
-							});
-						}
-					});
+					main.showHomePage(request, response);
 				}
 			});
 		}
-	});
-}
-
-/**
- * Responds to HTTP GET /seller/remove.
- *
- * Deletes the seller from the database, then displays the home page.
- *
- * @param		{object}		request     An HTTP request object received from the express.get() method.
- * @param		{object}		response    An HTTP response object received from the express.get() method.
- *
- * @returns	{undefined}
- */
-function removeProfile(request, response) {
-	var sessionSeller = request.session.seller;
-	var sessionPrivateSeller = request.session.privateSeller;
-	var sessionsessionDealership = request.session.dealership;
-
-	if (sessionPrivateSeller) {
-		PrivateSeller.findByIdAndRemove(sessionPrivateSeller._id, function (err) {
-			if (err) {
-				console.log(err);
-				return main.showErrorPage(request, response);
-			} else {
-				request.session.privateSeller = null;
-				Seller.findByIdAndRemove(sessionSeller._id, function (err) {
-					if (err) {
-						console.log(err);
-						return main.showErrorPage(request, response);
-					} else {
-						request.session.seller = null;
-						return main.showHomePage(request, response);
-					}
-				});
-			}
-		});
-	} else if (sessionDealership) {
-		Dealership.findByIdAndRemove(sessionDealership._id, function (err) {
-			if (err) {
-				console.log(err);
-				return main.showErrorPage(request, response);
-			} else {
-				request.session.dealership = null;
-				Seller.findByIdAndRemove(sessionSeller._id, function (err) {
-					if (err) {
-						console.log(err);
-						return main.showErrorPage(request, response);
-					} else {
-						request.session.seller = null;
-						return main.showHomePage(request, response);
-					}
-				});
-			}
-		});
 	}
-}
-
-module.exports = {
-	showRegistrationForm: showRegistrationForm,
-	validateInputs: validateInputs,
-	showProfile: showProfile,
-	removeProfile: removeProfile
 };
