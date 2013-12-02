@@ -3,9 +3,9 @@
 'use strict';
 
 /**
- * @file models/sellers/sellers.js
- * Component: sellers
- * Purpose: Defines Mongoose model for seller objects.
+ * @file models/users.js
+ * Component: users
+ * Purpose: Defines Mongoose model for user objects.
  */
 
 /* Import external modules. */
@@ -13,7 +13,7 @@ var bcrypt = require('bcrypt');
 var mongoose = require('mongoose');
 
 /* Model */
-var sellerSchema = mongoose.Schema({
+var userSchema = mongoose.Schema({
 	emailAddress: {
 		type: String,
 		required: true,
@@ -31,11 +31,7 @@ var sellerSchema = mongoose.Schema({
 		required: true,
 		set: function (value) {
 			if (value.length < 10) {
-				/* It will be invalidated because of the 'required' validator, not because of
-				 * 'invalid password' validator.
-				 */
-				// return this.invalidate('passwordHash', 'invalid password');
-				return null;
+				return null; // This leaves the passwordHash unset, and triggers the 'required' validator.
 			}
 			return bcrypt.hashSync(value, 10);
 		}
@@ -46,4 +42,4 @@ var sellerSchema = mongoose.Schema({
 	}
 });
 
-module.exports = mongoose.model('Seller', sellerSchema);
+module.exports = mongoose.model('User', userSchema);
