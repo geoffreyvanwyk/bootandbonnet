@@ -2,12 +2,10 @@
 
 'use strict';
 
-/*
- * Component: sellers
- *
- * File: models/sellers/private-sellers.js
- *
- * Purpose: Defines the Mongoose model for private seller objects.
+/**
+ * @file models/sellers.js
+ * Component: users
+ * Purpose: Defines the Mongoose model for seller objects.
  */
 
 /* Import external modules. */
@@ -71,7 +69,7 @@ var sellerSchema = mongoose.Schema({
 	},
 	account: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: 'Seller',
+		ref: 'User',
 		required: true
 	}
 });
