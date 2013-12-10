@@ -27,13 +27,13 @@ var sellerSchema = mongoose.Schema({
 			required: true
 		}
 	},
-	contactNumbers: {
-		type: Array,
+	contactNumbers: { // Telephone and cellphone numbers.
+		type: [String],
 		required: true,
-		validate: [
+		validate: [ // A valid number consists of ten digits, the first of which is 0.
 			function (list) {
 				for (var index = 0; index < list.length; index++) {
-					if (!/\d{10}/.test(list[index])) {
+					if (!/^0\d{9}/.test(list[index])) {
 						return false;
 					}
 				}
@@ -67,7 +67,7 @@ var sellerSchema = mongoose.Schema({
 			default: 'South Africa'
 		}
 	},
-	account: {
+	user: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
 		required: true

@@ -15,36 +15,23 @@ var path = require('path');
 
 module.exports = {
 	showHomePage: function (request, response) {
-		var locals;
 		if (request.query.logout) {
-			request.session = null;
-		} 
-		if (request.session && request.session.seller) {
-			locals = {
-				isLoggedIn: true,
-				sellerId: request.session.seller._id
-			};
-		} else {
-			locals = {
-				isLoggedIn: false,
-				sellerId: ''
-			};
+			request.session.user = null;
+			request.session.seller = null;
 		}
-		response.render(path.join(__dirname, '../views/home'), locals);
+		response.render(path.join(__dirname, '../views/home'), {
+			isLoggedIn: request.session.user ? true : false,
+			userId: request.session.user && request.session.user._id || ''
+		});
 	},
 	showErrorPage: function (request, response) {
-		var locals;
-		if (request.session && request.session.seller) {
-			locals = {
-				isLoggedIn: true,
-				sellerId: request.session.seller._id
-			};
-		} else {
-			locals = {
-				isLoggedIn: false,
-				sellerId: ''
-			};
-		}
-		response.render(path.join(__dirname, '../views/error-page'), locals);
+		response.render(path.join(__dirname, '../views/error-page'), {
+			isLoggedIn: request.session.user ? true : false,
+			userId: request.session.user && request.session.user._id || '',
+			error: request.session.specialError || 'We apologise for the inconvenience. Please try again later.'
+		}, function (err, html) {
+			request.session.specialError = null;
+			response.send(html);
+		});
 	}
 };
