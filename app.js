@@ -2,11 +2,9 @@
 
 'use strict';
 
-/*
+/**
+ * @file app.js
  * Component: main
- *
- * Filename: app.js
- *
  * Purpose: Configures and starts the web server, then connects to the database server.
  */
 
@@ -22,13 +20,13 @@ var path = require('path');
 var map = require('./library/route-map').map;
 
 /* Import routes. */
-var email = require('./routes/sellers/email-address-verification');
-var login = require('./routes/sellers/login');
+var email = require('./routes/email-address-verification');
+var login = require('./routes/login');
 var main = require('./routes/main');
-var orders = require('./routes/orders/registration');
-var password = require('./routes/sellers/password-reset');
-var sellers = require('./routes/sellers/registration');
-var vehicles = require('./routes/vehicles/registration');
+var orders = require('./routes/order-registration');
+var password = require('./routes/password-reset');
+var sellers = require('./routes/seller-registration');
+var vehicles = require('./routes/vehicle-registration');
 
 /* Import configurations. */
 var databaseServer = require('./configuration/database').mongodb;
@@ -66,6 +64,13 @@ app.map(app, {
 	'/error': {
 		get: main.showErrorPage
 	},
+	'/user': {
+		'/:userId': {
+			'/verify-email-address': {
+				get: email.verifyEmailAddress
+			}
+		}
+	},
 	'/sellers': {
 		'/add': {
 			get: sellers.showRegistrationForm,
@@ -83,9 +88,6 @@ app.map(app, {
 			},
 			'/remove': {
 				get: sellers.removeProfile
-			},
-			'/verify-email-address': {
-				get: email.verifyEmailAddress
 			},
 			'/vehicles': {
 				'/add': {

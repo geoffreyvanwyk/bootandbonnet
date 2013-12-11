@@ -1,8 +1,8 @@
 <% layout('../../views/layout') -%>
 
 <%
-var noError = isSellerNotExist === '' && isHashNotMatch === '' ? '' : 'none';
-var sellerNotExist = isSellerNotExist === '' ? 'none' : '';
+var noError = isUserNotExist === '' && isHashNotMatch === '' ? '' : 'none';
+var userNotExist = isUserNotExist === '' ? 'none' : '';
 var hashNotMatch = isHashNotMatch === '' ? 'none' : '';
 %>
 
@@ -11,7 +11,7 @@ var hashNotMatch = isHashNotMatch === '' ? 'none' : '';
 	<p>Your email address has been verfied.</p>
 </div>
 
-<div style="display: <%=sellerNotExist %>">
+<div style="display: <%=userNotExist %>">
 	<h2>Error</h2>
 	<p>The email address does not exist in our database.</p>
 </div>

@@ -1,33 +1,27 @@
 <% layout('../../views/layout') -%>
 
-<%
-var emailAlertType = loginError.emailError === '' ? '' : 'error';
-var passwordAlertType = loginError.passwordError === '' ? '' : 'error';
-var resetDisplay = isPasswordReset ? '' : 'none';
-%>
-
 <form method="post" action="/login">
     <fieldset>
         <legend>Log In</legend>
-		<div class="alert alert-success" style="display: <%=resetDisplay %>;">
+		<div class="alert alert-success" style="display: <%=resetDisplay%>;">
 			<button type="button" class="close" data-dismiss="alert">&times;</button>
 			Your password has been reset successfully. You may now log in with your new password.
 		</div>
 		<div class="row">
 			<div class="span12">
-				<div class="control-group <%=emailAlertType%>">
+				<div class="control-group <%=loginError.emailAlertType%>">
 					<label class="control-label">Email</label>
 					<div class="controls">
-						<input type="email" name="seller[emailAddress]" value="<%=loginError.emailAddress%>"
+						<input type="email" name="user[emailAddress]" value="<%=loginError.emailAddress%>"
 							   required="required"/>
 						<span class="help-block" ><%=loginError.emailError%></span>
 					</div>
 				</div>
 
-				<div class="control-group <%=passwordAlertType%>">
+				<div class="control-group <%=loginError.passwordAlertType%>">
 					 <label class="control-label">Password</label>
 					<div class="controls">
-						<input type="password" name="seller[password]" value="<%=loginError.password%>"
+						<input type="password" name="user[password]" value="<%=loginError.password%>"
 							   required="required"/>
 						<span class="help-block" ><%=loginError.passwordError %></span>
 					</div>

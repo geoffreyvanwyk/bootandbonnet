@@ -1,35 +1,54 @@
-/*jshint node: true */
+/*jshint node: true*/
 
 'use strict';
 
 /**
- * @file routes/sellers/password-reset.js
- *
- * Component: sellers
- *
- * Purpose: Contains routes for resetting a seller's password.
+ * @file routes/password-reset.js
+ * Component: users
+ * Purpose: Contains routes for resetting a user's password.
  */
 
 /* Import external modules. */
 var bcrypt = require('bcrypt');
 
 /* Import local modules. */
-var email = require('../../configuration/email').server;
+var email = require('../configuration/email').server;
 
 /* Import models. */
-var Seller = require('../../models/sellers/sellers');
+var User = require('../models/users');
 
 /* Import routes. */
 var login = require('./login');
-var main = require('../../routes/main');
+var main = require('./main');
+
+/**
+ * @summary Handles all the errors of the functions in this module.
+ *
+ * @param {object} err The error object passed from the other functions.
+ *
+ * @returns {undefined}
+ */
+var handleErrors = function (err) {
+	console.log('==================== BEGIN ERROR MESSAGE ====================');
+	console.log(err);
+	console.log('==================== END ERROR MESSAGE ======================');
+	main.showErrorPage(request, response);
+};
 
 var password = module.exports = {
 	/**
 	 * @summary Responds to HTTP GET /password/forgot. Displays the password-forgot form.
 	 *
 	 * @description If the passwordForgot property of the request.session object exists, it means that the form is
-	 * being redisplayed after an unregistered email address has been entered into the form, and that an error message
-	 * must be displayed on the password-forgot form. The property is set in the sendLink function.
+	 * being redisplayed after
+	 *
+	 * 1) an unregistered email address has been entered into the password-forgot-form, or that
+	 * 2) the user account has been deleted since the reset link was sent,
+	 *
+	 * and that an error message must be displayed on the password-forgot form.
+	 *
+	 * In the first case, the passwordForgot property is set in the sendLink function, and, in the second case, in the
+	 * reset function.
 	 *
 	 * If the emailHashMismatch property of the request.session object exists, it means that the email address in
 	 * the password-reset link did not match the hash in the link, and that the an error message must be displayed
@@ -41,21 +60,20 @@ var password = module.exports = {
 	 * @returns {undefined}
 	 */
 	showForgotForm: function (request, response) {
-		var locals = {
-			emailError: '',
-			emailAddress: '',
+		response.render('password-forgot-form', {
+			emailAddress: request.session.passwordForgot.emailAddress || '',
+			emailError: request.session.passwordForgot.emailError || request.session.emailHashMismatch || '',
+			emailAlertType: request.session.passwordForgot.emailError || request.session.emailHashMismatch ? 'error' : '',
 			isLoggedIn: false
-		};
-		if (request.session.passwordForgot) {
-			locals.emailError = request.session.passwordForgot.emailError;
-			locals.emailAddress = request.session.passwordForgot.emailAddress;
-			request.session.passwordForgot = null;
-		}
-		if (request.session.emailHashMismatch) {
-			locals.emailError = request.session.emailHashMismatch;
-			request.session.emailHashMismatch = null;
-		}
-		response.render('sellers/password-forgot-form', locals);
+		}, function (err, html) {
+			if (err) {
+				handleErrors(err);
+			} else {
+				request.session.passwordForgot = null;
+				request.session.emailHashMismatch = null;
+				response.send(html);
+			}
+		});
 	},
 	/**
 	 * @summary Responds to HTTP POST /password/forgot. Sends an email message, containing a link to the
@@ -81,7 +99,7 @@ var password = module.exports = {
 	 */
 	sendLink: function (request, response) {
 		/* The email address entered into the password-forgot form. */
-		var frmEmail = request.body.seller.emailAddress.toLowerCase().trim();
+		var frmEmailAddress = request.body.seller.emailAddress.toLowerCase().trim();
 
 		var sendMessage = function (hash, callback) {
 			/* Link to the password-reset form. */
@@ -92,7 +110,7 @@ var password = module.exports = {
 
 			var message = {
 				from: "BootandBonnet <info@bootandbon.net>",
-				to: frmEmail,
+				to: frmEmailAddress,
 				subject: "Password Reset",
 				text: "Dear Sir/Madam,\n\n"
 						.concat("We have received a request for resetting your password. ")
@@ -107,8 +125,8 @@ var password = module.exports = {
 			email.send(message, callback);
 		};
 
-		var hashEmailAddress = function (seller, callback) {
-			bcrypt.hash(seller.emailAddress, 10, function (err, hash) {
+		var hashEmailAddress = function (user, callback) {
+			bcrypt.hash(user.emailAddress, 10, function (err, hash) {
 				if (err) {
 					return callback(err);
 				}
@@ -116,19 +134,21 @@ var password = module.exports = {
 			});
 		};
 
-		var findSeller = function (callback) {
-			Seller.findOne({emailAddress: frmEmail}, function (err, seller) {
+		var findUser = function (callback) {
+			User.findOne({emailAddress: frmEmailAddress}, function (err, user) {
 				if (err) {
 					return callback(err);
 				}
-				if (!seller) {
-					return callback({name: 'EmailError'});
+				if (!user) {
+					var err = new Error('The email address has not been registered.');
+					err.emailAddress = frmEmailAddress;
+					return callback(err);
 				}
 				hashEmailAddress(seller, callback);
 			});
 		};
 
-		findSeller(function (err, message) {
+		findUser(function (err, message) {
 			if (err && err.name === 'EmailError') {
 				request.session.passwordForgot = {
 					emailAddress: frmEmail,
@@ -141,7 +161,7 @@ var password = module.exports = {
 				console.log('==================== END ERROR MESSAGE ======================');
 				main.showErrorPage(request, response);
 			} else {
-				response.render('sellers/password-reset-email-sent-page', {
+				response.render('password-reset-email-sent-page', {
 					isLoggedIn: false
 				});
 			}
@@ -165,12 +185,9 @@ var password = module.exports = {
 		var qryHash = request.query.hash;
 		bcrypt.compare(qryEmail, qryHash, function(err, isMatch) {
 			if (err) {
-				console.log('==================== BEGIN ERROR MESSAGE ====================');
-				console.log(err);
-				console.log('==================== END ERROR MESSAGE ======================');
-				main.showErrorPage(request, response);
+				handleErrors(err);
 			} else if (isMatch) {
-				response.render('sellers/password-reset-form', {
+				response.render('password-reset-form', {
 					emailAddress: qryEmail,
 					isLoggedIn: false
 				});
@@ -201,14 +218,14 @@ var password = module.exports = {
 	 */
 	reset: function (request, response) {
 		/* Email address with which the password reset was requested. */
-		var frmEmail = request.body.seller.emailAddress.toLowerCase().trim();
+		var frmEmailAddress = request.body.seller.emailAddress.toLowerCase().trim();
 
 		/* New password entered into the password-reset form. */
 		var frmPassword = request.body.seller.password;
 
-		var updateSeller = function (hash, callback) {
-			Seller.findOneAndUpdate({
-				emailAddress: frmEmail
+		var updateUser = function (hash, callback) {
+			User.findOneAndUpdate({
+				emailAddress: frmEmailAddress
 			}, {
 				$set: {
 					passwordHash: hash
@@ -221,22 +238,13 @@ var password = module.exports = {
 				if (err) {
 					return callback(err);
 				}
-				updateSeller(hash, callback);
+				updateUser(hash, callback);
 			});
 		};
 
-		hashPassword(function (err, seller) {
+		hashPassword(function (err, user) {
 			if (err) {
-				console.log('==================== BEGIN ERROR MESSAGE ====================');
-				console.log(err);
-				console.log('==================== END ERROR MESSAGE ======================');
-				main.showErrorPage(request, response);
-			} else if (!seller) {
-				request.session.passwordForgot = {
-					emailAddress: frmEmail,
-					emailError: 'The email address has not been registered.'
-				};
-				password.showForgotForm(request, response);
+				handleErrors(err);
 			} else {
 				request.session.isPasswordReset = true;
 				login.showForm(request, response);

@@ -1,21 +1,27 @@
-"use strict";
+/*jshint node: true*/
 
+'use strict';
+
+/**
+ * @file models/provinces.js
+ * Component: main
+ * Purpose: Defines the Mongoose model for province objects.
+ */
+
+/* Import external modules. */
 var mongoose = require('mongoose');
 
+/* Model */
 var provinceSchema = mongoose.Schema({
 	name: {
-		type: String, 
-		required: true, 
+		type: String,
+		required: true,
 		unique: true
 	},
 	towns: {
-		type: [String], 
+		type: [String],
 		required: true
 	}
 });
 
-var Province = mongoose.model('Province', provinceSchema);
-
-module.exports = {
-	Province: Province
-};
+module.exports = mongoose.model('Province', provinceSchema);
