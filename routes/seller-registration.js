@@ -12,18 +12,18 @@
 var bcrypt = require('bcrypt'); // For hashing and comparing passwords.
 
 /* Import libraries. */
-var sanitize = require('../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
+var sanitize = require('../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
 /* Import models. */
-var Province = require('../../models/provinces');
-var Seller = require('../../models/sellers');
-var User = require('../../models/users');
-var Vehicle = require('../../models/vehicles');
+var Province = require('../models/provinces');
+var Seller = require('../models/sellers');
+var User = require('../models/users');
+var Vehicle = require('../models/vehicles');
 
 /* Import functions. */
 var email = require('./email-address-verification');
 var login = require('./login');
-var main = require('../../routes/main');
+var main = require('./main');
 
 var handleErrors = function (err, seller, form) {
 	console.log('==================== BEGIN ERROR MESSAGE ====================');
@@ -144,7 +144,7 @@ var handleErrors = function (err, seller, form) {
 		emailError: '',
 		emailAlertType: '',
 		passwordError: '',
-		passwordAlertType: ''
+		passwordAlertType: '',
 		firstnameError: '',
 		firstnameAlertType: '',
 		surnameError: '',

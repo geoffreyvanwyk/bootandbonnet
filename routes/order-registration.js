@@ -14,11 +14,11 @@
 var async = require('async'); // For asynchronous iteration.
 
 /* Import models */
-var Order = require('../../models/orders/orders').Order;
-var Item = require('../../models/orders/items').Item;
+var Order = require('../models/orders').Order;
+var Item = require('../models/items').Item;
 
 /* Import routes */
-var main = require('../../routes/main');
+var main = require('../routes/main');
 
 /**
  * Responds to HTTP GET /orders/add.
