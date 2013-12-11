@@ -18,18 +18,17 @@ var fs = require('fs'); // For uploading photos.
 var path = require('path'); // For concatenating file paths.
 
 /* Import libraries. */
-var sanitize = require('../../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
+var sanitize = require('../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
 /* Import models. */
-var Dealership = require('../../models/sellers/dealerships').Dealership;
-var Lookups = require('../../models/lookups').Lookups;
-var Make = require('../../models/vehicles/makes').Make;
-var PrivateSeller = require('../../models/sellers/private-sellers').PrivateSeller;
-var Seller = require('../../models/sellers/sellers').Seller;
-var Vehicle = require('../../models/vehicles/vehicles').Vehicle;
+var Lookups = require('../models/lookups');
+var Make = require('../models/makes');
+var Seller = require('../models/sellers');
+var User = require('../models/users');
+var Vehicle = require('../models/vehicles');
 
 /* Import routes. */
-var main = require('../../routes/main');
+var main = require('./main');
 
 /* Helper functions */
 
