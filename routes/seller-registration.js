@@ -440,8 +440,34 @@ var sellers = module.exports = {
 		}
 	},
 	/**
-	 * @summary Responds to HTTP POST /seller/:sellerid/edit. Edits the logged-in seller's' profile, then displays it.
+	 * @summary Responds to HTTP POST /seller/:sellerId/edit. Edits the logged-in seller's' profile, then displays it.
+	 * 
+	 * @description The updated details of the logged-in seller, as entered into the edit form 
+	 * (views/seller-registration-form.ejs), are captured in the frmUser and frmSeller variables. The logged-in seller's 
+	 * session details are captured in the ssnUser and ssnSeller variables.
+	 * 
+	 * This function uses the updateSeller() closure function to:
+	 * (1) update the seller document in the sellers database collection, corresponding to the logged-in seller, with 
+	 * the details entered into the edit form. 
+	 * (2) update the ssnSeller with the updated seller's details.
+	 * (3) call the updateUser() closure function.
+	 * 
+	 * Then, the updateUser() closure function updates the user document in the users database collection, corresponding 
+	 * to the logged-in user, with: 
+	 * (1) the new email address, if any, entered into the edit form.  
+	 * (2) the new password, if any, entered into the edit form.
+	 * 
+	 * The email address has to be updated in a separate function, because the isEmailAddressVerified field has to be
+	 * set to false if the email address has changed.
+	 * 
+	 * In each of updateEmailAddress() and updatePassword(), the user session is updated with the new property.
 	 *
+	 * Finally, the seller's profile is displayed, and, if the email address was changed, a message is sent to the new
+	 * address, asking the seller to confirm it.
+	 * 
+	 * All errors are handled by the handleErrors() function, which handles all errors for the seller-registration.js
+	 * module.
+	 * 
 	 * @param {object} request An HTTP request object received from the express.post() method.
 	 * @param {object} response An HTTP response object received from the express.post() method.
 	 *
@@ -450,53 +476,47 @@ var sellers = module.exports = {
 	editProfile: function (request, response) {
 		var frmUser = request.body.user;
 		var frmSeller = request.body.seller;
+		
 		var ssnUser = request.session.user;
 		var ssnSeller = request.session.seller;
 
 		var isEmailChanged = frmUser.emailAddress.toLowerCase().trim() !== ssnUser.emailAddress;
 		var isPasswordChanged = frmUser.password !== "";
 
+		var updatePassword = function (callback) {
+			User.findByIdAndUpdate(ssnUser._id, {
+				$set: {
+					passwordHash: frmUser.password,
+				}
+			}, function (err, user) {
+				if (err) {
+					return callback(err);
+				}
+				ssnUser.passwordHash = user.passwordHash;
+				return callback(null);
+			});
+		};
+		
+		var updateEmailAddress = function (callback) {
+			User.findByIdAndUpdate(ssnUser._id, {
+				$set: {
+					emailAddress: frmUser.emailAddress.toLowerCase().trim(),
+					isEmailAddressVerified: false
+				}
+			}, function (err, user) {
+				ssnUser.emailAddress = user.emailAddress;
+				if (!isPasswordChanged) {
+					return callback(null);
+				}
+				updatePassword(callback);
+			});
+		};
+		
 		var updateUser = function (callback) {
-			if (isEmailChanged && isPasswordChanged) {
-				User.findByIdAndUpdate(ssnUser._id, {
-					$set: {
-						emailAddress: frmUser.emailAddress.toLowerCase().trim,
-						passwordHash: frmUser.password,
-						emailAddressVerified: false
-					}
-				}, function (err, user) {
-					if (err) {
-						return callback(err);
-					}
-					ssnUser.emailAddress = user.emailAddress;
-					ssnUser.passwordHash = user.passwordHash;
-					return callback(null);
-				});
-			} else if (isEmailChanged) {
-				User.findByIdAndUpdate(ssnUser._id, {
-					$set: {
-						emailAddress: frmUser.emailAddress.toLowerCase().trim(),
-						emailAddressVerified: false
-					}
-				}, function (err, user) {
-					if (err) {
-						return callback(err);
-					}
-					ssnUser.emailAddress = user.emailAddress;
-					return callback(null);
-				});
+			if (isEmailChanged) {
+				updateEmailAddress(callback);
 			} else if (isPasswordChanged) {
-				User.findByIdAndUpdate(ssnUser._id, {
-					$set: {
-						passwordHash: frmUser.password,
-					}
-				}, function (err, user) {
-					if (err) {
-						return callback(err);
-					}
-					ssnUser.passwordHash = user.passwordHash;
-					return callback(null);
-				});
+				updatePassword(callback);
 			} else {
 				return callback(null);
 			}
@@ -505,7 +525,8 @@ var sellers = module.exports = {
 		var updateSeller = function (callback) {
 			Seller.findByIdAndUpdate(ssnSeller._id, {
 				$set: {
-					name: {
+					dealershipName: sanitize(frmSeller.dealershipName),
+					contactPerson: {
 						firstname: sanitize(frmSeller.firstname),
 						surname: sanitize(frmSeller.surname)
 					},
@@ -514,11 +535,13 @@ var sellers = module.exports = {
 						sanitize(frmSeller.cellphone)
 					],
 					address: {
+						street: sanitize(frmSeller.street),
+						suburb: sanitize(frmSeller.suburb),
 						town: sanitize(frmSeller.town),
 						province: sanitize(frmSeller.province)
 					}
 				}
-			}, function (err, Seller) {
+			}, function (err, seller) {
 				if (err) {
 					return callback(err);
 				}
