@@ -565,17 +565,20 @@ var sellers = module.exports = {
 	 * @summary Responds to HTTP GET /seller/:sellerId/remove. Removes the logged-in seller's profile as well as the
 	 * profiles of all his/her vehicles; then displays the home page.
 	 *
-	 * @description A user is only allowed to remove his own profile, and he must be logged-in to do so.
-	 *
+	 * @description Preconditions:
+	 * (1) A seller is logged-in.
+	 * (2) The profile which the seller is attemting to remove is his/her own profile.
+	 * 
 	 * Using the removeVehicles() closure function, the logged-in seller's vehicles are removed from the vehicles
-	 * database collection.
+	 * database collection, followed by nullifying the seller's session.
 	 *
-	 * Then, depending on whether the logged-in seller is a private seller or a dealership, using either the removePrivateSeller() closure function or the removeDealership() closure function, the logged-in
-	 * seller is removed from the privatesellers or dealerships database collections.
-	 *
-	 * This is followed by deleting the seller from the sellers database collection.
+	 * This is followed by deleting the corresponding user from the users database collection, then nullifying the 
+	 * user's session.
 	 *
 	 * Lastly, the home page is displayed.
+	 * 
+	 * All errors are handled by the handleErrors() function, which handles all errors for the seller-registration.js
+	 * module.
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
@@ -584,6 +587,7 @@ var sellers = module.exports = {
 	 */
 	removeProfile: function (request, response) {
 		var isLoggedIn = request.session.seller ? true : false;
+		
 		var loggedInId = isLoggedIn && request.session.seller._id;
 		var profileId = request.params.sellerId;
 		var isOwnProfile = loggedInId === profileId ? true : false;
@@ -592,37 +596,26 @@ var sellers = module.exports = {
 			isLoggedIn &&
 			isOwnProfile
 		) ? true : false;
+		
+		var specialError, reasonForError;
 
-		isPrivateSeller = request.session.privateSeller ? true : false;
-		isDealership = request.session.dealership ? true : false;
-
-		var removeSeller = function (callback) {
-			Seller.findByIdAndRemove(request.session.seller._id, function (err) {
+		var removeUser = function (callback) {
+			User.findByIdAndRemove(request.session.user._id, function (err) {
 				if (err) {
 					return callback(err);
 				}
-				request.session.seller = null;
+				request.session.user = null;
 				return callback(null);
 			});
 		};
 
-		var removePrivateSeller = function (callback) {
-			PrivateSeller.findByIdAndRemove(request.session.privateSeller._id, function (err) {
+		var removeSeller = function (callback) {
+			PrivateSeller.findByIdAndRemove(request.session.seller._id, function (err) {
 				if (err) {
 					return callback(err);
 				}
-				request.session.privateSeller = null;
-				removeSeller(callback);
-			});
-		};
-
-		var removeDealership = function (callback) {
-			Dealership.findByIdAndRemove(request.session.dealership._id, function (err) {
-				if (err) {
-					return callback(err);
-				}
-				request.session.dealership = null;
-				removeSeller(callback);
+				request.session.seller = null;
+				removeUser(callback);
 			});
 		};
 
@@ -631,25 +624,27 @@ var sellers = module.exports = {
 				if (err) {
 					return callback(err);
 				}
-				if (isPrivateSeller) {
-					removePrivateSeller(callback);
-				} else if (isDealership) {
-					removeDealership(callback);
-				}
+				removeSeller(callback);
 			});
 		};
 
 		if (isAuthorized) {
 			removeVehicles(function (err) {
 				if (err) {
-					console.log('==================== BEGIN ERROR MESSAGE ====================');
-					console.log(err);
-					console.log('==================== END ERROR MESSAGE ======================');
-					main.showErrorPage(request, response);
+					handleErrors(err, null, main.showErrorPage);
 				} else {
 					main.showHomePage(request, response);
 				}
 			});
+		} else {
+			if (!isLoggedIn) {
+				reasonForError = "you are not logged-in.";
+			} else (!isOwnProfile) {
+				reasonForError = "it is not your own profile.";
+			}
+			specialError = new Error('You cannot remove the profile, because '.concat(reasonForError));
+			request.session.specialError = specialError;
+			handleErrors(specialError, null, main.showErrorPage);
 		}
 	}
 };
