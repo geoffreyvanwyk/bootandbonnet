@@ -568,22 +568,35 @@ var sellers = module.exports = {
 		});
 	},
 	/**
-	 * @summary Responds to HTTP GET /seller/:sellerId/remove. Removes the logged-in seller's profile as well as the
-	 * profiles of all his/her vehicles; then displays the home page.
+	 * @summary Responds to HTTP GET /seller/:sellerId/remove. Removes the logged-in seller's profile as well as all 
+	 * associated vehicle profiles; then displays the home page.
 	 *
 	 * @description Preconditions:
-	 * (1) A seller is logged-in.
-	 * (2) The profile which the seller is attemting to remove is his/her own profile.
+	 * The user must be authorised to remove the seller, which means that (var isAuthorized) 
+	 * (1) He/she is logged-in as a seller (var isLoggedIn).
+	 * (2) The profile which the logged-in seller is attemting to remove is his/her own profile (var isOwnProfile).
 	 * 
-	 * Using the removeVehicles() closure function, the logged-in seller's vehicles are removed from the vehicles
-	 * database collection, followed by nullifying the seller's session.
+	 * Postconditions:
+	 * (1) All vehicle documents associated with the logged-in seller are deleted from the vehicles database collection 
+	 * (function deleteVehicles).
+	 * (2) The seller document associated with the logged-in seller is deleted from the sellers database collection 
+	 * (function deleteSeller).
+	 * (3) The user document associated with the logged-in seller is deleted from the users database collection 
+	 * (function deleteUser)
+	 * (4) The seller is logged-out (request.session.user and request.session.seller are set to null).
+	 * (5) Order documents associated with the seller are NOT deleted, because they must be kept for financial accounting.
+	 * (6) Item documents associated with the seller's vehicles are NOT deleted, because the must be kept for 
+	 *  financial accounting.
 	 *
-	 * This is followed by deleting the corresponding user from the users database collection, then nullifying the 
-	 * user's session.
-	 *
-	 * Lastly, the home page is displayed.
+	 * Algorithm:
+	 * (1) Every vehicle must be associated with a seller; therefore, the seller cannot be deleted before the vehicles.
+	 * (2) Every seller must be associated with a user; therefore, the user cannot be deleted before the seller.
+	 * (3) Therefore, delete the vehicles first, then the seller, then the user.
 	 * 
-	 * All errors are handled by the handleErrors() function, which handles all errors for the seller-registration.js
+	 * Error handling:
+	 * (1) If the user attempting the removal of the profile is not authorised to do so, an error message is displayed 
+	 * stating why his/her request cannot be fulfilled.
+	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the seller-registration.js
 	 * module.
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
@@ -605,7 +618,7 @@ var sellers = module.exports = {
 		
 		var specialError, reasonForError;
 
-		var removeUser = function (callback) {
+		var deleteUser = function (callback) {
 			User.findByIdAndRemove(request.session.user._id, function (err) {
 				if (err) {
 					return callback(err);
@@ -615,27 +628,27 @@ var sellers = module.exports = {
 			});
 		};
 
-		var removeSeller = function (callback) {
-			PrivateSeller.findByIdAndRemove(request.session.seller._id, function (err) {
+		var deleteSeller = function (callback) {
+			Seller.findByIdAndRemove(request.session.seller._id, function (err) {
 				if (err) {
 					return callback(err);
 				}
 				request.session.seller = null;
-				removeUser(callback);
+				deleteUser(callback);
 			});
 		};
 
-		var removeVehicles = function (callback) {
+		var deleteVehicles = function (callback) {
 			Vehicle.remove({seller: request.session.seller._id}, function (err) {
 				if (err) {
 					return callback(err);
 				}
-				removeSeller(callback);
+				deleteSeller(callback);
 			});
 		};
 
 		if (isAuthorized) {
-			removeVehicles(function (err) {
+			deleteVehicles(function (err) {
 				if (err) {
 					handleErrors(err);
 				} else {
