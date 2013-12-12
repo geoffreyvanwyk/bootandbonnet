@@ -229,7 +229,7 @@ var handleErrors = function (err, seller, form) {
 var sellers = module.exports = {
 	/**
 	 * @summary Responds to HTTP GET /sellers/add. Displays views/seller-registration-form, unless a seller is
-	 * logged-in, in which case it does nothing.
+	 * logged-in, in which case it displays an error message.
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
@@ -239,6 +239,8 @@ var sellers = module.exports = {
 	showRegistrationForm: function (request, response) {
 		var frmSeller = request.body.seller;
 		var isLoggedIn = request.session.seller ? true : false;
+		var specialError;
+		
 		if (!isLoggedIn) {
 			Province.find(function (err, provinces) {
 				if (err) {
@@ -274,6 +276,10 @@ var sellers = module.exports = {
 					});
 				}
 			});
+		} else {
+			specialError = new Error('You cannot add a new seller profile, because you are logged-in.');
+			request.session.specialError = specialError;
+			handleErrors(specialError);
 		}
 	},
 	/**
@@ -631,7 +637,7 @@ var sellers = module.exports = {
 		if (isAuthorized) {
 			removeVehicles(function (err) {
 				if (err) {
-					handleErrors(err, null, main.showErrorPage);
+					handleErrors(err);
 				} else {
 					main.showHomePage(request, response);
 				}
@@ -644,7 +650,7 @@ var sellers = module.exports = {
 			}
 			specialError = new Error('You cannot remove the profile, because '.concat(reasonForError));
 			request.session.specialError = specialError;
-			handleErrors(specialError, null, main.showErrorPage);
+			handleErrors(specialError);
 		}
 	}
 };
