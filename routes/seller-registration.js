@@ -404,9 +404,25 @@ var sellers = module.exports = {
 		});
 	},
 	/**
-	 * @summary Responds to HTTP GET /seller/:sellerId/view. Displays the views/sellers/profile-page.ejs for the
+	 * @summary Responds to HTTP GET /seller/:sellerId/view. Displays the views/seller-profile-page.ejs for the
 	 * logged-in seller.
+	 * 
+	 * @description Preconditions:
+	 * The user must be authorised to edit the profile (var isAuthorized), which means that
+	 * (1) He/she is logged-in as a seller (var isLoggedIn).
+	 * (2) The profile which the logged-in seller is attemting to edit is his/her own profile (var isOwnProfile).
 	 *
+	 * The reason for this precondition is that a seller profile displays the email address of the seller.
+	 * 
+	 * Postconditions:
+	 * (1) The logged-in seller's profile page is displayed.
+	 * 
+	 * Error handling:
+	 * (1) If the user attempting to edit the profile is not authorised to do so, an error message is displayed 
+	 * stating why his/her request cannot be fulfilled.
+	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the 
+	 * seller-registration.js module.
+	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 * @param {function} callback A callback function.
@@ -414,39 +430,35 @@ var sellers = module.exports = {
 	 * @returns {undefined} Returns the request and response objects to a callback function.
 	 */
 	showProfile: function (request, response, callback) {
-		/* Object containting the decallbacks of the logged-in seller. */
-		var dtlSeller = request.session.privateSeller || request.sesssion.dealership;
-
 		var isLoggedIn = request.session.seller ? true : false;
-		var isOwnProfile = request.session.seller._id === request.params.sellerId;
+		var loggedInId = isLoggedIn && request.session.seller._id;
+		var profileId = request.params.sellerId;
+		var isOwnProfile = loggedInId === profileId; 
 		var isAuthorized = isLoggedIn && isOwnProfile;
-
-		var isPrivateSeller = request.session.privateSeller ? true : false;
-
-		var fullname;
-
-		if (isPrivateSeller) {
-			fullname = dtlSeller.name.firstname.concat(' ').concat(dtlSeller.name.surname);
-		} else {
-			fullname = dtlSeller.contactPerson.firstname.concat(' ').concat(dtlSeller.contactPerson.surname);
-		}
 
 		if (isAuthorized) {
 			response.render('seller-profile-page', {
-				sellerId: request.session.seller._id,
-				sellerType: isPrivateSeller ? 'private seller': 'dealership',
-				email: request.session.seller.emailAddress,
-				dealershipName: dtlSeller.name,
-				fullname: fullname,
-				contactNumbers: dtlSeller.contactNumbers,
-				address: dtlSeller.address,
+				user: request.session.user,
+				seller: request.session.seller,
+				dealerDisplay: request.session.seller.dealershipName === '' ? 'none': '',
+				privateSellerDisplay: request.session.seller.dealershipName === '' ? '': 'none',
 				isLoggedIn: true
 			});
 			return callback(request, response);
+		} else {
+			if (!isLoggedIn) {
+				var reasonForError = "you are not logged-in.";
+			} else (!isOwnProfile) {
+				var reasonForError = "it is not your own profile.";
+			}
+			specialError = new Error('You cannot view the profile, because '.concat(reasonForError));
+			request.session.specialError = specialError;
+			handleErrors(specialError);
 		}
 	},
 	/**
-	 * @summary Responds to HTTP POST /seller/:sellerId/edit. Edits the logged-in seller's' profile, then displays it.
+	 * @summary Responds to HTTP POST /seller/:sellerId/edit. Edits the logged-in seller's' profile, then displays it 
+	 * (views/seller-profile-page.ejs).
 	 * 
 	 * @description Preconditions:
 	 * The user must be authorised to edit the profile (var isAuthorized), which means that
