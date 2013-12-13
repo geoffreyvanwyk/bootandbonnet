@@ -11,6 +11,9 @@
 /* Import external modules. */
 var bcrypt = require('bcrypt'); // For hashing and comparing passwords.
 
+/* Import built-in modules. */
+var path = require('path'); // For working wiht file paths.
+
 /* Import libraries. */
 var sanitize = require('../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
@@ -22,7 +25,6 @@ var Vehicle = require('../models/vehicles');
 
 /* Import functions. */
 var email = require('./email-address-verification');
-var login = require('./login');
 var main = require('./main');
 
 var handleErrors = function (err, seller, form) {
@@ -239,7 +241,6 @@ var sellers = module.exports = {
 	showRegistrationForm: function (request, response) {
 		var frmSeller = request.body.seller;
 		var isLoggedIn = request.session.seller ? true : false;
-		var specialError;
 		
 		if (!isLoggedIn) {
 			Province.find(function (err, provinces) {
@@ -277,7 +278,149 @@ var sellers = module.exports = {
 				}
 			});
 		} else {
-			specialError = new Error('You cannot add a new seller profile, because you are logged-in.');
+			var specialError = new Error('You cannot add a new seller profile, because you are logged-in.');
+			request.session.specialError = specialError;
+			handleErrors(specialError);
+		}
+	},
+	/**
+	 * @summary Responds to HTTP POST /sellers/add. Creates a new seller profile; then displays the profile page.
+	 *
+	 * @description Preconditions:
+	 * (1) The user must be logged-in (var isLoggedin).
+	 * 
+	 * Postconditions:
+	 * (1) A new user document is created in the users database collection, using the details (var frmUser) entered into the 
+	 * registration form (views/seller-registration-form.ejs).
+	 * (2) A new seller document is created in the sellers database collection, using the details (var frmSeller) 
+	 * entered into the registration form.
+	 * (3) The new seller is logged-in using session cookies (request.session.user; request.session.seller) containing 
+	 * the details of the newly registered seller.
+	 * (4) The new seller's views/seller-profile-page.ejs is displayed.
+	 * 
+	 * Algorithm:
+	 * (1) The new user should be created first, because a seller cannot exist without an associated user.
+	 *
+	 * @param {object} request An HTTP request object received from the express.post() method.
+	 * @param {object} response An HTTP response object received from the express.post() method.
+	 *
+	 * @returns {undefined}
+	 */
+	addProfile: function (request, response) {
+		var isLoggedIn = request.session.seller ? true : false;
+		
+		if (!isLoggedIn) {
+			var frmUser = request.body.user;
+			var frmSeller = request.body.seller;
+
+			var createSeller = function (user, callback) {
+				var seller = new Seller({
+					dealershipName: frmSeller.dealershipName,
+					contactPerson: {
+						firstname: sanitize(frmSeller.firstname),
+						surname: sanitize(frmSeller.surname)
+					},
+					contactNumbers: [
+						sanitize(frmSeller.telephone),
+						sanitize(frmSeller.cellphone)
+					],
+					address: {
+						street: sanitize(frmSeller.street),
+						suburb: sanitize(frmSeller.suburb),
+						town: sanitize(frmSeller.town),
+						province: sanitize(frmSeller.province)
+					},
+					user: user._id
+				});
+				seller.save(function (err, seller) {
+					if (err) {
+						return callback(err, user);
+					}
+					return callback(null, user, seller);
+				});
+			};
+
+			var createUser = function (callback) {
+				var user = new User({
+					emailAddress: sanitize(frmUser.emailAddress.toLowerCase().trim()),
+					passwordHash: frmUser.password
+				});
+				user.save(function (err, user) {
+					if (err) {
+						return callback(err);
+					}
+					createSeller(user, callback);
+				});
+			};
+
+			createSeller(function (err, user, seller) {
+				if (err) {
+					handleErrors(err, user, sellers.showRegistrationForm);
+				} else {
+					request.session.user = {
+						_id: user._id,
+						emailAddress: user.emailAddress
+					};
+					request.session.seller = seller;
+					response.redirect(302, path.join('/seller', seller._id.toString(), 'view'));
+					email.sendEmail(request, response);
+				}
+			});
+		} else {
+			var specialError = new Error('You cannot add a new seller profile, because you are logged-in.');
+			request.session.specialError = specialError;
+			handleErrors(specialError);
+		}
+	},
+	/**
+	 * @summary Responds to HTTP GET /seller/:sellerId/view. Displays the views/seller-profile-page.ejs for the
+	 * logged-in seller.
+	 * 
+	 * @description Preconditions:
+	 * The user must be authorised to edit the profile (var isAuthorized), which means that
+	 * (1) He/she is logged-in as a seller (var isLoggedIn).
+	 * (2) The profile which the logged-in seller is attemting to edit is his/her own profile (var isOwnProfile).
+	 *
+	 * The reason for this precondition is that a seller profile displays the email address of the seller.
+	 * 
+	 * Postconditions:
+	 * (1) The logged-in seller's profile page is displayed.
+	 * 
+	 * Error handling:
+	 * (1) If the user attempting to edit the profile is not authorised to do so, an error message is displayed 
+	 * stating why his/her request cannot be fulfilled.
+	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the 
+	 * seller-registration.js module.
+	 * 
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 * @param {function} callback A callback function.
+	 *
+	 * @returns {undefined} Returns the request and response objects to a callback function.
+	 */
+	showProfile: function (request, response, callback) {
+		var isLoggedIn = request.session.seller ? true : false;
+		var loggedInId = isLoggedIn && request.session.seller._id;
+		var profileId = request.params.sellerId;
+		var isOwnProfile = loggedInId === profileId; 
+		var isAuthorized = isLoggedIn && isOwnProfile;
+
+		if (isAuthorized) {
+			response.render('seller-profile-page', {
+				user: request.session.user,
+				seller: request.session.seller,
+				dealerDisplay: request.session.seller.dealershipName === '' ? 'none': '',
+				privateSellerDisplay: request.session.seller.dealershipName === '' ? '': 'none',
+				isLoggedIn: true
+			});
+			return callback(request, response);
+		} else {
+			if (!isLoggedIn) {
+				var reasonForError = "you are not logged-in.";
+			} else (!isOwnProfile) {
+				var reasonForError = "it is not your own profile.";
+			}
+			specialError = new Error('You cannot view the profile, because '.concat(reasonForError));
 			request.session.specialError = specialError;
 			handleErrors(specialError);
 		}
@@ -335,127 +478,7 @@ var sellers = module.exports = {
 				}
 			});
 		}
-	},
-	/**
-	 * @summary Responds to HTTP POST /sellers/add. Creates a new seller profile; then displays the profile page.
-	 *
-	 * @description Inserts a new seller into the sellers database collection, a new dealership into the dealerships
-	 * database collection or a new private seller into the privatesellers database collection, creates a
-	 * seller session object, logs-in the new seller, then displays views/sellers/profile-page.
-	 *
-	 * @param {object} request An HTTP request object received from the express.post() method.
-	 * @param {object} response An HTTP response object received from the express.post() method.
-	 *
-	 * @returns {undefined}
-	 */
-	addProfile: function (request, response) {
-		var frmUser = request.body.user;
-		var frmSeller = request.body.seller;
-
-		var createSeller = function (user, callback) {
-			var seller = new Seller({
-				dealershipName: frmSeller.dealershipName,
-				contactPerson: {
-					firstname: sanitize(frmSeller.firstname),
-					surname: sanitize(frmSeller.surname)
-				},
-				contactNumbers: [
-					sanitize(frmSeller.telephone),
-					sanitize(frmSeller.cellphone)
-				],
-				address: {
-					street: sanitize(frmSeller.street),
-					suburb: sanitize(frmSeller.suburb),
-					town: sanitize(frmSeller.town),
-					province: sanitize(frmSeller.province)
-				},
-				user: user._id
-			});
-			seller.save(function (err, seller) {
-				if (err) {
-					return callback(err, user);
-				}
-				return callback(null, user, seller);
-			});
-		};
-
-		var createUser = function (callback) {
-			var user = new User({
-				emailAddress: sanitize(frmUser.emailAddress.toLowerCase().trim()),
-				passwordHash: frmUser.password
-			});
-			user.save(function (err, user) {
-				if (err) {
-					return callback(err);
-				}
-				createSeller(user, callback);
-			});
-		};
-
-		createSeller(function (err, user, seller) {
-			if (err) {
-				handleErrors(err, user, sellers.showRegistrationForm);
-			} else {
-				login.setSession(request, user, seller, function () {
-					response.redirect(302, '/seller/'.concat(seller._id.toString()).concat('/view'));
-					email.sendEmail(request, response);
-				});
-			}
-		});
-	},
-	/**
-	 * @summary Responds to HTTP GET /seller/:sellerId/view. Displays the views/seller-profile-page.ejs for the
-	 * logged-in seller.
-	 * 
-	 * @description Preconditions:
-	 * The user must be authorised to edit the profile (var isAuthorized), which means that
-	 * (1) He/she is logged-in as a seller (var isLoggedIn).
-	 * (2) The profile which the logged-in seller is attemting to edit is his/her own profile (var isOwnProfile).
-	 *
-	 * The reason for this precondition is that a seller profile displays the email address of the seller.
-	 * 
-	 * Postconditions:
-	 * (1) The logged-in seller's profile page is displayed.
-	 * 
-	 * Error handling:
-	 * (1) If the user attempting to edit the profile is not authorised to do so, an error message is displayed 
-	 * stating why his/her request cannot be fulfilled.
-	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the 
-	 * seller-registration.js module.
-	 * 
-	 * @param {object} request An HTTP request object received from the express.get() method.
-	 * @param {object} response An HTTP response object received from the express.get() method.
-	 * @param {function} callback A callback function.
-	 *
-	 * @returns {undefined} Returns the request and response objects to a callback function.
-	 */
-	showProfile: function (request, response, callback) {
-		var isLoggedIn = request.session.seller ? true : false;
-		var loggedInId = isLoggedIn && request.session.seller._id;
-		var profileId = request.params.sellerId;
-		var isOwnProfile = loggedInId === profileId; 
-		var isAuthorized = isLoggedIn && isOwnProfile;
-
-		if (isAuthorized) {
-			response.render('seller-profile-page', {
-				user: request.session.user,
-				seller: request.session.seller,
-				dealerDisplay: request.session.seller.dealershipName === '' ? 'none': '',
-				privateSellerDisplay: request.session.seller.dealershipName === '' ? '': 'none',
-				isLoggedIn: true
-			});
-			return callback(request, response);
-		} else {
-			if (!isLoggedIn) {
-				var reasonForError = "you are not logged-in.";
-			} else (!isOwnProfile) {
-				var reasonForError = "it is not your own profile.";
-			}
-			specialError = new Error('You cannot view the profile, because '.concat(reasonForError));
-			request.session.specialError = specialError;
-			handleErrors(specialError);
-		}
-	},
+	},	
 	/**
 	 * @summary Responds to HTTP POST /seller/:sellerId/edit. Edits the logged-in seller's' profile, then displays it 
 	 * (views/seller-profile-page.ejs).
