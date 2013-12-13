@@ -651,36 +651,37 @@ var sellers = module.exports = {
 			isOwnProfile
 		) ? true : false;
 		
-		var deleteUser = function (callback) {
-			User.findByIdAndRemove(request.session.user._id, function (err) {
-				if (err) {
-					return callback(err);
-				}
-				request.session.user = null;
-				return callback(null);
-			});
-		};
-
-		var deleteSeller = function (callback) {
-			Seller.findByIdAndRemove(request.session.seller._id, function (err) {
-				if (err) {
-					return callback(err);
-				}
-				request.session.seller = null;
-				deleteUser(callback);
-			});
-		};
-
-		var deleteVehicles = function (callback) {
-			Vehicle.remove({seller: request.session.seller._id}, function (err) {
-				if (err) {
-					return callback(err);
-				}
-				deleteSeller(callback);
-			});
-		};
 
 		if (isAuthorized) {
+			var deleteUser = function (callback) {
+				User.findByIdAndRemove(request.session.user._id, function (err) {
+					if (err) {
+						return callback(err);
+					}
+					request.session.user = null;
+					return callback(null);
+				});
+			};
+
+			var deleteSeller = function (callback) {
+				Seller.findByIdAndRemove(request.session.seller._id, function (err) {
+					if (err) {
+						return callback(err);
+					}
+					request.session.seller = null;
+					deleteUser(callback);
+				});
+			};
+
+			var deleteVehicles = function (callback) {
+				Vehicle.remove({seller: request.session.seller._id}, function (err) {
+					if (err) {
+						return callback(err);
+					}
+					deleteSeller(callback);
+				});
+			};
+			
 			deleteVehicles(function (err) {
 				if (err) {
 					handleErrors(err);
