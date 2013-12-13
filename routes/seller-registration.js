@@ -448,31 +448,43 @@ var sellers = module.exports = {
 	/**
 	 * @summary Responds to HTTP POST /seller/:sellerId/edit. Edits the logged-in seller's' profile, then displays it.
 	 * 
-	 * @description The updated details of the logged-in seller, as entered into the edit form 
-	 * (views/seller-registration-form.ejs), are captured in the frmUser and frmSeller variables. The logged-in seller's 
-	 * session details are captured in the ssnUser and ssnSeller variables.
-	 * 
-	 * This function uses the updateSeller() closure function to:
-	 * (1) update the seller document in the sellers database collection, corresponding to the logged-in seller, with 
-	 * the details entered into the edit form. 
-	 * (2) update the ssnSeller with the updated seller's details.
-	 * (3) call the updateUser() closure function.
-	 * 
-	 * Then, the updateUser() closure function updates the user document in the users database collection, corresponding 
-	 * to the logged-in user, with: 
-	 * (1) the new email address, if any, entered into the edit form.  
-	 * (2) the new password, if any, entered into the edit form.
-	 * 
-	 * The email address has to be updated in a separate function, because the isEmailAddressVerified field has to be
-	 * set to false if the email address has changed.
-	 * 
-	 * In each of updateEmailAddress() and updatePassword(), the user session is updated with the new property.
+	 * @description Preconditions:
+	 * The user must be authorised to edit the profile (var isAuthorized), which means that
+	 * (1) He/she is logged-in as a seller (var isLoggedIn).
+	 * (2) The profile which the logged-in seller is attemting to edit is his/her own profile (var isOwnProfile).
 	 *
-	 * Finally, the seller's profile is displayed, and, if the email address was changed, a message is sent to the new
-	 * address, asking the seller to confirm it.
+	 * Postconditions:
+	 * (1) The seller document associated with the logged-in seller (var ssnSeller) is updated in the sellers database 
+	 * collection (function updateSeller) with the details (var frmSeller) entered into the edit form 
+	 * (views/seller-registration-form.ejs).
+	 * (2) The user document associated with the logged-in user (var ssnUser) is updated in the users database 
+	 * collection (function updateUser) with the details (var frmUser) entered into the edit form.
+	 * (3) If the user changed his/her email address (var isEmailChanged), an email message should be sent to the user, 
+	 * asking him/her to verify the address.
+	 * (4) The session cookies (var ssnUser; var ssnSeller) for the logged-in user and logged-in seller should be 
+	 * updated with the new details.
+	 * (5) The logged-in seller's profile page is displayed.
 	 * 
-	 * All errors are handled by the handleErrors() function, which handles all errors for the seller-registration.js
-	 * module.
+	 * Algorithm: 
+	 * (1) If the email address has been changed, it is necessary to set the isEmailAddressVerified property in the 
+	 * associated user document to false; therefore, it is necessary to check whether the email address has been changed 
+	 * (var isEmailChanged).
+	 * (2) If the email address has not changed, it is not necessary to update the email address; therefore, a separate 
+	 * function should be used for updating the email address only (function updateEmailAddress).
+	 * (3) The password and confirmPassword fields of the edit form are not prefilled with the plain text of the user's
+	 * password, but are empty. This means that if the user did not change his/her password, the password property of 
+	 * the HTTP POST request (frm.password) will be an empty string, which cannot automatically be used to update the 
+	 * user's password. The password should only be updated if the password has changed (var isPasswordChanged), and a 
+	 * separate function should be used for updating the password only (function updatePassword). The updateUser 
+	 * function could composes the updateEmailAddress and updatePassword functions.
+	 * (4) Nothing special needs to be done when any of the seller properties are updated; therefore, all the seller
+	 * properties can be updated in one function.
+	 * 
+	 * Error handling:
+	 * (1) If the user attempting to edit the profile is not authorised to do so, an error message is displayed 
+	 * stating why his/her request cannot be fulfilled.
+	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the 
+	 * seller-registration.js module.
 	 * 
 	 * @param {object} request An HTTP request object received from the express.post() method.
 	 * @param {object} response An HTTP response object received from the express.post() method.
@@ -480,92 +492,114 @@ var sellers = module.exports = {
 	 * @returns {undefined}
 	 */
 	editProfile: function (request, response) {
-		var frmUser = request.body.user;
-		var frmSeller = request.body.seller;
+		var isLoggedIn = request.session.seller ? true : false;
 		
-		var ssnUser = request.session.user;
-		var ssnSeller = request.session.seller;
+		var loggedInId = isLoggedIn && request.session.seller._id;
+		var profileId = request.params.sellerId;
+		var isOwnProfile = loggedInId === profileId ? true : false;
 
-		var isEmailChanged = frmUser.emailAddress.toLowerCase().trim() !== ssnUser.emailAddress;
-		var isPasswordChanged = frmUser.password !== "";
-
-		var updatePassword = function (callback) {
-			User.findByIdAndUpdate(ssnUser._id, {
-				$set: {
-					passwordHash: frmUser.password,
-				}
-			}, function (err, user) {
-				if (err) {
-					return callback(err);
-				}
-				ssnUser.passwordHash = user.passwordHash;
-				return callback(null);
-			});
-		};
+		var isAuthorized = (
+			isLoggedIn &&
+			isOwnProfile
+		) ? true : false;
 		
-		var updateEmailAddress = function (callback) {
-			User.findByIdAndUpdate(ssnUser._id, {
-				$set: {
-					emailAddress: frmUser.emailAddress.toLowerCase().trim(),
-					isEmailAddressVerified: false
-				}
-			}, function (err, user) {
-				ssnUser.emailAddress = user.emailAddress;
-				if (!isPasswordChanged) {
+		if (isAuthorized) {
+			var frmUser = request.body.user;
+			var frmSeller = request.body.seller;
+			
+			var ssnUser = request.session.user;
+			var ssnSeller = request.session.seller;
+
+			var isEmailChanged = frmUser.emailAddress.toLowerCase().trim() !== ssnUser.emailAddress;
+			var isPasswordChanged = frmUser.password !== "";
+
+			var updatePassword = function (callback) {
+				User.findByIdAndUpdate(ssnUser._id, {
+					$set: {
+						passwordHash: frmUser.password,
+					}
+				}, function (err, user) {
+					if (err) {
+						return callback(err);
+					}
+					ssnUser.passwordHash = user.passwordHash;
+					return callback(null);
+				});
+			};
+			
+			var updateEmailAddress = function (callback) {
+				User.findByIdAndUpdate(ssnUser._id, {
+					$set: {
+						emailAddress: frmUser.emailAddress.toLowerCase().trim(),
+						isEmailAddressVerified: false
+					}
+				}, function (err, user) {
+					ssnUser.emailAddress = user.emailAddress;
+					if (!isPasswordChanged) {
+						return callback(null);
+					}
+					updatePassword(callback);
+				});
+			};
+			
+			var updateUser = function (callback) {
+				if (isEmailChanged) {
+					updateEmailAddress(callback);
+				} else if (isPasswordChanged) {
+					updatePassword(callback);
+				} else {
 					return callback(null);
 				}
-				updatePassword(callback);
-			});
-		};
-		
-		var updateUser = function (callback) {
-			if (isEmailChanged) {
-				updateEmailAddress(callback);
-			} else if (isPasswordChanged) {
-				updatePassword(callback);
-			} else {
-				return callback(null);
-			}
-		};
+			};
 
-		var updateSeller = function (callback) {
-			Seller.findByIdAndUpdate(ssnSeller._id, {
-				$set: {
-					dealershipName: sanitize(frmSeller.dealershipName),
-					contactPerson: {
-						firstname: sanitize(frmSeller.firstname),
-						surname: sanitize(frmSeller.surname)
-					},
-					contactNumbers: [
-						sanitize(frmSeller.telephone),
-						sanitize(frmSeller.cellphone)
-					],
-					address: {
-						street: sanitize(frmSeller.street),
-						suburb: sanitize(frmSeller.suburb),
-						town: sanitize(frmSeller.town),
-						province: sanitize(frmSeller.province)
+			var updateSeller = function (callback) {
+				Seller.findByIdAndUpdate(ssnSeller._id, {
+					$set: {
+						dealershipName: sanitize(frmSeller.dealershipName),
+						contactPerson: {
+							firstname: sanitize(frmSeller.firstname),
+							surname: sanitize(frmSeller.surname)
+						},
+						contactNumbers: [
+							sanitize(frmSeller.telephone),
+							sanitize(frmSeller.cellphone)
+						],
+						address: {
+							street: sanitize(frmSeller.street),
+							suburb: sanitize(frmSeller.suburb),
+							town: sanitize(frmSeller.town),
+							province: sanitize(frmSeller.province)
+						}
+					}
+				}, function (err, seller) {
+					if (err) {
+						return callback(err);
+					}
+					request.session.seller = seller;
+					updateUser(callback);
+				});
+			};
+
+			updateSeller(function (err) {
+				if (err) {
+					handleErrors(err, null, sellers.showEditForm);
+				} else {
+					sellers.showProfile(request, response);
+					if (isEmailChanged) {
+						email.sendEmail(request, response);
 					}
 				}
-			}, function (err, seller) {
-				if (err) {
-					return callback(err);
-				}
-				request.session.seller = seller;
-				updateUser(callback);
 			});
-		};
-
-		updateSeller(function (err) {
-			if (err) {
-				handleErrors(err, null, sellers.showEditForm);
-			} else {
-				sellers.showProfile(request, response);
-				if (isEmailChanged) {
-					email.sendEmail(request, response);
-				}
+		} else {
+			if (!isLoggedIn) {
+				var reasonForError = "you are not logged-in.";
+			} else (!isOwnProfile) {
+				var reasonForError = "it is not your own profile.";
 			}
-		});
+			specialError = new Error('You cannot edit the profile, because '.concat(reasonForError));
+			request.session.specialError = specialError;
+			handleErrors(specialError);
+		}
 	},
 	/**
 	 * @summary Responds to HTTP GET /seller/:sellerId/remove. Removes the logged-in seller's profile as well as all 
@@ -584,7 +618,8 @@ var sellers = module.exports = {
 	 * (3) The user document associated with the logged-in seller is deleted from the users database collection 
 	 * (function deleteUser)
 	 * (4) The seller is logged-out (request.session.user and request.session.seller are set to null).
-	 * (5) Order documents associated with the seller are NOT deleted, because they must be kept for financial accounting.
+	 * (5) Order documents associated with the seller are NOT deleted, because they must be kept for financial 
+	 * accounting.
 	 * (6) Item documents associated with the seller's vehicles are NOT deleted, because the must be kept for 
 	 *  financial accounting.
 	 *
@@ -596,8 +631,8 @@ var sellers = module.exports = {
 	 * Error handling:
 	 * (1) If the user attempting the removal of the profile is not authorised to do so, an error message is displayed 
 	 * stating why his/her request cannot be fulfilled.
-	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the seller-registration.js
-	 * module.
+	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the 
+	 * seller-registration.js module.
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
@@ -616,8 +651,6 @@ var sellers = module.exports = {
 			isOwnProfile
 		) ? true : false;
 		
-		var specialError, reasonForError;
-
 		var deleteUser = function (callback) {
 			User.findByIdAndRemove(request.session.user._id, function (err) {
 				if (err) {
@@ -657,11 +690,11 @@ var sellers = module.exports = {
 			});
 		} else {
 			if (!isLoggedIn) {
-				reasonForError = "you are not logged-in.";
+				var reasonForError = "you are not logged-in.";
 			} else (!isOwnProfile) {
-				reasonForError = "it is not your own profile.";
+				var reasonForError = "it is not your own profile.";
 			}
-			specialError = new Error('You cannot remove the profile, because '.concat(reasonForError));
+			var specialError = new Error('You cannot remove the profile, because '.concat(reasonForError));
 			request.session.specialError = specialError;
 			handleErrors(specialError);
 		}
