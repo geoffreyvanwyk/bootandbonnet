@@ -228,6 +228,47 @@ var handleErrors = function (err, seller, form) {
 	}
 };
 
+/**
+ * @summary Returns true, if a user is authorized to perform an action on a seller profile.
+ * 
+ * @param {string} action The type of action performed on a seller profile: view, edit, or remove.
+ * @param {string} request An HTTP request object received from the express.get() or express.post() method.
+ * 
+ * @returns {boolean}
+ */
+var isAuthorizedTo = function (action, request) {
+	var isLoggedIn = request.session.seller ? true : false;
+	
+	/* The request.session.seller._id expression needs to be guarded by the isLoggedIn variable, because, if it was not,
+	 * and the seller property of request.session did not exist, the JavaScript interpreter would raise a reference 
+	 * error.
+	 */
+	var loggedInId = isLoggedIn && request.session.seller._id;
+	
+	var profileId = request.params.sellerId;
+	var isOwnProfile = loggedInId === profileId;
+	var isAuthorized = isLoggedIn && isOwnProfile;
+	
+	var createError = function () {
+		if (!isLoggedIn) {
+				var reasonForError = "you are not logged-in.";
+		} else (!isOwnProfile) {
+			var reasonForError = "it is not your own profile.";
+		}
+		var specialError = new Error(
+			'You cannot '
+			.concat(action)
+			.concat(' the profile, because ')
+			.concat(reasonForError)
+		);
+		request.session.specialError = specialError;
+		handleErrors(specialError);
+		return false;
+	};
+	
+	return isAuthorized || createError();
+};
+
 var sellers = module.exports = {
 	/**
 	 * @summary Responds to HTTP GET /sellers/add. Displays views/seller-registration-form, unless a seller is
@@ -399,13 +440,7 @@ var sellers = module.exports = {
 	 * @returns {undefined} Returns the request and response objects to a callback function.
 	 */
 	showProfile: function (request, response, callback) {
-		var isLoggedIn = request.session.seller ? true : false;
-		var loggedInId = isLoggedIn && request.session.seller._id;
-		var profileId = request.params.sellerId;
-		var isOwnProfile = loggedInId === profileId; 
-		var isAuthorized = isLoggedIn && isOwnProfile;
-
-		if (isAuthorized) {
+		if (isAuthorizedTo('view', request)) {
 			response.render('seller-profile-page', {
 				user: request.session.user,
 				seller: request.session.seller,
@@ -414,15 +449,6 @@ var sellers = module.exports = {
 				isLoggedIn: true
 			});
 			return callback(request, response);
-		} else {
-			if (!isLoggedIn) {
-				var reasonForError = "you are not logged-in.";
-			} else (!isOwnProfile) {
-				var reasonForError = "it is not your own profile.";
-			}
-			specialError = new Error('You cannot view the profile, because '.concat(reasonForError));
-			request.session.specialError = specialError;
-			handleErrors(specialError);
 		}
 	},
 	/**
@@ -527,18 +553,7 @@ var sellers = module.exports = {
 	 * @returns {undefined}
 	 */
 	editProfile: function (request, response) {
-		var isLoggedIn = request.session.seller ? true : false;
-		
-		var loggedInId = isLoggedIn && request.session.seller._id;
-		var profileId = request.params.sellerId;
-		var isOwnProfile = loggedInId === profileId ? true : false;
-
-		var isAuthorized = (
-			isLoggedIn &&
-			isOwnProfile
-		) ? true : false;
-		
-		if (isAuthorized) {
+		if (isAuthorizedTo('edit', request)) {
 			var frmUser = request.body.user;
 			var frmSeller = request.body.seller;
 			
@@ -625,15 +640,6 @@ var sellers = module.exports = {
 					}
 				}
 			});
-		} else {
-			if (!isLoggedIn) {
-				var reasonForError = "you are not logged-in.";
-			} else (!isOwnProfile) {
-				var reasonForError = "it is not your own profile.";
-			}
-			specialError = new Error('You cannot edit the profile, because '.concat(reasonForError));
-			request.session.specialError = specialError;
-			handleErrors(specialError);
 		}
 	},
 	/**
@@ -675,19 +681,7 @@ var sellers = module.exports = {
 	 * @returns {undefined}
 	 */
 	removeProfile: function (request, response) {
-		var isLoggedIn = request.session.seller ? true : false;
-		
-		var loggedInId = isLoggedIn && request.session.seller._id;
-		var profileId = request.params.sellerId;
-		var isOwnProfile = loggedInId === profileId ? true : false;
-
-		var isAuthorized = (
-			isLoggedIn &&
-			isOwnProfile
-		) ? true : false;
-		
-
-		if (isAuthorized) {
+		if (isAuthorizedTo('remove', request)) {
 			var deleteUser = function (callback) {
 				User.findByIdAndRemove(request.session.user._id, function (err) {
 					if (err) {
@@ -724,15 +718,6 @@ var sellers = module.exports = {
 					main.showHomePage(request, response);
 				}
 			});
-		} else {
-			if (!isLoggedIn) {
-				var reasonForError = "you are not logged-in.";
-			} else (!isOwnProfile) {
-				var reasonForError = "it is not your own profile.";
-			}
-			var specialError = new Error('You cannot remove the profile, because '.concat(reasonForError));
-			request.session.specialError = specialError;
-			handleErrors(specialError);
-		}
+		} 
 	}
 };
