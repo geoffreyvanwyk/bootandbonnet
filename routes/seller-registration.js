@@ -27,7 +27,18 @@ var Vehicle = require('../models/vehicles');
 var email = require('./email-address-verification');
 var main = require('./main');
 
-var handleErrors = function (err, seller, form) {
+/**
+ * @summary Handles all the errors occurring in the seller-registration module.
+ * 
+ * @param {object} err An error object.
+ * @param {object} request An HTTP request object received from the express.get() or express.post() method.
+ * @param {object} response An HTTP response object received from the express.get() or express.post() method.
+ * @param {object} user A user object.
+ * @param {function} form A routing function.
+ * 
+ * @returns {undefined}
+ */
+var handleErrors = function (err, request, response, user, form) {
 	console.log('==================== BEGIN ERROR MESSAGE ====================');
 	console.log(err);
 	console.log('==================== END ERROR MESSAGE ======================');
@@ -162,7 +173,7 @@ var handleErrors = function (err, seller, form) {
 	var remove = function (user) {
 		User.findByIdAndRemove(user._id, function (err) {
 			if (err) {
-				handleErrors(err, user);
+				handleErrors(err, request, response, user);
 			}
 		});
 	};
@@ -229,31 +240,31 @@ var handleErrors = function (err, seller, form) {
 };
 
 /**
- * @summary Returns true, if a user is authorized to perform an action on a seller profile.
+ * @summary Returns true, if a user is authorized to perform an action (view, edit, or remove) on a seller profile; 
+ * otherwise, it displays an error message, then returns false.
  * 
  * @param {string} action The type of action performed on a seller profile: view, edit, or remove.
  * @param {string} request An HTTP request object received from the express.get() or express.post() method.
  * 
  * @returns {boolean}
  */
-var isAuthorizedTo = function (action, request) {
+var isAuthorizedTo = function (action, request, response) {
 	var isLoggedIn = request.session.seller ? true : false;
-	
 	/* The request.session.seller._id expression needs to be guarded by the isLoggedIn variable, because, if it was not,
 	 * and the seller property of request.session did not exist, the JavaScript interpreter would raise a reference 
 	 * error.
 	 */
 	var loggedInId = isLoggedIn && request.session.seller._id;
-	
 	var profileId = request.params.sellerId;
 	var isOwnProfile = loggedInId === profileId;
 	var isAuthorized = isLoggedIn && isOwnProfile;
+	var reasonForError;
 	
 	var createError = function () {
 		if (!isLoggedIn) {
-				var reasonForError = "you are not logged-in.";
-		} else (!isOwnProfile) {
-			var reasonForError = "it is not your own profile.";
+			reasonForError = 'you are not logged-in.';
+		} else if (!isOwnProfile) {
+			reasonForError = 'it is not your own profile.';
 		}
 		var specialError = new Error(
 			'You cannot '
@@ -262,7 +273,7 @@ var isAuthorizedTo = function (action, request) {
 			.concat(reasonForError)
 		);
 		request.session.specialError = specialError;
-		handleErrors(specialError);
+		handleErrors(specialError, request, response);
 		return false;
 	};
 	
@@ -286,7 +297,7 @@ var sellers = module.exports = {
 		if (!isLoggedIn) {
 			Province.find(function (err, provinces) {
 				if (err) {
-					handleErrors(err);
+					handleErrors(err, request, response);
 				} else {
 					response.render('seller-registration-form', {
 						validationErrors: request.session.validationErrors,
@@ -311,7 +322,7 @@ var sellers = module.exports = {
 					}, function (err, html) {
 						request.session.validationErrors = null;
 						if (err) {
-							handleErrors(err);
+							handleErrors(err, request, response);
 						} else {
 							response.send(html);
 						}
@@ -321,7 +332,7 @@ var sellers = module.exports = {
 		} else {
 			var specialError = new Error('You cannot add a new seller profile, because you are logged-in.');
 			request.session.specialError = specialError;
-			handleErrors(specialError);
+			handleErrors(specialError, request, response);
 		}
 	},
 	/**
@@ -396,7 +407,7 @@ var sellers = module.exports = {
 
 			createSeller(function (err, user, seller) {
 				if (err) {
-					handleErrors(err, user, sellers.showRegistrationForm);
+					handleErrors(err, request, response, user, sellers.showRegistrationForm);
 				} else {
 					request.session.user = {
 						_id: user._id,
@@ -410,13 +421,49 @@ var sellers = module.exports = {
 		} else {
 			var specialError = new Error('You cannot add a new seller profile, because you are logged-in.');
 			request.session.specialError = specialError;
-			handleErrors(specialError);
+			handleErrors(specialError, request, response);
 		}
 	},
 	/**
 	 * @summary Responds to HTTP GET /seller/:sellerId/view. Displays the views/seller-profile-page.ejs for the
 	 * logged-in seller.
 	 * 
+	 * @description Preconditions:
+	 * The user must be authorised to view the profile (var isAuthorized), which means that
+	 * (1) He/she is logged-in as a seller (var isLoggedIn).
+	 * (2) The profile which the logged-in seller is attemting to view is his/her own profile (var isOwnProfile).
+	 *
+	 * The reason for this precondition is that a seller profile displays the email address of the seller.
+	 * 
+	 * Postconditions:
+	 * (1) The logged-in seller's profile page is displayed.
+	 * 
+	 * Error handling:
+	 * (1) If the user attempting to view the profile is not authorized to do so, an error message is displayed 
+	 * stating why his/her request cannot be fulfilled.
+	 * 
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 * @param {function} callback A callback function.
+	 *
+	 * @returns {undefined} Returns the request and response objects to a callback function.
+	 */
+	showProfile: function (request, response, callback) {
+		if (isAuthorizedTo('view', request, response)) {
+			response.render('seller-profile-page', {
+				user: request.session.user,
+				seller: request.session.seller,
+				dealerDisplay: request.session.seller.dealershipName === '' ? 'none': '',
+				privateSellerDisplay: request.session.seller.dealershipName === '' ? '': 'none',
+				isLoggedIn: true
+			});
+			return callback(request, response);
+		}
+	},
+	/**
+	 * @summary Responds to HTTP GET /seller/:sellerId/edit. Displays views/sellers/registration-form, with the 
+	 * logged-in seller's details prefilled.
+	 *
 	 * @description Preconditions:
 	 * The user must be authorised to edit the profile (var isAuthorized), which means that
 	 * (1) He/she is logged-in as a seller (var isLoggedIn).
@@ -430,73 +477,34 @@ var sellers = module.exports = {
 	 * Error handling:
 	 * (1) If the user attempting to edit the profile is not authorised to do so, an error message is displayed 
 	 * stating why his/her request cannot be fulfilled.
-	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the 
-	 * seller-registration.js module.
 	 * 
-	 * @param {object} request An HTTP request object received from the express.get() method.
-	 * @param {object} response An HTTP response object received from the express.get() method.
-	 * @param {function} callback A callback function.
-	 *
-	 * @returns {undefined} Returns the request and response objects to a callback function.
-	 */
-	showProfile: function (request, response, callback) {
-		if (isAuthorizedTo('view', request)) {
-			response.render('seller-profile-page', {
-				user: request.session.user,
-				seller: request.session.seller,
-				dealerDisplay: request.session.seller.dealershipName === '' ? 'none': '',
-				privateSellerDisplay: request.session.seller.dealershipName === '' ? '': 'none',
-				isLoggedIn: true
-			});
-			return callback(request, response);
-		}
-	},
-	/**
-	 * @summary Responds to HTTP GET /seller/:sellerId/edit. Displays views/sellers/registration-form, unless a seller
-	 * is not logged-in, in which case it does nothing.
-	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
 	 * @returns {undefined}
 	 */
 	showEditForm: function (request, response) {
-		var ssnSeller = request.session.seller;
-		var dtlSeller = request.session.privateSeller || request.session.dealership;
-		var isLoggedIn = request.session.seller ? true : false;
-		if (isLoggedIn) {
+		if (isAuthorizedTo('edit', request, response)) {
+			var ssnUser = request.session.user;
+			var ssnSeller = request.session.seller;
 			Province.find(function (err, provinces) {
 				if (err) {
-					console.log('==================== BEGIN ERROR MESSAGE ====================');
-					console.log(err);
-					console.log('==================== END ERROR MESSAGE ======================');
-					main.showErrorPage(request, response);
+					handleErrors(err, request, response);
 				} else {
 					response.render('seller-registration-form', {
 						validationErrors: request.session.validationErrors,
 						provinces: provinces,
-						action: '/seller/:'.concat(ssnSeller._id).concat('/edit'),
+						action: path.join('/seller', ssnSeller._id.toString(), 'edit'),
 						heading: 'Edit Seller',
 						buttonCaption: 'Edit',
-						sellerType: '',
-						emailAddress: ssnSeller.emailAddress,
-						password: '',
-						firstname: dtlSeller.name,
-						surname: '',
-						contactNumbers: dtlSeller.contactNumbers,
-						dealershipName: '',
-						streetAddress1: '',
-						streetAddress2: '',
-						province: '',
-						town: '',
-						townId: '',
-						isLoggedIn: isLoggedIn
+						sellerType: ssnSeller.dealershipName === '' ? 'private seller' : 'dealership',
+						user: ssnUser,
+						seller: ssnSeller,
+						isLoggedIn: true
 					}, function (err, html) {
 						request.session.validationErrors = null;
 						if (err) {
-							console.log('==================== BEGIN ERROR MESSAGE ====================');
-							console.log(err);
-							console.log('==================== END ERROR MESSAGE ======================');
+							handleErrors(err, request, response);
 						} else {
 							response.send(html);
 						}
@@ -553,7 +561,7 @@ var sellers = module.exports = {
 	 * @returns {undefined}
 	 */
 	editProfile: function (request, response) {
-		if (isAuthorizedTo('edit', request)) {
+		if (isAuthorizedTo('edit', request, response)) {
 			var frmUser = request.body.user;
 			var frmSeller = request.body.seller;
 			
@@ -632,7 +640,7 @@ var sellers = module.exports = {
 
 			updateSeller(function (err) {
 				if (err) {
-					handleErrors(err, null, sellers.showEditForm);
+					handleErrors(err, request, response, null, sellers.showEditForm);
 				} else {
 					sellers.showProfile(request, response);
 					if (isEmailChanged) {
@@ -681,7 +689,7 @@ var sellers = module.exports = {
 	 * @returns {undefined}
 	 */
 	removeProfile: function (request, response) {
-		if (isAuthorizedTo('remove', request)) {
+		if (isAuthorizedTo('remove', request, response)) {
 			var deleteUser = function (callback) {
 				User.findByIdAndRemove(request.session.user._id, function (err) {
 					if (err) {
@@ -713,7 +721,7 @@ var sellers = module.exports = {
 			
 			deleteVehicles(function (err) {
 				if (err) {
-					handleErrors(err);
+					handleErrors(err, request, response);
 				} else {
 					main.showHomePage(request, response);
 				}
