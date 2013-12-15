@@ -280,21 +280,51 @@ var isAuthorizedTo = function (action, request, response) {
 	return isAuthorized || createError();
 };
 
+/**
+ * @summary Returns true, if a seller is logged-in; otherwise, it displays and error message, then returns false.
+ *  
+ * @param {object} request An HTTP request object received from the express.get() or express.post() method.
+ * @param {object} response An HTTP response object received from the express.get() or express.post() method.
+ *  
+ * @returns {boolean}
+ */
+var isLoggedIn = function (request, response) {
+	var createError = function () {
+		var specialError = new Error('You cannot add a new seller profile, because you are already logged-in.');
+		request.session.specialError = specialError;
+		handleErrors(specialError, request, response);
+		return false;
+	};
+	
+	return !request.session.seller || createError();
+};
+
 var sellers = module.exports = {
 	/**
-	 * @summary Responds to HTTP GET /sellers/add. Displays views/seller-registration-form, unless a seller is
-	 * logged-in, in which case it displays an error message.
+	 * @summary Responds to HTTP GET /sellers/add. Displays views/seller-registration-form.ejs.
 	 *
+	 * @description Preconditions:
+	 * (1) No seller must be logged-in (function isLoggedIn).
+	 * 
+	 * Postconditions:
+	 * (1) The views/seller-registration-form.ejs is displayed.
+	 * (2) If the form is being redisplayed, because there was something wrong with one of the inputs, then the previous
+	 * inputs (var frmUser; var frmSeller) are prefilled.
+	 * 
+	 * Error handling:
+	 * (1) If a seller is logged-in, an error message is displayed (function isLoggedIn).
+	 * (2) All errors are handled by the handleErrors function.
+	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
 	 * @returns {undefined}
 	 */
 	showRegistrationForm: function (request, response) {
-		var frmSeller = request.body.seller;
-		var isLoggedIn = request.session.seller ? true : false;
-		
-		if (!isLoggedIn) {
+		if (!isLoggedIn(request, response)) {
+			var frmUser = request.body.user;
+			var frmSeller = request.body.seller;
+			
 			Province.find(function (err, provinces) {
 				if (err) {
 					handleErrors(err, request, response);
@@ -305,20 +335,27 @@ var sellers = module.exports = {
 						action: '/sellers/add',
 						heading: 'New Seller',
 						buttonCaption: 'Register',
-						sellerType: '',
-						emailAddress: frmSeller && frmSeller.emailAddress || '',
-						password: '',
-						firstname: '',
-						surname: '',
-						telephone: '',
-						cellphone: '',
-						dealershipName: '',
-						streetAddress1: '',
-						streetAddress2: '',
-						province: '',
-						town: '',
-						townId: '',
-						isLoggedIn: isLoggedIn
+						privateRadioButtion: frmSeller && frmSeller.dealershipName === '' ? 'checked' : '',
+						dealerRadioButton: frmSeller && frmSeller.dealershipName !== '' ? 'checked' : '',
+						user: frmUser || {
+							emailAddress: '',
+							password: ''
+						},
+						seller: frmSeller || {
+							dealershipName: '',
+							contactPerson: {
+								firstname: '',
+								surname: ''
+							},
+							contactNumbers: ['', ''],
+							address: {
+								street: '',
+								suburb: '',
+								town: '',
+								province: ''
+							}
+						},
+						isLoggedIn: false 
 					}, function (err, html) {
 						request.session.validationErrors = null;
 						if (err) {
@@ -329,17 +366,13 @@ var sellers = module.exports = {
 					});
 				}
 			});
-		} else {
-			var specialError = new Error('You cannot add a new seller profile, because you are logged-in.');
-			request.session.specialError = specialError;
-			handleErrors(specialError, request, response);
 		}
 	},
 	/**
 	 * @summary Responds to HTTP POST /sellers/add. Creates a new seller profile; then displays the profile page.
 	 *
 	 * @description Preconditions:
-	 * (1) The user must be logged-in (var isLoggedin).
+	 * (1) The user must be logged-in (function isLoggedin).
 	 * 
 	 * Postconditions:
 	 * (1) A new user document is created in the users database collection, using the details (var frmUser) entered into the 
@@ -352,16 +385,18 @@ var sellers = module.exports = {
 	 * 
 	 * Algorithm:
 	 * (1) The new user should be created first, because a seller cannot exist without an associated user.
-	 *
+	 * 
+	 * Error handling:
+	 * (1) If a seller is logged-in, an error message is displayed (function isLoggedIn).
+	 * (2) All errors are handled by the handleErrors function.
+	 * 
 	 * @param {object} request An HTTP request object received from the express.post() method.
 	 * @param {object} response An HTTP response object received from the express.post() method.
 	 *
 	 * @returns {undefined}
 	 */
 	addProfile: function (request, response) {
-		var isLoggedIn = request.session.seller ? true : false;
-		
-		if (!isLoggedIn) {
+		if (!isLoggedIn(request, response)) {
 			var frmUser = request.body.user;
 			var frmSeller = request.body.seller;
 
@@ -418,10 +453,6 @@ var sellers = module.exports = {
 					email.sendEmail(request, response);
 				}
 			});
-		} else {
-			var specialError = new Error('You cannot add a new seller profile, because you are logged-in.');
-			request.session.specialError = specialError;
-			handleErrors(specialError, request, response);
 		}
 	},
 	/**
@@ -461,7 +492,7 @@ var sellers = module.exports = {
 		}
 	},
 	/**
-	 * @summary Responds to HTTP GET /seller/:sellerId/edit. Displays views/sellers/registration-form, with the 
+	 * @summary Responds to HTTP GET /seller/:sellerId/edit. Displays views/seller-registration-form.ejs, with the 
 	 * logged-in seller's details prefilled.
 	 *
 	 * @description Preconditions:

@@ -76,7 +76,7 @@ var provincesString = JSON.stringify(provinces);
 					<label class="control-label" for="telephone">Telephone</label>
 					<div class="controls">
 						<input type="tel" id="telephone" name="seller[telephone]"
-								value="<%=seller.contactNumbers.telephone%>"/>
+							value="<%=seller.contactNumbers[0]%>"/>
 						<span id="spanTelephone" class="help-inline">&nbsp;</span>
 					</div>
 				</div>
@@ -85,7 +85,7 @@ var provincesString = JSON.stringify(provinces);
 					<label class="control-label" for="cellphone">Cell phone</label>
 					<div class="controls">
 						<input type="tel" id="cellphone" name="seller[cellphone]"
-								value="<%=seller.contactNumbers.cellphone%>"/>
+							value="<%=seller.contactNumbers[1]%>"/>
 						<span id="spanCellphone" class="help-inline">&nbsp;</span>
 					</div>
 				</div>
@@ -105,14 +105,14 @@ var provincesString = JSON.stringify(provinces);
 			<div class="span3">
 				<label class="radio">
 					<input type="radio" id="privateSeller" name="seller[type]"
-						value="private seller" />Private seller
+						value="private seller" checked="<%=privateRadioButton%>"/>Private seller
 				</label>
 			</div>
 	<!-- Dealership -->
 			<div class="span3">
 				<label class="radio">
 					<input type="radio" id="dealership"  name="seller[type]"
-						value="dealership" />Dealership
+						value="dealership" checked="<%=dealerRadioButton%>"/>Dealership
 				</label>
 			</div>
 		</div>
@@ -152,7 +152,7 @@ var provincesString = JSON.stringify(provinces);
 					<label class="control-label" for="provinces">Province</label>
 					<div class="controls">
 						<select id="provinces" name="seller[province]">
-						<% if (province) { %>
+						<% if (seller.address.province) { %>
 							<option selected="selected" value="<%=seller.address.province%>">
 								<%=seller.address.province%>
 							</option>
