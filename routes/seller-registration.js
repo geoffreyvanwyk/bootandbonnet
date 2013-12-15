@@ -264,7 +264,7 @@ var isAuthorizedTo = function (action, request, response) {
 	var isAuthorized = isLoggedIn && isOwnProfile;
 	var reasonForError;
 	
-	var createError = function () {
+	var displayError = function () {
 		if (!isLoggedIn) {
 			reasonForError = 'you are not logged-in.';
 		} else if (!isOwnProfile) {
@@ -281,11 +281,11 @@ var isAuthorizedTo = function (action, request, response) {
 		return false;
 	};
 	
-	return isAuthorized || createError();
+	return isAuthorized || displayError();
 };
 
 /**
- * @summary Returns true, if a seller is logged-in; otherwise, it displays and error message, then returns false.
+ * @summary Returns true, if a seller is logged-in; otherwise, it displays an error message, then returns false.
  *  
  * @param {object} request An HTTP request object received from the express.get() or express.post() method.
  * @param {object} response An HTTP response object received from the express.get() or express.post() method.
@@ -293,14 +293,14 @@ var isAuthorizedTo = function (action, request, response) {
  * @returns {boolean}
  */
 var isLoggedIn = function (request, response) {
-	var createError = function () {
+	var displayError = function () {
 		var specialError = new Error('You cannot add a new seller profile, because you are already logged-in.');
 		request.session.specialError = specialError;
 		handleErrors(specialError, request, response);
 		return false;
 	};
 	
-	return !request.session.seller || createError();
+	return !request.session.seller || displayError();
 };
 
 var sellers = module.exports = {
