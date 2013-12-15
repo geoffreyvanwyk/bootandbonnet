@@ -243,6 +243,10 @@ var handleErrors = function (err, request, response, user, form) {
  * @summary Returns true, if a user is authorized to perform an action (view, edit, or remove) on a seller profile; 
  * otherwise, it displays an error message, then returns false.
  * 
+ * @description An authorized user is:
+ * (1) Logged-in as a seller (var isLoggedIn).
+ * (2) The owner of the profile upon which he/she is attempting to perform an action (var isOwnProfile).
+ * 
  * @param {string} action The type of action performed on a seller profile: view, edit, or remove.
  * @param {string} request An HTTP request object received from the express.get() or express.post() method.
  * 
@@ -312,7 +316,8 @@ var sellers = module.exports = {
 	 * inputs (var frmUser; var frmSeller) are prefilled.
 	 * 
 	 * Error handling:
-	 * (1) If a seller is logged-in, an error message is displayed (function isLoggedIn).
+	 * (1) If a seller is logged-in, an error message is displayed stating why the request cannot be fulfilled 
+	 * (function isLoggedIn).
 	 * (2) All errors are handled by the handleErrors function.
 	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
@@ -460,18 +465,15 @@ var sellers = module.exports = {
 	 * logged-in seller.
 	 * 
 	 * @description Preconditions:
-	 * The user must be authorised to view the profile (var isAuthorized), which means that
-	 * (1) He/she is logged-in as a seller (var isLoggedIn).
-	 * (2) The profile which the logged-in seller is attemting to view is his/her own profile (var isOwnProfile).
-	 *
-	 * The reason for this precondition is that a seller profile displays the email address of the seller.
+	 * The user must be authorised to view the profile (function isAuthorized). The reason for this precondition is that 
+	 * a seller profile displays the email address of the seller.
 	 * 
 	 * Postconditions:
 	 * (1) The logged-in seller's profile page is displayed.
 	 * 
 	 * Error handling:
 	 * (1) If the user attempting to view the profile is not authorized to do so, an error message is displayed 
-	 * stating why his/her request cannot be fulfilled.
+	 * stating why his/her request cannot be fulfilled (function isAuthorizedTo).
 	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
@@ -496,18 +498,18 @@ var sellers = module.exports = {
 	 * logged-in seller's details prefilled.
 	 *
 	 * @description Preconditions:
-	 * The user must be authorised to edit the profile (var isAuthorized), which means that
-	 * (1) He/she is logged-in as a seller (var isLoggedIn).
-	 * (2) The profile which the logged-in seller is attemting to edit is his/her own profile (var isOwnProfile).
-	 *
-	 * The reason for this precondition is that a seller profile displays the email address of the seller.
+	 * The user must be authorised to edit the profile (function isAuthorizedTo).
 	 * 
 	 * Postconditions:
-	 * (1) The logged-in seller's profile page is displayed.
+	 * (1) The views/seller-registration-form.ejs is displayed, with the seller's details prefilled, as stored in the 
+	 * session cookie (var ssnUser; var ssnSeller).
+	 * (2) If the form is redisplayed, because there was something wrong with one of the new inputs, then the previous 
+	 * inputs (var frmUser; var frmSeller) are prefilled.
 	 * 
 	 * Error handling:
 	 * (1) If the user attempting to edit the profile is not authorised to do so, an error message is displayed 
-	 * stating why his/her request cannot be fulfilled.
+	 * stating why his/her request cannot be fulfilled. (function isAuthorizedTo).
+	 * (2) All errors are handled by the handleErrors function.
 	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
@@ -516,8 +518,11 @@ var sellers = module.exports = {
 	 */
 	showEditForm: function (request, response) {
 		if (isAuthorizedTo('edit', request, response)) {
+			var frmUser = request.body.user;
+			var frmSeller = request.body.seller;
 			var ssnUser = request.session.user;
 			var ssnSeller = request.session.seller;
+			var dealershipName = (frmSeller && frmSeller.dealershipName) || (ssUser && ssnSeller.dealershipName);
 			Province.find(function (err, provinces) {
 				if (err) {
 					handleErrors(err, request, response);
@@ -528,9 +533,10 @@ var sellers = module.exports = {
 						action: path.join('/seller', ssnSeller._id.toString(), 'edit'),
 						heading: 'Edit Seller',
 						buttonCaption: 'Edit',
-						sellerType: ssnSeller.dealershipName === '' ? 'private seller' : 'dealership',
-						user: ssnUser,
-						seller: ssnSeller,
+						privateRadioButtion: dealershipName === '' ? 'checked' : '',
+						dealerRadioButton: dealershipName !== '' ? 'checked' : '',
+						user: frmUser || ssnUser,
+						seller: frmUser || ssnSeller,
 						isLoggedIn: true
 					}, function (err, html) {
 						request.session.validationErrors = null;
@@ -549,9 +555,7 @@ var sellers = module.exports = {
 	 * (views/seller-profile-page.ejs).
 	 * 
 	 * @description Preconditions:
-	 * The user must be authorised to edit the profile (var isAuthorized), which means that
-	 * (1) He/she is logged-in as a seller (var isLoggedIn).
-	 * (2) The profile which the logged-in seller is attemting to edit is his/her own profile (var isOwnProfile).
+	 * The user must be authorised to edit the profile (function isAuthorized).
 	 *
 	 * Postconditions:
 	 * (1) The seller document associated with the logged-in seller (var ssnSeller) is updated in the sellers database 
@@ -582,7 +586,7 @@ var sellers = module.exports = {
 	 * 
 	 * Error handling:
 	 * (1) If the user attempting to edit the profile is not authorised to do so, an error message is displayed 
-	 * stating why his/her request cannot be fulfilled.
+	 * stating why his/her request cannot be fulfilled (function isAuthorizedTo).
 	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the 
 	 * seller-registration.js module.
 	 * 
@@ -686,9 +690,7 @@ var sellers = module.exports = {
 	 * associated vehicle profiles; then displays the home page.
 	 *
 	 * @description Preconditions:
-	 * The user must be authorised to remove the seller, which means that (var isAuthorized) 
-	 * (1) He/she is logged-in as a seller (var isLoggedIn).
-	 * (2) The profile which the logged-in seller is attemting to remove is his/her own profile (var isOwnProfile).
+	 * The user must be authorised to remove the seller (function isAuthorized).
 	 * 
 	 * Postconditions:
 	 * (1) All vehicle documents associated with the logged-in seller are deleted from the vehicles database collection 
@@ -710,7 +712,7 @@ var sellers = module.exports = {
 	 * 
 	 * Error handling:
 	 * (1) If the user attempting the removal of the profile is not authorised to do so, an error message is displayed 
-	 * stating why his/her request cannot be fulfilled.
+	 * stating why his/her request cannot be fulfilled (isAuthorizedTo).
 	 * (2) All errors are handled by the handleErrors() function, which handles all errors for the 
 	 * seller-registration.js module.
 	 *
