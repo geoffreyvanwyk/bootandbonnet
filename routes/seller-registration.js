@@ -118,35 +118,29 @@ var handleErrors = function (err, request, response, user, form) {
 		isEmailInvalidError ||
 		isEmailMissingError ||
 		isPasswordError
-	) ? true : false;
+	);
 
 	var isNameError = (
 		isFirstnameInvalidError ||
 		isFirstnameMissingError ||
 		isSurnameInvalidError ||
 		isSurnameMissingError
-	) ? true : false;
+	);
 
 	var isContactNumbersError = (
 		isContactNumbersInvalidError ||
 		isContactNumbersMissingError
-	) ? true : false;
+	);
 
-	var isLocationError = (
-		isProvinceMissingError ||
-		isTownMissingError
-	) ? true : false;
+	var isLocationError = isProvinceMissingError ||	isTownMissingError;
 
 	var isSellerError = (
 		isNameError ||
 		isContactNumbersError ||
 		isLocationError
-	) ? true : false;
+	);
 
-	var isPersonError = (
-		isUserError ||
-		isSellerError
-	) ? true : false;
+	var isPersonError =	isUserError || isSellerError;
 
 	var isAddProfileError = ( // Error encountered by addProfile function.
 		isPersonError &&
@@ -522,7 +516,7 @@ var sellers = module.exports = {
 			var frmSeller = request.body.seller;
 			var ssnUser = request.session.user;
 			var ssnSeller = request.session.seller;
-			var dealershipName = (frmSeller && frmSeller.dealershipName) || (ssUser && ssnSeller.dealershipName);
+			var dealershipName = (frmSeller && frmSeller.dealershipName) || (ssnUser && ssnSeller.dealershipName);
 			Province.find(function (err, provinces) {
 				if (err) {
 					handleErrors(err, request, response);
