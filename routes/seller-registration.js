@@ -24,7 +24,7 @@ var User = require('../models/users');
 var Vehicle = require('../models/vehicles');
 
 /* Import functions. */
-var email = require('./email-address-verification');
+var verify = require('./email-address-verification');
 var main = require('./main');
 
 /**
@@ -449,7 +449,7 @@ var sellers = module.exports = {
 					};
 					request.session.seller = seller;
 					response.redirect(302, path.join('/seller', seller._id.toString(), 'view'));
-					email.sendEmail(request, response);
+					verify.sendEmail(request, response);
 				}
 			});
 		}
@@ -673,7 +673,7 @@ var sellers = module.exports = {
 				} else {
 					sellers.showProfile(request, response);
 					if (isEmailChanged) {
-						email.sendEmail(request, response);
+						verify.sendEmail(request, response);
 					}
 				}
 			});
