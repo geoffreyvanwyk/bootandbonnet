@@ -71,13 +71,11 @@ app.map(app, {
 			}
 		}
 	},
-	'/sellers': {
+	'/seller': {
 		'/add': {
 			get: sellers.showRegistrationForm,
 			post: sellers.addProfile
-		}
-	},
-	'/seller': {
+		},
 		'/:sellerId': {
 			'/view': {
 				get: sellers.showProfile
@@ -89,16 +87,11 @@ app.map(app, {
 			'/remove': {
 				get: sellers.removeProfile
 			},
-			'/vehicles': {
+			'/vehicle': {
 				'/add': {
 					get: vehicles.showRegistrationForm,
 					post: vehicles.addProfile
 				},
-				'/list': {
-					get: vehicles.listSellerVehicles
-				}
-			},
-			'/vehicle': {
 				'/:vehicleId': {
 					'/view': {
 						get: vehicles.showProfile
@@ -115,18 +108,16 @@ app.map(app, {
 					'/remove': {
 						get: vehicles.removeProfile
 					}
+				},
+				'/list': {
+					get: vehicles.listSellerVehicles
 				}
 			},
-			'/orders': {
+			'/order': {
 				'/add': {
 					get: orders.showCart,
 					post: orders.checkout
 				},
-				'/list': {
-					get: orders.list
-				}
-			},
-			'/order': {
 				'/:orderId': {
 					'/view': {
 						get: orders.showCart
@@ -138,6 +129,9 @@ app.map(app, {
 					'/remove': {
 						get: orders.remove
 					}
+				},
+				'/list': {
+					get: orders.list
 				}
 			}
 		}
