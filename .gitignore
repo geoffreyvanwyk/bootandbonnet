@@ -2,6 +2,7 @@ nbproject/
 node_modules/
 uploads/
 build/
+db_dump/
 *~
 *.swp
 *.directory
