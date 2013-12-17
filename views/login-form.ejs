@@ -9,21 +9,21 @@
 		</div>
 		<div class="row">
 			<div class="span12">
-				<div class="control-group <%=loginError.emailAlertType%>">
+				<div class="control-group <%=loginErrors.emailAlertType%>">
 					<label class="control-label">Email</label>
 					<div class="controls">
-						<input type="email" name="user[emailAddress]" value="<%=loginError.emailAddress%>"
+						<input type="email" name="user[emailAddress]" value="<%=loginErrors.emailAddress%>"
 							   required="required"/>
-						<span class="help-block" ><%=loginError.emailError%></span>
+						<span class="help-block" ><%=loginErrors.emailError%></span>
 					</div>
 				</div>
 
-				<div class="control-group <%=loginError.passwordAlertType%>">
+				<div class="control-group <%=loginErrors.passwordAlertType%>">
 					 <label class="control-label">Password</label>
 					<div class="controls">
-						<input type="password" name="user[password]" value="<%=loginError.password%>"
+						<input type="password" name="user[password]" value="<%=loginErrors.password%>"
 							   required="required"/>
-						<span class="help-block" ><%=loginError.passwordError %></span>
+						<span class="help-block" ><%=loginErrors.passwordError %></span>
 					</div>
 				</div>
 
