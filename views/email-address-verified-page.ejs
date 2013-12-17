@@ -1,22 +1,16 @@
 <% layout('../../views/layout') -%>
 
-<%
-var noError = isUserNotExist === '' && isHashNotMatch === '' ? '' : 'none';
-var userNotExist = isUserNotExist === '' ? 'none' : '';
-var hashNotMatch = isHashNotMatch === '' ? 'none' : '';
-%>
-
-<div style="display: <%=noError %>">
+<div style="display: <%= verificationErrors ? 'none' : '' %>">
 	<h2>Thank you!</h2>
 	<p>Your email address has been verfied.</p>
 </div>
 
-<div style="display: <%=userNotExist %>">
+<div style="display: <%= verificationErrors.keyError ? '' : 'none'%>">
 	<h2>Error</h2>
-	<p>The email address does not exist in our database.</p>
+	<p><%=verificationErrors.keyError%></p>
 </div>
 
-<div style="display: <%=hashNotMatch %>">
+<div style="display: <%=verficationErrors.userError ? '' : 'none' %>">
 	<h2>Error</h2>
-	<p>The hash in the link does not match the email address.</p>
+	<p><%=verficationErrors.userError%></p>
 </div>
