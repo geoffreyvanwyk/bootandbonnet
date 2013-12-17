@@ -4,12 +4,11 @@
 
 /**
  * @file routes/password-reset.js
- * Component: users
- * Purpose: Contains routes for resetting a user's password.
+ * @summary Component: Password Reset. Contains routes for resetting a user's password.
  */
 
 /* Import external modules. */
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt'); // For hashing and comparing passwords.
 
 /* Import local modules. */
 var email = require('../configuration/email').server;
@@ -28,11 +27,30 @@ var main = require('./main');
  *
  * @returns {undefined}
  */
-var handleErrors = function (err) {
+var handleErrors = function (err, request, response) {
 	console.log('==================== BEGIN ERROR MESSAGE ====================');
 	console.log(err);
 	console.log('==================== END ERROR MESSAGE ======================');
-	main.showErrorPage(request, response);
+
+	switch (err.message) {
+		case 'The email address has not been registered.':
+			password.showForgotForm(request, response, {
+				emailAddress: err.emailAddress,
+				message: err.message,
+				emailAlertType: 'error
+			});
+			break;
+		case 'The email address does not match the key. Please try again.':
+			password.showForgotForm(request, response, {
+				emailAddress: err.emailAddress,
+				message: err.message,
+				emailAlertType: 'error
+			});
+			break;
+		default:
+			main.showErrorPage(request, response);
+			break;
+	};
 };
 
 var password = module.exports = {
@@ -59,30 +77,30 @@ var password = module.exports = {
 	 *
 	 * @returns {undefined}
 	 */
-	showForgotForm: function (request, response) {
+	showForgotForm: function (request, response, error, isPasswordReset) {
 		response.render('password-forgot-form', {
-			emailAddress: request.session.passwordForgot.emailAddress || '',
-			emailError: request.session.passwordForgot.emailError || request.session.emailHashMismatch || '',
-			emailAlertType: request.session.passwordForgot.emailError || request.session.emailHashMismatch ? 'error' : '',
-			isLoggedIn: false
-		}, function (err, html) {
-			if (err) {
-				handleErrors(err);
-			} else {
-				request.session.passwordForgot = null;
-				request.session.emailHashMismatch = null;
-				response.send(html);
-			}
-		});
+			emailAddress: error && error.emailAddress || '',
+			emailError: error && error.message || '',
+			emailAlertType: error ? 'error' : '',
+			isLoggedIn: !!request.session.user
+		};
 	},
 	/**
 	 * @summary Responds to HTTP POST /password/forgot. Sends an email message, containing a link to the
-	 * password-reset form, to the address entered into the password-forgot form; then displays the
-	 * password-reset-email-sent page.
+	 * password-reset form (views/password-reset-form.ejs), to the address entered into the password-forgot form
+	 * (views/password-forgot-form.ejs); then displays the password-reset-email-sent page
+	 * (views/password-reset-email-sent-page.ejs).
 	 *
-	 * @description First, using the findSeller() closure function, it looks for a seller in the sellers database
-	 * collection, with the email address entered into the password-forgot form (frmEmailAddress). If no seller has that email
-	 * address, the passwordForgot object is added as a property to the request.session object, then the
+	 * @description Preconditions:
+	 * (1) None.
+	 *
+	 * Postconditions:
+	 * (1) See summary.
+	 *
+	 * Algorithm:
+	 * (1) Using the findUser() closure function, it looks for a user document in the users collection in the database,
+	 * associated with the email address entered into the password-forgot form (frmEmailAddress). If no user
+	 * has that email address, the emailError object is passed to the password.showForgotForm method, then the
 	 * password-forgot form is displayed again with an error message.
 	 *
 	 * If a seller with that email address does exist, the hashEmailAddress() closure function hashes the email address.
@@ -101,12 +119,12 @@ var password = module.exports = {
 		/* The email address entered into the password-forgot form. */
 		var frmEmailAddress = request.body.seller.emailAddress.toLowerCase().trim();
 
-		var sendMessage = function (hash, callback) {
+		var sendMessage = function (key, callback) {
 			/* Link to the password-reset form. */
 			var link = 'http://localhost:3000/password/reset?email='
 							.concat(encodeURIComponent(frmEmail))
-							.concat('&hash=')
-							.concat(hash);
+							.concat('&key=')
+							.concat(key);
 
 			var message = {
 				from: "BootandBonnet <info@bootandbon.net>",
@@ -125,12 +143,12 @@ var password = module.exports = {
 			email.send(message, callback);
 		};
 
-		var hashEmailAddress = function (user, callback) {
-			bcrypt.hash(user.emailAddress, 10, function (err, hash) {
+		var createKey = function (user, callback) {
+			bcrypt.hash(user.emailAddress, 10, function (err, key) {
 				if (err) {
 					return callback(err);
 				}
-				sendMessage(hash, callback);
+				sendMessage(key, callback);
 			});
 		};
 
@@ -144,35 +162,25 @@ var password = module.exports = {
 					err.emailAddress = frmEmailAddress;
 					return callback(err);
 				}
-				hashEmailAddress(seller, callback);
+				createKey(user, callback);
 			});
 		};
 
 		findUser(function (err, message) {
-			if (err && err.name === 'EmailError') {
-				request.session.passwordForgot = {
-					emailAddress: frmEmail,
-					emailError: 'The email address has not been registered.'
-				};
-				password.showForgotForm(request, response);
-			} else if (err) {
-				console.log('==================== BEGIN ERROR MESSAGE ====================');
-				console.log(err);
-				console.log('==================== END ERROR MESSAGE ======================');
-				main.showErrorPage(request, response);
+			if (err) {
+				handleErrors(err, request, response);
 			} else {
 				response.render('password-reset-email-sent-page', {
-					isLoggedIn: false
+					isLoggedIn: !!request.session.user
 				});
 			}
 		});
-
 	},
 	/**
 	 * @summary Responds to HTTP GET /password/reset. Displays the password-reset form.
 	 *
-	 * @description It compares the email address in the query string (qryEmail), with the hash in the query
-	 * string (qryHash). If the email address matches the hash, the password-reset form is displayed; else, the
+	 * @description It compares the email address in the query string (qryEmail), with the key in the query
+	 * string (qryKey). If the email address matches the hash, the password-reset form is displayed; else, the
 	 * password-forgot form is displayed with an error message.
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
@@ -182,20 +190,19 @@ var password = module.exports = {
 	 */
 	showResetForm: function (request, response) {
 		var qryEmail = decodeURIComponent(request.query.email);
-		var qryHash = request.query.hash;
-		bcrypt.compare(qryEmail, qryHash, function(err, isMatch) {
+		var qryKey = request.query.key;
+		bcrypt.compare(qryEmail, qryKey, function(err, isMatch) {
 			if (err) {
-				handleErrors(err);
-			} else if (isMatch) {
+				handleErrors(err, request, response);
+			} else if (!isMatch) {
+				var err = new Error('The email address does not match the key. Please try again.');
+				err.emailAddress = qryEmailAddress;
+				handleErrors(err, request, response);
+			} else {
 				response.render('password-reset-form', {
 					emailAddress: qryEmail,
-					isLoggedIn: false
+					isLoggedIn: !!request.session.user
 				});
-			} else {
-				request.session.emailHashMismatch = {
-					emailError: 'The email address does not match its hash code. Please try again.'
-				};
-				password.showForgotForm(request, response);
 			}
 		});
 	},
@@ -218,10 +225,10 @@ var password = module.exports = {
 	 */
 	reset: function (request, response) {
 		/* Email address with which the password reset was requested. */
-		var frmEmailAddress = request.body.seller.emailAddress.toLowerCase().trim();
+		var frmEmailAddress = request.body.user.emailAddress.toLowerCase().trim();
 
 		/* New password entered into the password-reset form. */
-		var frmPassword = request.body.seller.password;
+		var frmPassword = request.body.user.password;
 
 		var updateUser = function (hash, callback) {
 			User.findOneAndUpdate({
@@ -244,10 +251,9 @@ var password = module.exports = {
 
 		hashPassword(function (err, user) {
 			if (err) {
-				handleErrors(err);
+				handleErrors(err, request, response);
 			} else {
-				request.session.isPasswordReset = true;
-				login.showForm(request, response);
+				login.showForm(request, response, true);
 			}
 		});
 	}

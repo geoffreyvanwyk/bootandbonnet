@@ -88,6 +88,11 @@ var login = module.exports = {
 	 * Postconditions:
 	 * (1) The views/login-form.ejs is displayed.
 	 *
+	 * (2) After a user has reset his password, the login form is shown to him, with a banner message across the top
+	 * of the form, telling him that the password reset was successful, and that he may log-in again. If the
+	 * isPasswordReset parameter is true, the banner is displayed. The isPasswordReset argument is passed by the
+	 * resetPassword function of the password-reset module.
+	 *
 	 * Error handling:
 	 * (1) If the user is logged-in, the function displays the error-page, because there is no reason for a
 	 * logged-in user to see the login-form (function isLoggedIn()).
@@ -97,17 +102,12 @@ var login = module.exports = {
 	 * the loginErrors parameter is not null or undefined, it means that a log-in attempt has failed. The
 	 * loginErrors argument is passed by the authenticate function.
 	 *
-	 * (3) After a user has reset his password, the login form is shown to him, with a banner message across the top
-	 * of the form, telling him that the password reset was successful, and that he may log-in again. If the
-	 * isPasswordReset property of the request.session object is true, the banner is displayed. The isPasswordReset
-	 * property of the request.session object is set in the resetPassword function of the password-reset module.
-	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
 	 * @returns {undefined}
 	 */
-	showForm: function (request, response, loginErrors) {
+	showForm: function (request, response, loginErrors, isPasswordReset) {
 		if (!isLoggedIn(request, response)) {
 			response.render('login-form', {
 				loginErrors: loginErrors || {
@@ -118,7 +118,7 @@ var login = module.exports = {
 					passwordError: '',
 					passwordAlertType: ''
 				},
-				resetDisplay: request.session.isPasswordReset ? '' : 'none',
+				resetDisplay: isPasswordReset ? '' : 'none',
 				isLoggedIn: false
 			});
 		}
