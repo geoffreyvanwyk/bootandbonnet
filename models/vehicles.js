@@ -4,8 +4,7 @@
 
 /**
  * @file models/vehicles.js
- * Component: vehicles
- * Purpose: Defines Mongoose model for vehicle objects.
+ * @summary Component: Vehicle Registration. Defines Mongoose model for vehicle objects.
  */
 
 /* Import external modules. */
@@ -15,7 +14,7 @@ var mongoose = require('mongoose');
 var vehicleSchema = mongoose.Schema({
 	market: { // new or used
 		type: String,
-		required: true
+		default: 'used',
 	},
 	type: {
 		make: {
@@ -26,7 +25,7 @@ var vehicleSchema = mongoose.Schema({
 			type: String,
 			required: true
 		},
-		year: { // A four-digit year.
+		year: {
 			type: Number,
 			required: true,
 			min: 1886, // First car was manufactured in 1886.
@@ -121,7 +120,7 @@ var vehicleSchema = mongoose.Schema({
 		type: [String],
 		default: []
 	},
-	price: {
+	price: { // In Rands.
 		value: {
 			type: Number,
 			required: true,
@@ -129,7 +128,7 @@ var vehicleSchema = mongoose.Schema({
 		},
 		negotiable: {
 			type: Boolean,
-			default: false
+			default: true
 		}
 	},
 	comments: {
