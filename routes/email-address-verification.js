@@ -42,20 +42,21 @@ var handleErrors = function (err, request, response) {
 	console.log(err);
 	console.log('==================== END ERROR MESSAGE ======================');
 
-	var isKeyError = err.message === 'Key does not match hash of email address.';
-	var isUserError = err.message === 'No user associated with that email address.';
-
 	var verificationErrors = {};
 
-	if (isKeyError) {
-		verificationErrors.keyError = err.message;
-		showVerifiedPage(request, response, verificationErrors);
-	} else if (isUserError) {
-		verificationErrors.userError = err.message;
-		showVerifiedPage(request, response, verificationErrors);
-	} else {
-		main.showErrorPage(request, response);
-	}
+	switch (err.message) {
+		case 'Key does not match hash of email address.':
+			verificationErrors.keyError = err.message;
+			showVerifiedPage(request, response, verificationErrors);
+			break;
+		case 'No user associated with that email address.':
+			verificationErrors.userError = err.message;
+			showVerifiedPage(request, response, verificationErrors);
+			break;
+		default:
+			main.showErrorPage(request, response);
+			break;
+	};
 };
 
 /**
@@ -86,36 +87,48 @@ var verify = module.exports = {
 	 *
 	 * @returns {undefined}
 	 */
-	sendEmail: function (request, response) {
-		var emailAddress = request.session.user.emailAddress;
-		var userId = request.params.userId;
-		bcrypt.hash(emailAddress, 10, function(err, key) {
+	sendLink: function (request, response) {
+		var ssnEmailAddress = request.session.user.emailAddress;
+		var prmUserId = request.params.userId;
+
+		var sendMessage = function (key, callback) {
+			var link = 'http://localhost:3000/user/'
+						.concat(encodeURIComponent(prmUserId))
+						.concat('/verify-email-address/?emailAddress=')
+						.concat(encodeURIComponent(ssnEmailAddress))
+						.concat('&key=')
+						.concat(key);
+
+			var message = {
+				from: "BootandBonnet <info@bootandbon.net>",
+				to: ssnEmailAddress,
+				subject: "Email Verification",
+				text: "Dear Sir/Madam,\n\n"
+					.concat("Thank you for registering a BootandBonnet account.\n\n")
+					.concat("In order to guarantee receiving important future emails regarding your account, ")
+					.concat("you must verify your email address. ")
+					.concat("Please click the following link to verify your email address:\n\n")
+					.concat(link).concat('\n\n')
+					.concat("Thank you,\n")
+					.concat("The BootandBonnet Team")
+			};
+
+			email.send(message, callback);
+		};
+
+		var createKey = function (callback) {
+			bcrypt.hash(ssnEmailAddress, 10, function (err, key) {
+				if (err) {
+					handleErrors(err, request, response);
+				} else {
+					sendMessage(key, callback);
+				}
+			});
+		};
+
+		createKey(function (err, message) {
 			if (err) {
 				handleErrors(err, request, response);
-			} else {
-				var link = 'http://localhost:3000/user/'
-								.concat(encodeURIComponent(userId))
-								.concat('/verify-email-address/?emailAddress=')
-								.concat(encodeURIComponent(emailAddress))
-								.concat('&key=')
-								.concat(key);
-				email.send({
-					text: "Dear Sir/Madam,\n\n"
-							.concat("Thank you for registering a BootandBonnet account.\n\n")
-							.concat("In order to guarantee receiving important future emails regarding your account, ")
-							.concat("you must verify your email address. ")
-							.concat("Please click the following link to verify your email address:\n\n")
-							.concat(link).concat('\n\n')
-							.concat("Thank you,\n")
-							.concat("The BootandBonnet Team"),
-					from: "BootandBonnet <info@bootandbon.net>",
-					to: emailAddress,
-					subject: "Email Verification"
-				}, function(err, message) {
-					if (err) {
-						handleErrors(err, request, response);
-					}
-				});
 			}
 		});
 	},
