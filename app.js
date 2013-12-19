@@ -102,7 +102,7 @@ app.map(app, {
 						}
 					},
 					'/edit': {
-						get: vehicles.showRegistrationForm,
+						get: vehicles.showEditForm,
 						post: vehicles.editProfile
 					},
 					'/remove': {

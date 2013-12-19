@@ -2,12 +2,10 @@
 
 'use strict';
 
-/*
- * Component: vehicles
- *
- * File: routes/vehicles/registration.js
- *
- * Purpose: Contains routes for handling registration of new vehicles and modification of existing vehicles.
+/**
+ * @file routes/vehicles/registration.js
+ * @summary Component: Vehicle Registration. Contains routes for handling registration of new vehicles and modification
+ * of existing vehicles.
  */
 
 /* Import external modules. */
@@ -31,8 +29,7 @@ var Vehicle = require('../models/vehicles');
 var main = require('./main');
 
 /* Helper functions */
-
-function movePhotos(vehicle, files, vehicleDir, webDir, callback) {
+var movePhotos = function (vehicle, files, vehicleDir, webDir, callback) {
 	var counter, file, newPath, oldPath, photos;
 
 	photos = [];
@@ -65,18 +62,18 @@ function movePhotos(vehicle, files, vehicleDir, webDir, callback) {
 	}, function () {
 		return callback(null, vehicle);
 	});
-}
+};
 
-function makeDirectory(vehicle, files, vehicleDir, webDir, callback) {
+var makeDirectory = function (vehicle, files, vehicleDir, webDir, callback) {
 	fs.mkdir(vehicleDir, '0755', function (err) {
 		if (err) {
 			return callback(err);
 		}
 		movePhotos(vehicle, files, vehicleDir, webDir, callback);
 	});
-}
+};
 
-function checkDirectory(vehicle, files, callback) {
+var checkDirectory = function (vehicle, files, callback) {
 	var vehicleDir, webDir;
 
 	webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
@@ -89,379 +86,364 @@ function checkDirectory(vehicle, files, callback) {
 			makeDirectory(vehicle, files, vehicleDir, webDir, callback);
 		}
 	});
-}
+};
+
+var getMakes = function (lookups, callback) {
+	Make.find(function (err, makes) {
+		if (err) {
+			return callback(err);
+		}
+		return callback(null, makes, lookups);
+	});
+};
+
+var getLookups = function (callback) {
+	Lookups.find(function (err, lookups) {
+		if (err) {
+			return callback(err);
+		}
+		getMakes(lookups, callback);
+	});
+};
 
 /* Routes */
+var vehicles = module.exports = {
+	/**
+	 * @summary Responds to HTTP GET /seller/:sellerId/vehicle/add. Displays views/vehicle-registration-form.ejs.
+	 *
+	 * @description Preconditions:
+	 * (1) A seller has to be logged-in.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns	{undefined}
+	 */
+	showRegistrationForm: function (request, response) {
+		var isLoggedIn, locals;
 
-/**
- * Responds to HTTP GET /vehicle/add and HTTP GET /vehicle/edit.
- *
- * Displays vehicle registration-form, to either add or edit a vehicle profile.
- *
- * If a seller is not logged-in, a new profile can neither be added nor edited.
- *
- * @param		{object}		request     An HTTP request object received from the express.get() method.
- * @param		{object}		response    An HTTP response object received from the express.get() method.
- *
- * @returns	{undefined}
- */
-function showRegistrationForm(request, response) {
-	var action, isSellerLoggedIn, locals;
+		isLoggedIn = !!request.session.seller;
+		if (isSellerLoggedIn) {
+			getLookups(function (err, makes, lookups) {
+				if (err) {
+					console.log(err);
+					main.showErrorPage(request, response);
+					return;
+				}
+				locals = {
+					makes: makes,
+					colors: lookups[0].colors,
+					fuels: lookups[0].fuels,
+					transmissions: lookups[0].transmissions,
+					loggedIn: true
+				};
+				if (action === 'add') {
+					locals.method = 'add';
+					locals.heading = 'Add Vehicle';
+					locals.buttonCaption = 'Register';
+					locals.vehicle = null;
+				} else if (action === 'edit') {
+					locals.method = 'edit';
+					locals.heading = 'Edit Vehicle';
+					locals.buttonCaption = 'Save Changes';
+					locals.vehicle = request.session.vehicle;
+				}
+				response.render('vehicles/registration-form', locals);
+			});
+		}
+	},
+	/**
+	 * @summary Responds to HTTP POST /seller/:sellerId/vehicle/add. Adds a new vehicle profile, then displays it.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns	{undefined}
+	 */
+	addProfile: function (request, response) {
 
-	function getMakes(lookups, callback) {
-		Make.find(function (err, makes) {
-			if (err) {
-				return callback(err);
-			}
-			return callback(null, makes, lookups);
-		});
-	}
+		function instantiateVehicle(callback) {
+			var formVehicle, seller, vehicle;
 
-	function getLookups(callback) {
-		Lookups.find(function (err, lookups) {
-			if (err) {
-				return callback(err);
-			}
-			getMakes(lookups, callback);
-		});
-	}
+			seller = request.session.seller;
+			formVehicle = request.body.vehicle;
+			vehicle = new Vehicle({
+				market: sanitize(formVehicle.market),
+				type: {
+					make: sanitize(formVehicle.type.make),
+					model: sanitize(formVehicle.type.model),
+					year: sanitize(formVehicle.type.year)
+				},
+				description: {
+					mileage: sanitize(formVehicle.description.mileage),
+					color: sanitize(formVehicle.description.color),
+					fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory)
+				},
+				mechanics: {
+					engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
+					fuel: sanitize(formVehicle.mechanics.fuel),
+					transmission: sanitize(formVehicle.mechanics.transmission),
+					absBrakes: sanitize(formVehicle.absBrakes),
+					powerSteering: sanitize(formVehicle.mechanics.powerSteering)
+				},
+				luxuries: {
+					airConditioning: sanitize(formVehicle.luxuries.airConditioning),
+					electricWindows: sanitize(formVehicle.luxuries.electricWindows),
+					radio: sanitize(formVehicle.luxuries.radio),
+					cdPlayer: sanitize(formVehicle.luxuries.cdPlayer)
+				},
+				security: {
+					alarm: sanitize(formVehicle.security.alarm),
+					centralLocking: sanitize(formVehicle.security.centralLocking),
+					immobilizer: sanitize(formVehicle.security.immobilizer),
+					gearLock: sanitize(formVehicle.security.gearLock)
+				},
+				safety: {
+					airBags: sanitize(formVehicle.safety.airBags)
+				},
+				price: {
+					value: sanitize(formVehicle.price.value),
+					negotiable: sanitize(formVehicle.price.negotiable)
+				},
+				photos: [],
+				comments: sanitize(formVehicle.comments),
+				seller: seller._id
+			});
 
-	isSellerLoggedIn = request.session.seller ? true : false;
-	if (isSellerLoggedIn) {
-		getLookups(function (err, makes, lookups) {
+			checkDirectory(vehicle, request.files, callback);
+		}
+
+		function insertVehicle(vehicle, callback) {
+			vehicle.save(function (err, vehicle) {
+				if (err) {
+					return callback(err);
+				}
+				return callback(null, vehicle);
+			});
+		}
+
+		function createVehicle(callback) {
+			instantiateVehicle(function (err, vehicle) {
+				if (err) {
+					return callback(err);
+				}
+				insertVehicle(vehicle, callback);
+			});
+		}
+
+		createVehicle(function (err, vehicle) {
 			if (err) {
 				console.log(err);
 				main.showErrorPage(request, response);
 				return;
 			}
-			locals = {
-				makes: makes,
-				colors: lookups[0].colors,
-				fuels: lookups[0].fuels,
-				transmissions: lookups[0].transmissions,
-				loggedIn: true
+			response.redirect(302, path.join('/vehicle/view', vehicle._id.toString()));
+		});
+	},
+	/**
+	* @summary Responds to HTTP POST /vehicle/edit.
+	*
+	* @param {object} request An HTTP request object received from the express.post() method.
+	* @param {object} response An HTTP response object received from the express.post() method.
+	*
+	* @returns {undefined}
+	*/
+	editProfile: function (request, response) {
+		var formVehicle = request.body.vehicle;
+
+		function instantiateVehicle(callback) {
+			var sessionVehicle, vehicle;
+			sessionVehicle = request.session.vehicle;
+			vehicle = {
+				_id: sanitize(formVehicle._id),
+				market: sanitize(formVehicle.market),
+				type: {
+					make: sanitize(formVehicle.type.make),
+					model: sanitize(formVehicle.type.model),
+					year: sanitize(formVehicle.type.year)
+				},
+				description: {
+					mileage: sanitize(formVehicle.description.mileage),
+					color: sanitize(formVehicle.description.color),
+					fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory)
+				},
+				mechanics: {
+					engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
+					fuel: sanitize(formVehicle.mechanics.fuel),
+					transmission: sanitize(formVehicle.mechanics.transmission),
+					absBrakes: sanitize(formVehicle.absBrakes),
+					powerSteering: sanitize(formVehicle.mechanics.powerSteering)
+				},
+				luxuries: {
+					airConditioning: sanitize(formVehicle.luxuries.airConditioning),
+					electricWindows: sanitize(formVehicle.luxuries.electricWindows),
+					radio: sanitize(formVehicle.luxuries.radio),
+					cdPlayer: sanitize(formVehicle.luxuries.cdPlayer)
+				},
+				security: {
+					alarm: sanitize(formVehicle.security.alarm),
+					centralLocking: sanitize(formVehicle.security.centralLocking),
+					immobilizer: sanitize(formVehicle.security.immobilizer),
+					gearLock: sanitize(formVehicle.security.gearLock)
+				},
+				safety: {
+					airBags: sanitize(formVehicle.safety.airBags)
+				},
+				price: {
+					value: sanitize(formVehicle.price.value),
+					negotiable: sanitize(formVehicle.price.negotiable)
+				},
+				comments: sanitize(formVehicle.comments),
+				photos: sessionVehicle.photos
 			};
-			action = request.path.split('/').slice(-1)[0];
-			if (action === 'add') {
-				locals.method = 'add';
-				locals.heading = 'Add Vehicle';
-				locals.buttonCaption = 'Register';
-				locals.vehicle = null;
-			} else if (action === 'edit') {
-				locals.method = 'edit';
-				locals.heading = 'Edit Vehicle';
-				locals.buttonCaption = 'Save Changes';
-				locals.vehicle = request.session.vehicle;
-			}
-			response.render('vehicles/registration-form', locals);
-		});
-	}
-}
 
-/**
- * Responds to HTTP POST /vehicle/add.
- *
- * @param		{object}		request     An HTTP request object received from the express.get() method.
- * @param		{object}		response    An HTTP response object received from the express.get() method.
- *
- * @returns	{undefined}
- */
-function addProfile(request, response) {
-
-	function instantiateVehicle(callback) {
-		var formVehicle, seller, vehicle;
-
-		seller = request.session.seller;
-		formVehicle = request.body.vehicle;
-		vehicle = new Vehicle({
-			market: sanitize(formVehicle.market),
-			type: {
-				make: sanitize(formVehicle.type.make),
-				model: sanitize(formVehicle.type.model),
-				year: sanitize(formVehicle.type.year)
-			},
-			description: {
-				mileage: sanitize(formVehicle.description.mileage),
-				color: sanitize(formVehicle.description.color),
-				fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory)
-			},
-			mechanics: {
-				engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
-				fuel: sanitize(formVehicle.mechanics.fuel),
-				transmission: sanitize(formVehicle.mechanics.transmission),
-				absBrakes: sanitize(formVehicle.absBrakes),
-				powerSteering: sanitize(formVehicle.mechanics.powerSteering)
-			},
-			luxuries: {
-				airConditioning: sanitize(formVehicle.luxuries.airConditioning),
-				electricWindows: sanitize(formVehicle.luxuries.electricWindows),
-				radio: sanitize(formVehicle.luxuries.radio),
-				cdPlayer: sanitize(formVehicle.luxuries.cdPlayer)
-			},
-			security: {
-				alarm: sanitize(formVehicle.security.alarm),
-				centralLocking: sanitize(formVehicle.security.centralLocking),
-				immobilizer: sanitize(formVehicle.security.immobilizer),
-				gearLock: sanitize(formVehicle.security.gearLock)
-			},
-			safety: {
-				airBags: sanitize(formVehicle.safety.airBags)
-			},
-			price: {
-				value: sanitize(formVehicle.price.value),
-				negotiable: sanitize(formVehicle.price.negotiable)
-			},
-			photos: [],
-			comments: sanitize(formVehicle.comments),
-			seller: seller._id
-		});
-
-		checkDirectory(vehicle, request.files, callback);
-	}
-
-	function insertVehicle(vehicle, callback) {
-		vehicle.save(function (err, vehicle) {
-			if (err) {
-				return callback(err);
-			}
-			return callback(null, vehicle);
-		});
-	}
-
-	function createVehicle(callback) {
-		instantiateVehicle(function (err, vehicle) {
-			if (err) {
-				return callback(err);
-			}
-			insertVehicle(vehicle, callback);
-		});
-	}
-
-	createVehicle(function (err, vehicle) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-			return;
+			checkDirectory(vehicle, request.files, callback);
 		}
-		response.redirect(302, path.join('/vehicle/view', vehicle._id.toString()));
-	});
-}
 
-/**
- * Responds to HTTP POST /vehicle/edit.
- *
- * @param		{object}		request     An HTTP request object received from the express.post() method.
- * @param		{object}		response    An HTTP response object received from the express.post() method.
- *
- * @returns	{undefined}
- */
-function editProfile(request, response) {
-	var formVehicle = request.body.vehicle;
-
-	function instantiateVehicle(callback) {
-		var sessionVehicle, vehicle;
-		sessionVehicle = request.session.vehicle;
-		vehicle = {
-			_id: sanitize(formVehicle._id),
-			market: sanitize(formVehicle.market),
-			type: {
-				make: sanitize(formVehicle.type.make),
-				model: sanitize(formVehicle.type.model),
-				year: sanitize(formVehicle.type.year)
-			},
-			description: {
-				mileage: sanitize(formVehicle.description.mileage),
-				color: sanitize(formVehicle.description.color),
-				fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory)
-			},
-			mechanics: {
-				engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
-				fuel: sanitize(formVehicle.mechanics.fuel),
-				transmission: sanitize(formVehicle.mechanics.transmission),
-				absBrakes: sanitize(formVehicle.absBrakes),
-				powerSteering: sanitize(formVehicle.mechanics.powerSteering)
-			},
-			luxuries: {
-				airConditioning: sanitize(formVehicle.luxuries.airConditioning),
-				electricWindows: sanitize(formVehicle.luxuries.electricWindows),
-				radio: sanitize(formVehicle.luxuries.radio),
-				cdPlayer: sanitize(formVehicle.luxuries.cdPlayer)
-			},
-			security: {
-				alarm: sanitize(formVehicle.security.alarm),
-				centralLocking: sanitize(formVehicle.security.centralLocking),
-				immobilizer: sanitize(formVehicle.security.immobilizer),
-				gearLock: sanitize(formVehicle.security.gearLock)
-			},
-			safety: {
-				airBags: sanitize(formVehicle.safety.airBags)
-			},
-			price: {
-				value: sanitize(formVehicle.price.value),
-				negotiable: sanitize(formVehicle.price.negotiable)
-			},
-			comments: sanitize(formVehicle.comments),
-			photos: sessionVehicle.photos
-		};
-
-		checkDirectory(vehicle, request.files, callback);
-	}
-
-	function updateVehicle(vehicle, callback) {
-		delete vehicle._id;
-		Vehicle.findByIdAndUpdate(formVehicle._id, {
-			$set: vehicle
-		}, function (err, vehicle) {
-			if (err) {
-				return callback(err);
-			}
-			return callback(null, vehicle);
-		});
-	}
-
-	function editVehicle(callback) {
-		instantiateVehicle(function (err, vehicle) {
-			if (err) {
-				return callback(err);
-			}
-			updateVehicle(vehicle, callback);
-		});
-	}
-
-	editVehicle(function (err, vehicle) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-		} else {
-			response.redirect(302, path.join('/vehicle/view/', vehicle._id.toString()));
-		}
-	});
-}
-
-/**
- * Responds to HTTP GET /vehicle/remove.
- *
- * @param		{object}		request     An HTTP request object received from the express.get() method.
- * @param		{object}		response    An HTTP response object received from the express.get() method.
- *
- * @returns	{undefined}
- */
-function removeProfile(request, response) {
-	// TODO Make sure that a seller is logged-in and the he is the seller of the vehicle.
-	var sessionVehicle;
-	sessionVehicle = request.session.vehicle;
-	Vehicle.findById(sessionVehicle._id, function (err, vehicle) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-		} else {
-			vehicle.remove(function (err) {
+		function updateVehicle(vehicle, callback) {
+			delete vehicle._id;
+			Vehicle.findByIdAndUpdate(formVehicle._id, {
+				$set: vehicle
+			}, function (err, vehicle) {
 				if (err) {
-					console.log(err);
-					main.showErrorPage(request, response);
-				} else {
-					listSellerVehicles(request, response);
+					return callback(err);
 				}
-
+				return callback(null, vehicle);
 			});
 		}
-	});
-}
 
-/**
- * Responds to HTTP GET /vehicle/view/:vehicleId.
- *
- * @param		{object}		request     An HTTP request object received from the express.get() method.
- * @param		{object}		response    An HTTP response object received from the express.get() method.
- *
- * @returns	{undefined}
- */
-function showProfile(request, response) {
-	var vehicleId = request.params.vehicleId.toString();
+		function editVehicle(callback) {
+			instantiateVehicle(function (err, vehicle) {
+				if (err) {
+					return callback(err);
+				}
+				updateVehicle(vehicle, callback);
+			});
+		}
 
-	function findSeller(sellerId, callback) {
-		PrivateSeller.findOne({account: sellerId}).populate('account').exec(function (err, seller) {
+		editVehicle(function (err, vehicle) {
 			if (err) {
-				return callback(err);
-			} else if (!seller) {
-				Dealership.findOne({account: sellerId}).populate('account').exec(function (err, seller) {
+				console.log(err);
+				main.showErrorPage(request, response);
+			} else {
+				response.redirect(302, path.join('/vehicle/view/', vehicle._id.toString()));
+			}
+		});
+	},
+	/**
+	* @summary Responds to HTTP GET /vehicle/remove.
+	*
+	* @param {object} request An HTTP request object received from the express.get() method.
+	* @param {object} response An HTTP response object received from the express.get() method.
+	*
+	* @returns {undefined}
+	*/
+	removeProfile: function (request, response) {
+		// TODO Make sure that a seller is logged-in and the he is the seller of the vehicle.
+		var sessionVehicle;
+		sessionVehicle = request.session.vehicle;
+		Vehicle.findById(sessionVehicle._id, function (err, vehicle) {
+			if (err) {
+				console.log(err);
+				main.showErrorPage(request, response);
+			} else {
+				vehicle.remove(function (err) {
 					if (err) {
-						return callback(err);
+						console.log(err);
+						main.showErrorPage(request, response);
 					} else {
-						seller.type = 'dealership';
-						return callback(null, seller);
+						listSellerVehicles(request, response);
+					}
+
+				});
+			}
+		});
+	},
+	/**
+	* @summary Responds to HTTP GET /vehicle/view/:vehicleId.
+	*
+	* @param {object} request An HTTP request object received from the express.get() method.
+	* @param {object} response An HTTP response object received from the express.get() method.
+	*
+	* @returns {undefined}
+	*/
+	showProfile: function (request, response) {
+		var vehicleId = request.params.vehicleId.toString();
+
+		function findSeller(sellerId, callback) {
+			PrivateSeller.findOne({account: sellerId}).populate('account').exec(function (err, seller) {
+				if (err) {
+					return callback(err);
+				} else if (!seller) {
+					Dealership.findOne({account: sellerId}).populate('account').exec(function (err, seller) {
+						if (err) {
+							return callback(err);
+						} else {
+							seller.type = 'dealership';
+							return callback(null, seller);
+						}
+					});
+				} else {
+					seller.type = 'private seller';
+					return callback(null, seller);
+				}
+			});
+		}
+
+		Vehicle.findById(vehicleId, function (err, vehicle) {
+			if (err) {
+				console.log(err);
+				main.showErrorPage(request, response);
+			} else {
+				request.session.vehicle = vehicle;
+				findSeller(vehicle.seller, function (err, seller) {
+					if (err) {
+						console.log(err);
+						main.showErrorPage(request, response);
+					} else {
+						if (request.session.seller) {
+							var isSameSeller = (request.session.seller._id == vehicle.seller);
+						} else {
+							var isSameSeller = false;
+						}
+						response.render('vehicles/profile-page', {
+							vehicle: vehicle,
+							seller: seller,
+							isSameSeller: isSameSeller,
+							loggedIn: request.session.seller ? true : false
+						});
 					}
 				});
+			}
+		});
+	},
+	/**
+	* @summary Responds to HTTP GET /vehicle/:vehicleId/photo/:photoId. Sends a photo to the browser.
+	*
+	* @param {object} request An HTTP request object received from the express.get() method.
+	* @param {object} response An HTTP response object received from the express.get() method.
+	*
+	* @returns {undefined}
+	*/
+	sendPhoto: function (request, response) {
+		response.sendfile(path.join(__dirname, '..', '..', 'uploads/img/vehicles',
+								request.params.vehicleId, request.params.photoId));
+	},
+	listSellerVehicles: function (request, response) {
+		var seller;
+
+		seller = request.session.seller;
+
+		Vehicle.find({seller: seller._id}, function (err, vehicles) {
+			if (err) {
+				console.log(err);
+				main.showErrorPage(request, response);
 			} else {
-				seller.type = 'private seller';
-				return callback(null, seller);
+				response.render('vehicles/list-seller-vehicles-page', {
+					loggedIn: true,
+					vehicles: vehicles
+				});
 			}
 		});
 	}
-
-	Vehicle.findById(vehicleId, function (err, vehicle) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-		} else {
-			request.session.vehicle = vehicle;
-			findSeller(vehicle.seller, function (err, seller) {
-				if (err) {
-					console.log(err);
-					main.showErrorPage(request, response);
-				} else {
-					if (request.session.seller) {
-						var isSameSeller = (request.session.seller._id == vehicle.seller);
-					} else {
-						var isSameSeller = false;
-					}
-					response.render('vehicles/profile-page', {
-						vehicle: vehicle,
-						seller: seller,
-						isSameSeller: isSameSeller,
-						loggedIn: request.session.seller ? true : false
-					});
-				}
-			});
-		}
-	});
-}
-
-/**
- * Responds to HTTP GET /vehicle/:vehicleId/photo/:photoId.
- *
- * @param		{object}		request     An HTTP request object received from the express.get() method.
- * @param		{object}		response    An HTTP response object received from the express.get() method.
- */
-function sendPhoto(request, response) {
-	response.sendfile(path.join(__dirname, '..', '..', 'uploads/img/vehicles',
-							request.params.vehicleId, request.params.photoId));
-}
-
-function listSellerVehicles(request, response) {
-	var seller;
-
-	seller = request.session.seller;
-
-	Vehicle.find({seller: seller._id}, function (err, vehicles) {
-		if (err) {
-			console.log(err);
-			main.showErrorPage(request, response);
-		} else {
-			response.render('vehicles/list-seller-vehicles-page', {
-				loggedIn: true,
-				vehicles: vehicles
-			});
-		}
-	});
-}
-
-module.exports = {
-	showRegistrationForm: showRegistrationForm,
-	addProfile: addProfile,
-	showProfile: showProfile,
-	editProfile: editProfile,
-	removeProfile: removeProfile,
-	sendPhoto: sendPhoto,
-	listSellerVehicles: listSellerVehicles
 };

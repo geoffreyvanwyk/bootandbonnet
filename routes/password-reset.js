@@ -40,7 +40,7 @@ var handleErrors = function (err, request, response) {
 				emailAlertType: 'error
 			});
 			break;
-		case 'The email address does not match the key. Please try again.':
+		case 'Key does not match hash of the email address. Please try again.':
 			password.showForgotForm(request, response, {
 				emailAddress: err.emailAddress,
 				message: err.message,
@@ -195,7 +195,7 @@ var password = module.exports = {
 			if (err) {
 				handleErrors(err, request, response);
 			} else if (!isMatch) {
-				var err = new Error('The email address does not match the key. Please try again.');
+				var err = new Error('Key does not match hash of the email address. Please try again.');
 				err.emailAddress = qryEmailAddress;
 				handleErrors(err, request, response);
 			} else {
