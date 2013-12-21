@@ -1,22 +1,30 @@
+/*jshint node: true*/
+
+'use strict';
+
 /**
- * Model: Lookups
- * 
- * File Name: lookups.js
- * 
+ * @file models/lookups.js
+ * @summary Component: Vehicle Registration.
+ * Mongoose Model: Lookups of Vehicle properties.
  */
 
-"use strict";
-
+/* Import external modules. */
 var mongoose = require('mongoose');
 
+/* Mongoose Model for lookups of vehicle properties. */
 var lookupSchema = mongoose.Schema({
-	colors: [String],
-	fuels: [String],
-	transmissions: [String]
+	colors: [{
+		type: String,
+		required: true
+	}],
+	fuels: [{
+		type: String,
+		required: true
+	}],
+	transmissions: [{
+		type: String,
+		required: true
+	}]
 });
 
-var Lookups = mongoose.model('Lookups', lookupSchema);
-
-module.exports = {
-	Lookups: Lookups
-};
+module.exports = mongoose.model('Lookups', lookupSchema);

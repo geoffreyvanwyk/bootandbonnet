@@ -4,7 +4,8 @@
 
 /**
  * @file models/vehicles.js
- * @summary Component: Vehicle Registration. Defines Mongoose model for vehicle objects.
+ * @summary Component: Vehicle Registration. 
+ * Mongoose Model: Vehicle objects.
  */
 
 /* Import external modules. */

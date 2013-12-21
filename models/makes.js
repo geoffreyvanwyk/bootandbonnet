@@ -4,19 +4,21 @@
 
 /**
  * @file models/makes.js
- * @summary Component: Vehicle Registration. Defines Mongoose model for make objects.
+ * @summary Component: Vehicle Registration. 
+ * Mongoose Model: Lookup of Vehicle Makes.
  */
 
 /* Import external modules. */
 var mongoose = require('mongoose');
 
 /* Import models. */
-var Vehicle = require('./vehicles').Vehicle;
+var Vehicle = require('./vehicles');
 
-/* Models for vehicle models. */
+/* Mongoose Model for vehicle models. */
 var modelSchema = mongoose.Schema({
 	name: {
-		type: String
+		type: String,
+		required: true
 	},
 	shape: {
 		type: String,
@@ -25,16 +27,12 @@ var modelSchema = mongoose.Schema({
 	photo: { // File path to image.
 		type: String,
 		default: 'unknown'
-	},
-	vehicles: [{
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'Vehicle'
-	}]
+	}
 });
 
 modelSchema.index({name: 1}, {unique: true});
 
-/* Make model. */
+/* Mongoose Model for vehicle makes. */
 var makeSchema = mongoose.Schema({
 	name: {
 		type: String,
