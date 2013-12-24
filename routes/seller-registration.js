@@ -291,10 +291,12 @@ var isLoggedIn = function (request, response) {
 		var specialError = new Error('You cannot add a new seller profile, because you are already logged-in.');
 		request.session.specialError = specialError;
 		handleErrors(specialError, request, response);
-		return false;
+		return true;
 	};
-	
-	return !request.session.seller || displayError();
+	if (request.session.seller) {
+		return displayError();
+	}
+	return false;
 };
 
 var sellers = module.exports = {
@@ -316,6 +318,7 @@ var sellers = module.exports = {
 	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
+	 * @param {object} specialError An object passed by the handleErrors function of routes/vehicle-registration.js.
 	 *
 	 * @returns {undefined}
 	 */
@@ -323,19 +326,43 @@ var sellers = module.exports = {
 		if (!isLoggedIn(request, response)) {
 			var frmUser = request.body.user;
 			var frmSeller = request.body.seller;
+			var sellerType = '';
+			
+			if (frmSeller) {
+				sellerType = frmSeller.dealershipName === '' ? 'privateSeller' : 'dealership';
+			}
 			
 			Province.find(function (err, provinces) {
 				if (err) {
 					handleErrors(err, request, response);
 				} else {
 					response.render('seller-registration-form', {
-						validationErrors: request.session.validationErrors,
+						/* The specialError is created if a user tries to register a vehicle without being logged-in. */
+						specialError: request.session.specialError || {
+							message: '',
+							alertDisplay: 'none'
+						},
+						validationErrors: request.session.validationErrors || {
+							emailError: '',
+							emailAlertType: '',
+							passwordError: '',
+							passwordAlertType: '',
+							firstnameError: '',
+							firstnameAlertType: '',
+							surnameError: '',
+							surnameAlertType: '',
+							contactNumbersError: '',
+							contactNumbersAlertDisplay: 'none',
+							provinceError: '',
+							provinceAlertType: '',
+							townError: '',
+							townAlertType: '', 
+							locationAlertDisplay: 'none'
+						},
 						provinces: provinces,
-						action: '/sellers/add',
+						action: '/seller/add',
 						heading: 'New Seller',
 						buttonCaption: 'Register',
-						privateRadioButtion: frmSeller && frmSeller.dealershipName === '' ? 'checked' : '',
-						dealerRadioButton: frmSeller && frmSeller.dealershipName !== '' ? 'checked' : '',
 						user: frmUser || {
 							emailAddress: '',
 							password: ''
@@ -354,9 +381,11 @@ var sellers = module.exports = {
 								province: ''
 							}
 						},
+						sellerType: sellerType, 
 						isLoggedIn: false 
 					}, function (err, html) {
 						request.session.validationErrors = null;
+						request.session.specialError = null;
 						if (err) {
 							handleErrors(err, request, response);
 						} else {
@@ -439,7 +468,7 @@ var sellers = module.exports = {
 				});
 			};
 
-			createSeller(function (err, user, seller) {
+			createUser(function (err, user, seller) {
 				if (err) {
 					handleErrors(err, request, response, user, sellers.showRegistrationForm);
 				} else {
@@ -449,7 +478,7 @@ var sellers = module.exports = {
 					};
 					request.session.seller = seller;
 					response.redirect(302, path.join('/seller', seller._id.toString(), 'view'));
-					verify.sendEmail(request, response);
+					verify.sendLink(request, response);
 				}
 			});
 		}
@@ -516,21 +545,46 @@ var sellers = module.exports = {
 			var frmSeller = request.body.seller;
 			var ssnUser = request.session.user;
 			var ssnSeller = request.session.seller;
-			var dealershipName = (frmSeller && frmSeller.dealershipName) || (ssnUser && ssnSeller.dealershipName);
+			var sellerType;
+			
+			if (frmSeller) {
+				sellerType = frmSeller.dealershipName === '' ? 'privateSeller' : 'dealership';
+			} else if (ssnSeller) {
+				sellerType = ssnSeller.dealershipName === '' ? 'privateSeller' : 'dealership';
+			}
 			Province.find(function (err, provinces) {
 				if (err) {
 					handleErrors(err, request, response);
 				} else {
 					response.render('seller-registration-form', {
-						validationErrors: request.session.validationErrors,
+						specialError: {
+							message: '',
+							alertDisplay: 'none'
+						},
+						validationErrors: request.session.validationErrors || {
+							emailError: '',
+							emailAlertType: '',
+							passwordError: '',
+							passwordAlertType: '',
+							firstnameError: '',
+							firstnameAlertType: '',
+							surnameError: '',
+							surnameAlertType: '',
+							contactNumbersError: '',
+							contactNumbersAlertDisplay: 'none',
+							provinceError: '',
+							provinceAlertType: '',
+							townError: '',
+							townAlertType: '', 
+							locationAlertDisplay: 'none'
+						},
 						provinces: provinces,
 						action: path.join('/seller', ssnSeller._id.toString(), 'edit'),
 						heading: 'Edit Seller',
 						buttonCaption: 'Edit',
-						privateRadioButtion: dealershipName === '' ? 'checked' : '',
-						dealerRadioButton: dealershipName !== '' ? 'checked' : '',
 						user: frmUser || ssnUser,
 						seller: frmUser || ssnSeller,
+						sellerType: sellerType,
 						isLoggedIn: true
 					}, function (err, html) {
 						request.session.validationErrors = null;
@@ -673,7 +727,7 @@ var sellers = module.exports = {
 				} else {
 					sellers.showProfile(request, response);
 					if (isEmailChanged) {
-						verify.sendEmail(request, response);
+						verify.sendLink(request, response);
 					}
 				}
 			});

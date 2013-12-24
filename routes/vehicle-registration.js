@@ -28,6 +28,40 @@ var Vehicle = require('../models/vehicles');
 /* Import routes. */
 var main = require('./main');
 
+/**
+ * @summary Handles all the errors in this module.
+ * 
+ * @param {object} err An error object.
+ * 
+ * @param {object} request An HTTP request object received from the express.get() method.
+ * @param {object} response An HTTP response object received from the express.get() method.
+ *
+ * @returns {undefined}
+ */
+var handleErrors = function (err, request, response) {
+	console.log('==================== BEGIN ERROR MESSAGE ====================');
+	console.log(err);
+	console.log('==================== END ERROR MESSAGE ======================');
+	
+	switch (err.message) {
+		case 'A vehicle with the requested id does not exist.':
+			request.session.specialError = err.message;
+			main.showErrorPage(request, response);
+			break;
+		case 'A seller with the requested id does not exist.':
+			request.session.specialError = err.message;
+			main.showErrorPage(request, response);
+			break;
+		case 'A user with the requested id does not exist.':
+			request.session.specialError = err.message;
+			main.showErrorPage(request, response);
+			break;
+		default:
+			main.showErrorPage(request, response);
+			break;
+	}
+};
+
 /* Helper functions */
 var movePhotos = function (vehicle, files, vehicleDir, webDir, callback) {
 	var counter, file, newPath, oldPath, photos;
@@ -74,10 +108,8 @@ var makeDirectory = function (vehicle, files, vehicleDir, webDir, callback) {
 };
 
 var checkDirectory = function (vehicle, files, callback) {
-	var vehicleDir, webDir;
-
-	webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
-	vehicleDir = path.join(__dirname, '..', '..', webDir);
+	var webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
+	var vehicleDir = path.join(__dirname, '..', webDir);
 
 	fs.exists(vehicleDir, function (exists) {
 		if (exists) {
@@ -88,22 +120,67 @@ var checkDirectory = function (vehicle, files, callback) {
 	});
 };
 
-var getMakes = function (lookups, callback) {
+var getMakes = function (vehicle, lookups, callback) {
 	Make.find(function (err, makes) {
 		if (err) {
 			return callback(err);
 		}
-		return callback(null, makes, lookups);
+		return callback(null, vehicle, makes, lookups);
 	});
 };
 
-var getLookups = function (callback) {
+var getLookups = function (vehicle, callback) {
 	Lookups.find(function (err, lookups) {
 		if (err) {
 			return callback(err);
 		}
-		getMakes(lookups, callback);
+		getMakes(vehicle, lookups, callback);
 	});
+};
+
+/**
+ * @summary Handles all the errors in this module.
+ * 
+ * @param {object} err An Error object.
+ * @param {object} request An HTTP request object received from the express.get() method.
+ * @param {object} response An HTTP response object received from the express.get() method.
+ * 
+ * @returns {undefined}
+ */
+var handleErrors = function (err, request, response) {
+	console.log('==================== BEGIN ERROR MESSAGE ====================');
+	console.log(err);
+	console.log('==================== END ERROR MESSAGE ======================');
+	
+	switch (err.message) {
+		case 'You have to be registered as a seller, and logged-in to add a vehicle profile.':
+			seller.showRegistrationForm(request, response, {
+				message: err.message,
+				alertDisplay: ''
+			});
+			break;
+		default:
+			main.showErrorPage(request, response);
+			break;
+	};
+};
+
+/**
+ * @summary Returns true, if a seller is logged-in; otherwise, it displays an error message, then returns false.
+ *  
+ * @param {object} request An HTTP request object received from the express.get() or express.post() method.
+ * @param {object} response An HTTP response object received from the express.get() or express.post() method.
+ *  
+ * @returns {boolean}
+ */
+var isLoggedIn = function (request, response) {
+	var displayError = function () {
+		var specialError = new Error('You have to be registered as a seller, and logged-in to add a vehicle profile.');
+		handleErrors(specialError, request, response);
+		return false;
+	};
+	
+	return !!request.session.seller || displayError();
 };
 
 /* Routes */
@@ -120,35 +197,75 @@ var vehicles = module.exports = {
 	 * @returns	{undefined}
 	 */
 	showRegistrationForm: function (request, response) {
-		var isLoggedIn, locals;
+		if (isLoggedIn(request, response)) {
+			var currentDateObject = new Date(Date.now());
 
-		isLoggedIn = !!request.session.seller;
-		if (isSellerLoggedIn) {
-			getLookups(function (err, makes, lookups) {
+			getLookups(null, function (err, vehilce, makes, lookups) {
 				if (err) {
-					console.log(err);
-					main.showErrorPage(request, response);
-					return;
+					handleErrors(err, request, response);
+				} else {
+					response.render('vehicle-registration-form', {
+						method: 'add',
+						heading:  'Add Vehicle',
+						buttonCaption: 'Register',
+						seller: request.session.seller,
+						vehicle: {
+							_id: '',
+							market: '',
+							type: {
+								make: '',
+								model: '',
+								year: ''
+							},
+							description: {
+								mileage: '',
+								color: '',
+								fullServiceHistory: ''
+							},
+							mechanics: {
+								engineCapacity: '',
+								fuel: '',
+								transmission: '',
+								absBrakes: '',
+								powerSteering: ''
+							},
+							luxuries: {
+								airConditioning: '',
+								electricWindows: '',
+								radio: '',
+								cdPlayer: ''
+							},
+							security: {
+								alarm: '',
+								centralLocking: '',
+								immobilizer: '',
+								gearLock: ''
+							},
+							safety: {
+								airBags: ''
+							},
+							price: {
+								value: '',
+								negotiable: ''
+							},
+							photos: [
+								"/static/img/image-placeholder.png",
+								"/static/img/image-placeholder.png",
+								"/static/img/image-placeholder.png",
+								"/static/img/image-placeholder.png"
+							],
+							comments: '',
+							seller: ''
+						},
+						makes: makes,
+						manufacturersString: JSON.stringify(makes),
+						colors: lookups[0].colors,
+						fuels: lookups[0].fuels,
+						transmissions: lookups[0].transmissions,
+						thisYear: currentDateObject.getFullYear(),
+						isLoggedIn: true
+					});
 				}
-				locals = {
-					makes: makes,
-					colors: lookups[0].colors,
-					fuels: lookups[0].fuels,
-					transmissions: lookups[0].transmissions,
-					loggedIn: true
-				};
-				if (action === 'add') {
-					locals.method = 'add';
-					locals.heading = 'Add Vehicle';
-					locals.buttonCaption = 'Register';
-					locals.vehicle = null;
-				} else if (action === 'edit') {
-					locals.method = 'edit';
-					locals.heading = 'Edit Vehicle';
-					locals.buttonCaption = 'Save Changes';
-					locals.vehicle = request.session.vehicle;
-				}
-				response.render('vehicles/registration-form', locals);
 			});
 		}
 	},
@@ -161,87 +278,271 @@ var vehicles = module.exports = {
 	 * @returns	{undefined}
 	 */
 	addProfile: function (request, response) {
+		if (isLoggedIn(request, response)) {
+			var instantiateVehicle = function (callback) {
+				var seller = request.session.seller;
+				var frmVehicle = request.body.vehicle;
+				
+				var vehicle = new Vehicle({
+					market: sanitize(frmVehicle.market),
+					type: {
+						make: sanitize(frmVehicle.type.make),
+						model: sanitize(frmVehicle.type.model),
+						year: sanitize(frmVehicle.type.year)
+					},
+					description: {
+						mileage: sanitize(frmVehicle.description.mileage),
+						color: sanitize(frmVehicle.description.color),
+						fullServiceHistory: sanitize(frmVehicle.description.fullServiceHistory)
+					},
+					mechanics: {
+						engineCapacity: sanitize(frmVehicle.mechanics.engineCapacity),
+						fuel: sanitize(frmVehicle.mechanics.fuel),
+						transmission: sanitize(frmVehicle.mechanics.transmission),
+						absBrakes: sanitize(frmVehicle.absBrakes),
+						powerSteering: sanitize(frmVehicle.mechanics.powerSteering)
+					},
+					luxuries: {
+						airConditioning: sanitize(frmVehicle.luxuries.airConditioning),
+						electricWindows: sanitize(frmVehicle.luxuries.electricWindows),
+						radio: sanitize(frmVehicle.luxuries.radio),
+						cdPlayer: sanitize(frmVehicle.luxuries.cdPlayer)
+					},
+					security: {
+						alarm: sanitize(frmVehicle.security.alarm),
+						centralLocking: sanitize(frmVehicle.security.centralLocking),
+						immobilizer: sanitize(frmVehicle.security.immobilizer),
+						gearLock: sanitize(frmVehicle.security.gearLock)
+					},
+					safety: {
+						airBags: sanitize(frmVehicle.safety.airBags)
+					},
+					price: {
+						value: sanitize(frmVehicle.price.value),
+						negotiable: sanitize(frmVehicle.price.negotiable)
+					},
+					photos: [],
+					comments: sanitize(frmVehicle.comments),
+					seller: seller._id
+				});
 
-		function instantiateVehicle(callback) {
-			var formVehicle, seller, vehicle;
-
-			seller = request.session.seller;
-			formVehicle = request.body.vehicle;
-			vehicle = new Vehicle({
-				market: sanitize(formVehicle.market),
-				type: {
-					make: sanitize(formVehicle.type.make),
-					model: sanitize(formVehicle.type.model),
-					year: sanitize(formVehicle.type.year)
-				},
-				description: {
-					mileage: sanitize(formVehicle.description.mileage),
-					color: sanitize(formVehicle.description.color),
-					fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory)
-				},
-				mechanics: {
-					engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
-					fuel: sanitize(formVehicle.mechanics.fuel),
-					transmission: sanitize(formVehicle.mechanics.transmission),
-					absBrakes: sanitize(formVehicle.absBrakes),
-					powerSteering: sanitize(formVehicle.mechanics.powerSteering)
-				},
-				luxuries: {
-					airConditioning: sanitize(formVehicle.luxuries.airConditioning),
-					electricWindows: sanitize(formVehicle.luxuries.electricWindows),
-					radio: sanitize(formVehicle.luxuries.radio),
-					cdPlayer: sanitize(formVehicle.luxuries.cdPlayer)
-				},
-				security: {
-					alarm: sanitize(formVehicle.security.alarm),
-					centralLocking: sanitize(formVehicle.security.centralLocking),
-					immobilizer: sanitize(formVehicle.security.immobilizer),
-					gearLock: sanitize(formVehicle.security.gearLock)
-				},
-				safety: {
-					airBags: sanitize(formVehicle.safety.airBags)
-				},
-				price: {
-					value: sanitize(formVehicle.price.value),
-					negotiable: sanitize(formVehicle.price.negotiable)
-				},
-				photos: [],
-				comments: sanitize(formVehicle.comments),
-				seller: seller._id
-			});
-
-			checkDirectory(vehicle, request.files, callback);
-		}
-
-		function insertVehicle(vehicle, callback) {
-			vehicle.save(function (err, vehicle) {
-				if (err) {
-					return callback(err);
-				}
-				return callback(null, vehicle);
-			});
-		}
-
-		function createVehicle(callback) {
-			instantiateVehicle(function (err, vehicle) {
-				if (err) {
-					return callback(err);
-				}
-				insertVehicle(vehicle, callback);
-			});
-		}
-
-		createVehicle(function (err, vehicle) {
-			if (err) {
-				console.log(err);
-				main.showErrorPage(request, response);
-				return;
+				checkDirectory(vehicle, request.files, callback);
 			}
-			response.redirect(302, path.join('/vehicle/view', vehicle._id.toString()));
+
+			var insertVehicle = function (vehicle, callback) {
+				vehicle.save(function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					}
+					return callback(null, vehicle);
+				});
+			}
+
+			var createVehicle = function (callback) {
+				instantiateVehicle(function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					}
+					insertVehicle(vehicle, callback);
+				});
+			}
+
+			createVehicle(function (err, vehicle) {
+				if (err) {
+					handleErrors(err, request, response);
+				} else {
+					response.redirect(302, path.join('/vehicle', vehicle._id.toString(), 'view'));
+				}
+			});
+		}
+	},
+	/**
+	* @summary Responds to HTTP GET /vehicles/:vehicleId/view. Displays the views/vehicle-profile-page.ejs.
+	* 
+	* @description Precondions:
+	* (1) The vehicle's advertisement period has not expired. OR
+	* (2) The user is the owner of the vehicle. 
+	* 
+	* Postconditions:
+	* (1) If a seller is logged-in, and the vehicle belongs to him/her, edit and delete buttons should also be 
+	* displayed.
+	* 
+	* Algorithm:
+	* (1) The vehicle referenced by the id in the url (:vehicleId) is first retrieved from the database.
+	* (2) Then the seller who owns the vehicle is retrieved from the database,based on the vehicle's seller property.
+	* (3) Then the user associated with the seller is retrieved from the database, based on the seller's user property.
+	* 
+	* The seller needs to be retrieved to display the seller's contact numbers and address. The user needs to be 
+	* retrieved, because the email address is necessary for the contact form.
+	* 
+	* Error handling:
+	* (1) If a vehicle's advertisement period has expired, and the user is not the owner, an error message should be 
+	* displayed (function handleErrors).
+	* (2) All errors are handled by the handleErrors function.
+	*
+	* @param {object} request An HTTP request object received from the express.get() method.
+	* @param {object} response An HTTP response object received from the express.get() method.
+	*
+	* @returns {undefined}
+	*/
+	showProfile: function (request, response) {
+		
+		var findUser = function (vehicle, seller, callback) {
+			User.findById(seller.user, function (err, user) {
+				if (err) {
+					return callback(err);
+				}
+				if (!user) {
+					var error = new Error('A user with the requested id does not exist.');
+					return callback(error);
+				}
+				return callback(null, vehicle, seller, user);
+			});
+		};
+		
+		var findSeller = function (vehicle, callback) {
+			Seller.findById(vehicle.seller, function (err, seller) {
+				if (err) {
+					return callback(err);
+				}
+				if (!seller) {
+					var error = new Error('A seller with the requested id does not exist.');
+					return callback(error);
+				}
+				findUser(vehicle, seller, callback);
+			});
+		};
+
+		var findVehicle = function (callback) {
+			Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
+				if (err) {
+					return callback(err);
+				} 
+				if (!vehicle) {
+					var error = new Error('A vehicle with the requested id does not exist.');
+					return callback(error);
+				}
+				findSeller(vehicle, callback);
+			});
+		}
+
+		findVehicle(function (err, vehicle, seller, user) {
+			if (err) {
+				handleErrors(err, request, response);
+			} else {
+				var isOwnVehicle = request.session.seller && request.session.seller._id == vehicle.seller;
+				response.render('vehicle-profile-page', {
+					vehicle: vehicle,
+					seller: seller,
+					user: user,
+					dealerDisplay: seller.dealershipName === '' ? 'none' : '',
+					privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
+					formActionsDisplay: isOwnVehicle ? '' : 'none',
+					isLoggedIn: !!request.session.seller 
+				});
+			}
 		});
 	},
 	/**
-	* @summary Responds to HTTP POST /vehicle/edit.
+	 * @summary Responds to HTTP GET /seller/:sellerId/vehicle/:vehicleId/edit. Displays 
+	 * views/vehicle-registration-form.ejs with the requested vehicle's details prefilled.
+	 *
+	 * @description Preconditions:
+	 * (1) A seller has to be logged-in.
+	 * (2) The vehicle requested for editing has to be owned by the logged-in seller.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns	{undefined}
+	 */
+	showEditForm: function (request, response) {
+		if (isAuthorizedTo('edit', request, response)) {
+			var currentDateObject = new Date(Date.now());
+			
+			var getVehicle = function (vehicleId, callback) {
+				Vehicle.findById(vehicleId, function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					} 
+					if (!vehicle) {
+						var error = new Error('No vehicle with that id exists.');
+						return callback(err);
+					}
+					getLookups(vehicle, callback);
+				});
+			};
+			
+			getVehicle(request.params.vehicleId, function (err, vehicle, makes, lookups) {
+				if (err) {
+					handleErrors(err, request, response);
+				} else {
+					response.render('vehicles/registration-form', {
+						method: 'edit',
+						heading:  'Edit Vehicle',
+						buttonCaption: 'Save Changes',
+						vehicle: vehicle || {
+							_id: '',
+							market: '',
+							type: {
+								make: '',
+								model: '',
+								year: ''
+							},
+							description: {
+								mileage: '',
+								color: '',
+								fullServiceHistory: ''
+							},
+							mechanics: {
+								engineCapacity: '',
+								fuel: '',
+								transmission: '',
+								absBrakes: '',
+								powerSteering: ''
+							},
+							luxuries: {
+								airConditioning: '',
+								electricWindows: '',
+								radio: '',
+								cdPlayer: ''
+							},
+							security: {
+								alarm: '',
+								centralLocking: '',
+								immobilizer: '',
+								gearLock: ''
+							},
+							safety: {
+								airBags: ''
+							},
+							price: {
+								value: '',
+								negotiable: ''
+							},
+							photos: [
+								"/static/img/image-placeholder.png",
+								"/static/img/image-placeholder.png",
+								"/static/img/image-placeholder.png",
+								"/static/img/image-placeholder.png"
+							],
+							comments: '',
+							seller: ''
+						},
+						makes: makes,
+						manufacturersString: JSON.stringify(makes),
+						colors: lookups[0].colors,
+						fuels: lookups[0].fuels,
+						transmissions: lookups[0].transmissions,
+						thisYear: currentDateObject.getFullYear(),
+						loggedIn: true
+					});
+				}
+			});
+		}
+	},
+	/**
+	* @summary Responds to HTTP POST /seller/:sellerId/vehicle/:vehicleId/edit.
 	*
 	* @param {object} request An HTTP request object received from the express.post() method.
 	* @param {object} response An HTTP response object received from the express.post() method.
@@ -249,86 +550,96 @@ var vehicles = module.exports = {
 	* @returns {undefined}
 	*/
 	editProfile: function (request, response) {
-		var formVehicle = request.body.vehicle;
-
-		function instantiateVehicle(callback) {
-			var sessionVehicle, vehicle;
-			sessionVehicle = request.session.vehicle;
-			vehicle = {
-				_id: sanitize(formVehicle._id),
-				market: sanitize(formVehicle.market),
-				type: {
-					make: sanitize(formVehicle.type.make),
-					model: sanitize(formVehicle.type.model),
-					year: sanitize(formVehicle.type.year)
-				},
-				description: {
-					mileage: sanitize(formVehicle.description.mileage),
-					color: sanitize(formVehicle.description.color),
-					fullServiceHistory: sanitize(formVehicle.description.fullServiceHistory)
-				},
-				mechanics: {
-					engineCapacity: sanitize(formVehicle.mechanics.engineCapacity),
-					fuel: sanitize(formVehicle.mechanics.fuel),
-					transmission: sanitize(formVehicle.mechanics.transmission),
-					absBrakes: sanitize(formVehicle.absBrakes),
-					powerSteering: sanitize(formVehicle.mechanics.powerSteering)
-				},
-				luxuries: {
-					airConditioning: sanitize(formVehicle.luxuries.airConditioning),
-					electricWindows: sanitize(formVehicle.luxuries.electricWindows),
-					radio: sanitize(formVehicle.luxuries.radio),
-					cdPlayer: sanitize(formVehicle.luxuries.cdPlayer)
-				},
-				security: {
-					alarm: sanitize(formVehicle.security.alarm),
-					centralLocking: sanitize(formVehicle.security.centralLocking),
-					immobilizer: sanitize(formVehicle.security.immobilizer),
-					gearLock: sanitize(formVehicle.security.gearLock)
-				},
-				safety: {
-					airBags: sanitize(formVehicle.safety.airBags)
-				},
-				price: {
-					value: sanitize(formVehicle.price.value),
-					negotiable: sanitize(formVehicle.price.negotiable)
-				},
-				comments: sanitize(formVehicle.comments),
-				photos: sessionVehicle.photos
-			};
-
-			checkDirectory(vehicle, request.files, callback);
-		}
-
-		function updateVehicle(vehicle, callback) {
-			delete vehicle._id;
-			Vehicle.findByIdAndUpdate(formVehicle._id, {
-				$set: vehicle
-			}, function (err, vehicle) {
-				if (err) {
-					return callback(err);
-				}
-				return callback(null, vehicle);
-			});
-		}
-
-		function editVehicle(callback) {
-			instantiateVehicle(function (err, vehicle) {
-				if (err) {
-					return callback(err);
-				}
-				updateVehicle(vehicle, callback);
-			});
-		}
-
-		editVehicle(function (err, vehicle) {
-			if (err) {
-				console.log(err);
-				main.showErrorPage(request, response);
-			} else {
-				response.redirect(302, path.join('/vehicle/view/', vehicle._id.toString()));
+		if (isAuthorizedTo('edit', request, response)) {
+			var frmVehicle = request.body.vehicle;
+			
+			var instantiateVehicle = function (callback) {
+				Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					}
+					if (!vehicle) {
+						var error = new Error('No vehicle with that id exists.');
+						return callback(err);
+					}
+					var updateVehicle = {
+						_id: sanitize(frmVehicle._id),
+						market: sanitize(frmVehicle.market),
+						type: {
+							make: sanitize(frmVehicle.type.make),
+							model: sanitize(frmVehicle.type.model),
+							year: sanitize(frmVehicle.type.year)
+						},
+						description: {
+							mileage: sanitize(frmVehicle.description.mileage),
+							color: sanitize(frmVehicle.description.color),
+							fullServiceHistory: sanitize(frmVehicle.description.fullServiceHistory)
+						},
+						mechanics: {
+							engineCapacity: sanitize(frmVehicle.mechanics.engineCapacity),
+							fuel: sanitize(frmVehicle.mechanics.fuel),
+							transmission: sanitize(frmVehicle.mechanics.transmission),
+							absBrakes: sanitize(frmVehicle.absBrakes),
+							powerSteering: sanitize(frmVehicle.mechanics.powerSteering)
+						},
+						luxuries: {
+							airConditioning: sanitize(frmVehicle.luxuries.airConditioning),
+							electricWindows: sanitize(frmVehicle.luxuries.electricWindows),
+							radio: sanitize(frmVehicle.luxuries.radio),
+							cdPlayer: sanitize(frmVehicle.luxuries.cdPlayer)
+						},
+						security: {
+							alarm: sanitize(frmVehicle.security.alarm),
+							centralLocking: sanitize(frmVehicle.security.centralLocking),
+							immobilizer: sanitize(frmVehicle.security.immobilizer),
+							gearLock: sanitize(frmVehicle.security.gearLock)
+						},
+						safety: {
+							airBags: sanitize(frmVehicle.safety.airBags)
+						},
+						price: {
+							value: sanitize(frmVehicle.price.value),
+							negotiable: sanitize(frmVehicle.price.negotiable)
+						},
+						comments: sanitize(frmVehicle.comments),
+						photos: vehicle.photos
+					};
+					checkDirectory(updateVehicle, request.files, callback);
+				});
 			}
-		});
+
+			var updateVehicle = function (vehicle, callback) {
+				delete vehicle._id;
+				Vehicle.findByIdAndUpdate(frmVehicle._id, {
+					$set: vehicle
+				}, function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					}
+					return callback(null, vehicle);
+				});
+			}
+
+			var editVehicle = function (callback) {
+				getVehicle(request.params.vehicleId, function (err, vehicle) {
+					
+				});
+				instantiateVehicle(function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					}
+					updateVehicle(vehicle, callback);
+				});
+			}
+
+			editVehicle(function (err, vehicle) {
+				if (err) {
+					handleErrors(err, request, response);
+				} else {
+					response.redirect(302, path.join('/vehicle/view/', vehicle._id.toString()));
+				}
+			});
+		}
 	},
 	/**
 	* @summary Responds to HTTP GET /vehicle/remove.
@@ -340,9 +651,9 @@ var vehicles = module.exports = {
 	*/
 	removeProfile: function (request, response) {
 		// TODO Make sure that a seller is logged-in and the he is the seller of the vehicle.
-		var sessionVehicle;
-		sessionVehicle = request.session.vehicle;
-		Vehicle.findById(sessionVehicle._id, function (err, vehicle) {
+		var ssnVehicle;
+		ssnVehicle = request.session.vehicle;
+		Vehicle.findById(ssnVehicle._id, function (err, vehicle) {
 			if (err) {
 				console.log(err);
 				main.showErrorPage(request, response);
@@ -355,64 +666,6 @@ var vehicles = module.exports = {
 						listSellerVehicles(request, response);
 					}
 
-				});
-			}
-		});
-	},
-	/**
-	* @summary Responds to HTTP GET /vehicle/view/:vehicleId.
-	*
-	* @param {object} request An HTTP request object received from the express.get() method.
-	* @param {object} response An HTTP response object received from the express.get() method.
-	*
-	* @returns {undefined}
-	*/
-	showProfile: function (request, response) {
-		var vehicleId = request.params.vehicleId.toString();
-
-		function findSeller(sellerId, callback) {
-			PrivateSeller.findOne({account: sellerId}).populate('account').exec(function (err, seller) {
-				if (err) {
-					return callback(err);
-				} else if (!seller) {
-					Dealership.findOne({account: sellerId}).populate('account').exec(function (err, seller) {
-						if (err) {
-							return callback(err);
-						} else {
-							seller.type = 'dealership';
-							return callback(null, seller);
-						}
-					});
-				} else {
-					seller.type = 'private seller';
-					return callback(null, seller);
-				}
-			});
-		}
-
-		Vehicle.findById(vehicleId, function (err, vehicle) {
-			if (err) {
-				console.log(err);
-				main.showErrorPage(request, response);
-			} else {
-				request.session.vehicle = vehicle;
-				findSeller(vehicle.seller, function (err, seller) {
-					if (err) {
-						console.log(err);
-						main.showErrorPage(request, response);
-					} else {
-						if (request.session.seller) {
-							var isSameSeller = (request.session.seller._id == vehicle.seller);
-						} else {
-							var isSameSeller = false;
-						}
-						response.render('vehicles/profile-page', {
-							vehicle: vehicle,
-							seller: seller,
-							isSameSeller: isSameSeller,
-							loggedIn: request.session.seller ? true : false
-						});
-					}
 				});
 			}
 		});
@@ -439,8 +692,9 @@ var vehicles = module.exports = {
 				console.log(err);
 				main.showErrorPage(request, response);
 			} else {
-				response.render('vehicles/list-seller-vehicles-page', {
-					loggedIn: true,
+				response.render('list-seller-vehicles-page', {
+					seller: request.session.seller,
+					isLoggedIn: true,
 					vehicles: vehicles
 				});
 			}

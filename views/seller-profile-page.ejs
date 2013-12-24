@@ -1,4 +1,4 @@
-<% layout('../../views/layout') -%>
+<% layout('../views/layout') -%>
 
 <h2>My Profile</h2>
 
@@ -20,9 +20,7 @@
 				<% for (var i = 0; i < seller.contactNumbers.length; i++) { %>
 					<p><i class="icon-home"></i>&nbsp; <%=seller.contactNumbers[i]%></p>
 				<% } %>
-			</div>
 				</div>
-
 			</div>
 		</div>
     </fieldset>
@@ -43,8 +41,8 @@
 		</div>
     </fieldset>
     <div class="form-actions">
-		<a href="/seller/edit" class="btn">Edit</a>
+		<a href="/seller/<%=seller._id%>/edit" class="btn">Edit</a>
 		<button class="btn btn-link">Delete</button>
-		<a href="/vehicle/add" class="btn btn-primary pull-right">Advertise a Vehicle</a>
+		<a href="/seller/<%=seller._id%>/vehicle/add" class="btn btn-primary pull-right">Advertise a Vehicle</a>
     </div>
 </form>

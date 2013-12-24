@@ -1,5 +1,5 @@
-<% layout('../../views/layout') -%>
-<% script('../../static/js/vehicles/list-seller-vehicles-page.js') -%>
+<% layout('../views/layout') -%>
+<% script('../../static/js/list-seller-vehicles-page.js') -%>
 
 <div class="row">
 	<div class="span6">
@@ -35,7 +35,7 @@
 				<% } else  { %>
 				<td><%=vehicle[i].expiryDate %></td>
 				<% } %>
-				<td><a href="/vehicle/view/<%=vehicles[i]._id%>">View</a></td>
+				<td><a href="/seller/<%=seller._id%>/vehicle/<%=vehicles[i]._id%>/view">View</a></td>
 			</tr>
 			<% } %>
 		</tbody>

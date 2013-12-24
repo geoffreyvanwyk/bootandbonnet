@@ -25,28 +25,28 @@ var main = require('../routes/main');
  *
  * @returns {undefined}
  */
-var handleErrors = function (err, user) {
+var handleErrors = function (err, user, request, response) {
 	console.log('==================== BEGIN ERROR MESSAGE ====================');
 	console.log(err);
 	console.log('==================== END ERROR MESSAGE ======================');
-	if (err.user) {
-		loginErrors = {
-			emailAddress: err.user.emailAddress,
-			emailError: '',
-			emailAlertType: 'error',
-			password: err.user.password,
-			passwordError: '',
-			passwordAlertType: 'error'
-		};
-	}
+	
+	request.session.loginErrors = {
+		emailAddress: err.user && err.user.emailAddress,
+		emailError: '',
+		emailAlertType: 'error',
+		password: err.user && err.user.password,
+		passwordError: '',
+		passwordAlertType: 'error'
+	};
+	
 	switch (err.message) {
 		case 'The email address has not been registered.':
-			loginErrors.emailError = err.message;
-			login.showForm(request, response, loginErrors);
+			request.session.loginErrors.emailError = err.message;
+			login.showForm(request, response);
 			break;
 		case 'The password is wrong.':
-			loginErrors.passwordError = err.message;
-			login.showForm(request, response, loginErrors);
+			request.session.loginErrors.passwordError = err.message;
+			login.showForm(request, response);
 			break;
 		case 'You are already logged-in':
 			request.session.specialError = err.message;
@@ -67,12 +67,16 @@ var handleErrors = function (err, user) {
  * @returns {boolean}
  */
 var isLoggedIn = function (request, response) {
+	console.log('Starting isLoggedIn.');
 	var displayError = function () {
 		handleErrors(new Error('You are already logged-in.'), request, response);
-		return false;
+		return true;
+	};
+	if (request.session.user) {
+		return displayError();
 	}
-	return !!request.session.user || displayError();
-}
+	return false;
+};
 
 var login = module.exports = {
 	/**
@@ -107,10 +111,10 @@ var login = module.exports = {
 	 *
 	 * @returns {undefined}
 	 */
-	showForm: function (request, response, loginErrors, isPasswordReset) {
+	showForm: function (request, response) {
 		if (!isLoggedIn(request, response)) {
 			response.render('login-form', {
-				loginErrors: loginErrors || {
+				loginErrors: request.session.loginErrors || {
 					emailAddress: '',
 					emailError: '',
 					emailAlertType: '',
@@ -118,7 +122,7 @@ var login = module.exports = {
 					passwordError: '',
 					passwordAlertType: ''
 				},
-				resetDisplay: isPasswordReset ? '' : 'none',
+				resetDisplay: request.session.isPasswordReset ? '' : 'none',
 				isLoggedIn: false
 			});
 		}
@@ -159,7 +163,7 @@ var login = module.exports = {
 	 * @returns {undefined}
 	 */
 	authenticate: function (request, response) {
-		if (isLoggedIn(request, response)) {
+		if (!isLoggedIn(request, response)) {
 			/* User object consisting of the email address and password entered into the login-form. */
 			var frmUser = request.body.user;
 
@@ -183,13 +187,12 @@ var login = module.exports = {
 					if (err) {
 						return callback(err);
 					}
-					if (isMatch) {
-						findSeller(user, callback);
-					} else {
-						var err = new Error('The password is wrong.');
-						err.user = frmUser;
-						return callback(err);
+					if (!isMatch) {
+						var error = new Error('The password is wrong.');
+						error.user = frmUser;
+						return callback(error);
 					}
+					findSeller(user, callback);
 				});
 			};
 
@@ -199,9 +202,9 @@ var login = module.exports = {
 						return callback(err);
 					}
 					if (!user) {
-						var err = new Error('The email address has not been registered.');
-						err.user = frmUser;
-						return callback(err);
+						var error = new Error('The email address has not been registered.');
+						error.user = frmUser;
+						return callback(error);
 					}
 					comparePassword(user, callback);
 				});

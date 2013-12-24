@@ -123,58 +123,47 @@ window.onload = function() {
 		}
 	});
 			
-	var privateSellerOption = document.getElementById("privateSeller");
-	var dealershipOption = document.getElementById("dealership");
-
 	var isSellerTypeProvided = function () {
-		return (privateSellerOption.checked || dealershipOption.checked);
+		return $('#privateSeller').is(':checked') || $('#dealership').is(':checked');
 	};
 
-	/**
+	/*
 	 * The sellerType element is a hidden input element. Its value is an empty string
 	 * when a new user registers.
 	 */
-	var sellerType = document.getElementById("sellerType").value;
-
-	switch (sellerType) {
+	switch ($('#sellerType').val()) {
 		case 'privateSeller':
-			privateSellerOption.checked = true;
+			$('#privateSeller').attr('checked', 'checked');
 			break;
 		case 'dealership':
-			dealershipOption.checked = true;
+			$('#dealership').attr('checked', 'checked');
 			break;
 	}
-
-	var dealerOrLocationLegend = document.getElementById("dealerOrLocation");
-	var leftColumn = document.getElementById("leftColumn");
-	var rightColumn = document.getElementById("rightColumn");
-	var provincesDiv = document.getElementById("provincesDiv");
-	var townsDiv = document.getElementById("townsDiv");
 
 	/**
 	 * Show or hide the fields required for a dealership depending on the seller type.
 	 */
-	privateSellerOption.onchange = function() {
-		if (this.checked) {
-			dealerOrLocationLegend.textContent = "Location";
-			document.getElementById("dealershipDetails").style.display = "none";
-			document.getElementById("dealershipName").required = false;
-			document.getElementById("streetAddress1").required = false;
-			rightColumn.removeChild(provincesDiv);
-			leftColumn.appendChild(provincesDiv);
+	$('#privateSeller').change(function() {
+		if ($(this).is(':checked')) {
+			$('#dealerOrLocation').text('Location');
+			$('#dealershipDetails').css('display', 'none');
+			$('#dealershipName').attr('required', 'required');
+			$('#street').attr('required', 'required');
+			var divProvinces = $('#divProvinces').detach();
+			divProvinces.appendTo('#leftColumn');
 		}
-	};
+	});
 
-	dealershipOption.onchange = function() {
-		if (this.checked) {
-			dealerOrLocationLegend.textContent = "Dealership Details";
-			document.getElementById("dealershipDetails").style.display = "";
-			document.getElementById("dealershipName").required = true;
-			document.getElementById("streetAddress1").required = true;
-			leftColumn.removeChild(provincesDiv);
-			rightColumn.insertBefore(provincesDiv, townsDiv);
+	$('#dealership').change(function() {
+		if ($(this).is(':checked')) {
+			$('#dealerOrLocation').text('Dealership Details');
+			$('#dealershipDetails').css('display', '');
+			$('#dealershipName').attr('required', 'required');
+			$('#street').attr('required', 'required');
+			var divProvinces = $('#divProvinces').detach();
+			$('#rightColumn').prepend(divProvinces);
 		}
-	};
+	});
 
 	var isProvinceProvided = function () {
 		if ($('#provinces').val() === 'Please select ...') {
@@ -226,11 +215,13 @@ window.onload = function() {
 	};
 
 	var showSellerTypeAlert = function () {
-		document.getElementById("sellerTypeAlert").style.display = "";
+		$('#sellerTypeAlert').css('display', '');
+		// document.getElementById("sellerTypeAlert").style.display = "";
 	};
 
 	var hideSellerTypeAlert = function () {
-		document.getElementById("sellerTypeAlert").style.display = "none";
+		$('#sellerTypeAlert').css('display', 'none');
+		// document.getElementById("sellerTypeAlert").style.display = "none";
 	};
 
 	var showLocationAlert = function () {

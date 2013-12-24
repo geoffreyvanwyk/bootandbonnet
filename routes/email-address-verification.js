@@ -70,7 +70,7 @@ var handleErrors = function (err, request, response) {
 var showVerifiedPage = function (request, response, verificationErrors) {
 	response.render('email-address-verified-page', {
 		verificationErrors: verificationErrors,
-		isLoggedIn: !!request.session.user;
+		isLoggedIn: !!request.session.user
 	});
 };
 
@@ -199,7 +199,7 @@ var verify = module.exports = {
 		verifyKey(function (err) {
 			if (err) {
 				handleErrors(err, request, response);
-			} else
+			} else {
 				if (isLoggedIn) {
 					request.session.user.isEmailAddressVerified = true;
 				}

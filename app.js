@@ -23,7 +23,7 @@ var map = require('./library/route-map').map;
 var email = require('./routes/email-address-verification');
 var login = require('./routes/login');
 var main = require('./routes/main');
-var orders = require('./routes/order-registration');
+var orders = require('./routes/order-placement');
 var password = require('./routes/password-reset');
 var sellers = require('./routes/seller-registration');
 var vehicles = require('./routes/vehicle-registration');
@@ -81,8 +81,8 @@ app.map(app, {
 				get: sellers.showProfile
 			},
 			'/edit': {
-				get: sellers.showRegistrationForm,
-				post: sellers.validateInputs
+				get: sellers.showEditForm,
+				post: sellers.editProfile
 			},
 			'/remove': {
 				get: sellers.removeProfile

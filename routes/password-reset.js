@@ -37,20 +37,20 @@ var handleErrors = function (err, request, response) {
 			password.showForgotForm(request, response, {
 				emailAddress: err.emailAddress,
 				message: err.message,
-				emailAlertType: 'error
+				emailAlertType: 'error'
 			});
 			break;
 		case 'Key does not match hash of the email address. Please try again.':
 			password.showForgotForm(request, response, {
 				emailAddress: err.emailAddress,
 				message: err.message,
-				emailAlertType: 'error
+				emailAlertType: 'error'
 			});
 			break;
 		default:
 			main.showErrorPage(request, response);
 			break;
-	};
+	}
 };
 
 var password = module.exports = {
@@ -83,7 +83,7 @@ var password = module.exports = {
 			emailError: error && error.message || '',
 			emailAlertType: error ? 'error' : '',
 			isLoggedIn: !!request.session.user
-		};
+		});
 	},
 	/**
 	 * @summary Responds to HTTP POST /password/forgot. Sends an email message, containing a link to the
@@ -122,7 +122,7 @@ var password = module.exports = {
 		var sendMessage = function (key, callback) {
 			/* Link to the password-reset form. */
 			var link = 'http://localhost:3000/password/reset?email='
-							.concat(encodeURIComponent(frmEmail))
+							.concat(encodeURIComponent(frmEmailAddress))
 							.concat('&key=')
 							.concat(key);
 
@@ -158,9 +158,9 @@ var password = module.exports = {
 					return callback(err);
 				}
 				if (!user) {
-					var err = new Error('The email address has not been registered.');
+					var error = new Error('The email address has not been registered.');
 					err.emailAddress = frmEmailAddress;
-					return callback(err);
+					return callback(error);
 				}
 				createKey(user, callback);
 			});
@@ -189,18 +189,18 @@ var password = module.exports = {
 	 * @returns {undefined}
 	 */
 	showResetForm: function (request, response) {
-		var qryEmail = decodeURIComponent(request.query.email);
+		var qryEmailAddress = decodeURIComponent(request.query.email);
 		var qryKey = request.query.key;
-		bcrypt.compare(qryEmail, qryKey, function(err, isMatch) {
+		bcrypt.compare(qryEmailAddress, qryKey, function(err, isMatch) {
 			if (err) {
 				handleErrors(err, request, response);
 			} else if (!isMatch) {
-				var err = new Error('Key does not match hash of the email address. Please try again.');
+				var error = new Error('Key does not match hash of the email address. Please try again.');
 				err.emailAddress = qryEmailAddress;
-				handleErrors(err, request, response);
+				handleErrors(error, request, response);
 			} else {
 				response.render('password-reset-form', {
-					emailAddress: qryEmail,
+					emailAddress: qryEmailAddress,
 					isLoggedIn: !!request.session.user
 				});
 			}
