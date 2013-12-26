@@ -136,6 +136,16 @@ var checkDirectory = function (vehicle, files, callback) {
 	});
 };
 
+/**
+ * @summary Returns all the make documents makes database collection. Each make document also include the models of that
+ * make.
+ * 
+ * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
+ * @param {ojbect} lookups The lookup values for colors, fuel types, transmission types, etc.
+ * @param {function} callback A callback function.
+ * 
+ * @returns {undefined}
+ */
 var getMakes = function (vehicle, lookups, callback) {
 	Make.find(function (err, makes) {
 		if (err) {
@@ -145,6 +155,15 @@ var getMakes = function (vehicle, lookups, callback) {
 	});
 };
 
+/**
+ * @summary Returns all the lookup values for colors, fuel types, transmission types, etc. from the lookups database
+ * collection.
+ * 
+ * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
+ * @param {function} callback A callback function.
+ * 
+ * @returns {undefined}
+ */
 var getLookups = function (vehicle, callback) {
 	Lookups.find(function (err, lookups) {
 		if (err) {
@@ -181,11 +200,15 @@ var isLoggedIn = function (action, request, response) {
 /* Routes */
 var vehicles = module.exports = {
 	/**
-	 * @summary Responds to HTTP GET /seller/:sellerId/vehicle/add. Displays views/vehicle-registration-form.ejs.
+	 * @summary Responds to HTTP GET /vehicles/add. Displays views/vehicle-registration-form.ejs.
 	 *
 	 * @description Preconditions:
-	 * (1) A seller has to be logged-in.
+	 * (1) A seller has to be logged-in (function isLoggedIn).
 	 *
+	 * Error handling:
+	 * (1) If a seller is not logged-in, an appropriate error message is displayed.
+	 * (2) All errors are handled by the handleErrors function.
+	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
@@ -265,7 +288,8 @@ var vehicles = module.exports = {
 		}
 	},
 	/**
-	 * @summary Responds to HTTP POST /seller/:sellerId/vehicle/add. Adds a new vehicle profile, then displays it.
+	 * @summary Responds to HTTP POST /vehicles/add. Adds a new vehicle profile, then displays it 
+	 * (views/vehicle-profile-page.ejs).
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
@@ -275,7 +299,7 @@ var vehicles = module.exports = {
 	add: function (request, response) {
 		if (isLoggedIn('add', request, response)) {
 			var instantiateVehicle = function (callback) {
-				var seller = request.session.seller;
+				var ssnSeller = request.session.seller;
 				var frmVehicle = request.body.vehicle;
 				
 				var vehicle = new Vehicle({
@@ -318,7 +342,7 @@ var vehicles = module.exports = {
 					},
 					photos: [],
 					comments: sanitize(frmVehicle.comments),
-					seller: seller._id
+					seller: ssnSeller._id
 				});
 
 				checkDirectory(vehicle, request.files, callback);
