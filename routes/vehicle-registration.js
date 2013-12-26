@@ -46,9 +46,8 @@ var handleErrors = function (err, request, response) {
 	switch (err.message) {
 		case 'You are not logged-in.':
 			request.session.specialError = {
-				message: err.message.concat(' You have to be registered as a seller, and logged-in, to ')
-					.concat(err.action)
-					.concat(' a vehicle profile.'),
+				message: err.message,
+				action: err.action,
 				alertDisplay: ''
 			};
 			response.redirect(302, '/sellers/add');
@@ -168,10 +167,11 @@ var isAuthorizedTo = function (action, request, response) {
  *  
  * @returns {boolean}
  */
-var isLoggedIn = function (request, response) {
+var isLoggedIn = function (action, request, response) {
 	var displayError = function () {
-		var specialError = new Error('You have to be registered as a seller, and logged-in to add a vehicle profile.');
-		handleErrors(specialError, request, response);
+		var error = new Error('You are not logged-in.');
+		error.action = action; 
+		handleErrors(error, request, response);
 		return false;
 	};
 	
@@ -192,7 +192,7 @@ var vehicles = module.exports = {
 	 * @returns	{undefined}
 	 */
 	showRegistrationForm: function (request, response) {
-		if (isLoggedIn(request, response)) {
+		if (isLoggedIn('add', request, response)) {
 			var currentDateObject = new Date(Date.now());
 
 			getLookups(null, function (err, vehilce, makes, lookups) {
@@ -273,7 +273,7 @@ var vehicles = module.exports = {
 	 * @returns	{undefined}
 	 */
 	add: function (request, response) {
-		if (isLoggedIn(request, response)) {
+		if (isLoggedIn('add', request, response)) {
 			var instantiateVehicle = function (callback) {
 				var seller = request.session.seller;
 				var frmVehicle = request.body.vehicle;
@@ -686,9 +686,7 @@ var vehicles = module.exports = {
 	* @returns {undefined}
 	*/
 	remove: function (request, response) {
-		var isLoggedIn = !!request.session.seller;
-
-		if (isLoggedIn) {
+		if (isLoggedIn('remove', request, response)) {
 			var deleteVehicle = function (vehicle, callback) {
 				vehicle.remove(function (err) {
 					if (err) {
@@ -730,10 +728,6 @@ var vehicles = module.exports = {
 					response.redirect(302, path.join('/sellers', request.session.seller._id, 'vehicles'));
 				}
 			});
-		} else {
-			var error = new Error('You are not logged-in.');
-			error.action = 'remove';
-			handleErrors(error, request, response);
 		}
 	},
 	/**

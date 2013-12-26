@@ -7,7 +7,9 @@ var provincesString = JSON.stringify(provinces);
 
 <div id="specialErrorAlert" class="alert alert-error"	style="display: <%=specialError.alertDisplay%>">
 	<button type="button" class="close" data-dismiss="alert">&times;</button>
-	<%=specialError.message%> If you are already registered, please <a href="/login">log in</a>
+	<%=specialError.message%> You have to be registered as a seller, and logged-in, to <%=specialError.action%> a 
+	vehicle profile. Complete the form below to register. If you are already registered, 
+	please <a href="/login">log in</a>
 </div>
 
 <form id="register" method="post" action="<%=action%>">
