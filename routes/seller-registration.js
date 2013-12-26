@@ -4,8 +4,8 @@
 
 /**
  * @file routes/seller-registration.js
- * Component: sellers
- * Purpose: Contains routes that handle registration of new sellers and modification of existing sellers.
+ * @summary Component: Seller Registration. Contains routes that handle registration of new sellers and modification of 
+ * existing sellers.
  */
 
 /* Import external modules. */
@@ -330,6 +330,23 @@ var sellers = module.exports = {
 			
 			if (frmSeller) {
 				sellerType = frmSeller.dealershipName === '' ? 'privateSeller' : 'dealership';
+			
+				frmSeller.contactPerson = {
+					firstname: frmSeller.firstname,
+					surname: frmSeller.surname
+				};
+				
+				frmSeller.contactNumbers = [
+					frmSeller.telephone,
+					frmSeller.cellphone
+				];
+				
+				frmSeller.address = {
+					street: frmSeller.street,
+					suburb: frmSeller.suburb,
+					town: frmSeller.town,
+					province: frmSeller.province
+				};
 			}
 			
 			Province.find(function (err, provinces) {
@@ -360,7 +377,7 @@ var sellers = module.exports = {
 							locationAlertDisplay: 'none'
 						},
 						provinces: provinces,
-						action: '/seller/add',
+						action: '/sellers/add',
 						heading: 'New Seller',
 						buttonCaption: 'Register',
 						user: frmUser || {
@@ -477,7 +494,7 @@ var sellers = module.exports = {
 						emailAddress: user.emailAddress
 					};
 					request.session.seller = seller;
-					response.redirect(302, path.join('/seller', seller._id.toString(), 'view'));
+					response.redirect(302, path.join('/sellers', seller._id.toString(), 'view'));
 					verify.sendLink(request, response);
 				}
 			});

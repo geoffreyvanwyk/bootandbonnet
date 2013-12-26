@@ -2,7 +2,7 @@
 
 <h2>My Profile</h2>
 
-<form method="get" action="/seller/<%=seller._id%>/remove">
+<form method="get" action="/sellers/<%=seller._id%>/remove">
     <fieldset id="dealership" style="display: <%=dealerDisplay%>">
 		<p><i class="icon-briefcase"></i>&nbsp;<strong><%=seller.dealershipName%></strong></p>
 		<div class="row">
@@ -43,6 +43,6 @@
     <div class="form-actions">
 		<a href="/seller/<%=seller._id%>/edit" class="btn">Edit</a>
 		<button class="btn btn-link">Delete</button>
-		<a href="/seller/<%=seller._id%>/vehicle/add" class="btn btn-primary pull-right">Advertise a Vehicle</a>
+		<a href="/vehicles/add" class="btn btn-primary pull-right">Advertise a Vehicle</a>
     </div>
 </form>

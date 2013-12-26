@@ -27,12 +27,12 @@ var Vehicle = require('../models/vehicles');
 
 /* Import routes. */
 var main = require('./main');
+var sellers = require('./seller-registration');
 
 /**
  * @summary Handles all the errors in this module.
  * 
  * @param {object} err An error object.
- * 
  * @param {object} request An HTTP request object received from the express.get() method.
  * @param {object} response An HTTP response object received from the express.get() method.
  *
@@ -44,20 +44,37 @@ var handleErrors = function (err, request, response) {
 	console.log('==================== END ERROR MESSAGE ======================');
 	
 	switch (err.message) {
+		case 'You are not logged-in.':
+			request.session.specialError = {
+				message: err.message.concat(' You have to be registered as a seller, and logged-in, to ')
+					.concat(err.action)
+					.concat(' a vehicle profile.'),
+				alertDisplay: ''
+			};
+			response.redirect(302, '/sellers/add');
+			break;
+		case 'You can only delete your own vehicles.':
+			request.session.specialError = err.message;
+			response.redirect(302, '/error');
+			break;
 		case 'A vehicle with the requested id does not exist.':
 			request.session.specialError = err.message;
-			main.showErrorPage(request, response);
+			response.redirect(302, '/error');
 			break;
 		case 'A seller with the requested id does not exist.':
 			request.session.specialError = err.message;
-			main.showErrorPage(request, response);
+			response.redirect(302, '/error');
 			break;
 		case 'A user with the requested id does not exist.':
 			request.session.specialError = err.message;
-			main.showErrorPage(request, response);
+			response.redirect(302, '/error');
+			break;
+		case "The vehicle's advertisement period has expired.": 
+			request.session.specialError = err.message;
+			response.redirect(302, '/error');
 			break;
 		default:
-			main.showErrorPage(request, response);
+			response.redirect(302, '/error');
 			break;
 	}
 };
@@ -138,31 +155,9 @@ var getLookups = function (vehicle, callback) {
 	});
 };
 
-/**
- * @summary Handles all the errors in this module.
- * 
- * @param {object} err An Error object.
- * @param {object} request An HTTP request object received from the express.get() method.
- * @param {object} response An HTTP response object received from the express.get() method.
- * 
- * @returns {undefined}
- */
-var handleErrors = function (err, request, response) {
-	console.log('==================== BEGIN ERROR MESSAGE ====================');
-	console.log(err);
-	console.log('==================== END ERROR MESSAGE ======================');
+
+var isAuthorizedTo = function (action, request, response) {
 	
-	switch (err.message) {
-		case 'You have to be registered as a seller, and logged-in to add a vehicle profile.':
-			seller.showRegistrationForm(request, response, {
-				message: err.message,
-				alertDisplay: ''
-			});
-			break;
-		default:
-			main.showErrorPage(request, response);
-			break;
-	};
 };
 
 /**
@@ -277,7 +272,7 @@ var vehicles = module.exports = {
 	 *
 	 * @returns	{undefined}
 	 */
-	addProfile: function (request, response) {
+	add: function (request, response) {
 		if (isLoggedIn(request, response)) {
 			var instantiateVehicle = function (callback) {
 				var seller = request.session.seller;
@@ -327,7 +322,7 @@ var vehicles = module.exports = {
 				});
 
 				checkDirectory(vehicle, request.files, callback);
-			}
+			};
 
 			var insertVehicle = function (vehicle, callback) {
 				vehicle.save(function (err, vehicle) {
@@ -336,7 +331,7 @@ var vehicles = module.exports = {
 					}
 					return callback(null, vehicle);
 				});
-			}
+			};
 
 			var createVehicle = function (callback) {
 				instantiateVehicle(function (err, vehicle) {
@@ -345,13 +340,13 @@ var vehicles = module.exports = {
 					}
 					insertVehicle(vehicle, callback);
 				});
-			}
+			};
 
 			createVehicle(function (err, vehicle) {
 				if (err) {
 					handleErrors(err, request, response);
 				} else {
-					response.redirect(302, path.join('/vehicle', vehicle._id.toString(), 'view'));
+					response.redirect(302, path.join('/vehicles', vehicle._id.toString(), 'view'));
 				}
 			});
 		}
@@ -359,18 +354,21 @@ var vehicles = module.exports = {
 	/**
 	* @summary Responds to HTTP GET /vehicles/:vehicleId/view. Displays the views/vehicle-profile-page.ejs.
 	* 
-	* @description Precondions:
-	* (1) The vehicle's advertisement period has not expired. OR
-	* (2) The user is the owner of the vehicle. 
+	* @description Preconditions:
+	* (1) The vehicle's advertisement period has not expired (var isExpired). OR
+	* (2) The user is the owner of the vehicle (var isOwnVehicle). 
 	* 
 	* Postconditions:
 	* (1) If a seller is logged-in, and the vehicle belongs to him/her, edit and delete buttons should also be 
 	* displayed.
 	* 
 	* Algorithm:
-	* (1) The vehicle referenced by the id in the url (:vehicleId) is first retrieved from the database.
-	* (2) Then the seller who owns the vehicle is retrieved from the database,based on the vehicle's seller property.
-	* (3) Then the user associated with the seller is retrieved from the database, based on the seller's user property.
+	* (1) The vehicle referenced by the id in the url (:vehicleId) is first retrieved from the database (function 
+	* findVehicle).
+	* (2) Then the seller, who owns the vehicle, is retrieved from the database, based on the vehicle's seller property
+	*  (function findSeller).
+	* (3) Then the user associated with the seller is retrieved from the database, based on the seller's user property 
+	* (function findUser).
 	* 
 	* The seller needs to be retrieved to display the seller's contact numbers and address. The user needs to be 
 	* retrieved, because the email address is necessary for the contact form.
@@ -385,8 +383,7 @@ var vehicles = module.exports = {
 	*
 	* @returns {undefined}
 	*/
-	showProfile: function (request, response) {
-		
+	show: function (request, response) {
 		var findUser = function (vehicle, seller, callback) {
 			User.findById(seller.user, function (err, user) {
 				if (err) {
@@ -424,22 +421,30 @@ var vehicles = module.exports = {
 				}
 				findSeller(vehicle, callback);
 			});
-		}
+		};
 
 		findVehicle(function (err, vehicle, seller, user) {
 			if (err) {
 				handleErrors(err, request, response);
 			} else {
+				var currentDate = new Date(Date.now());
+				var isExpired = vehicle.expiryDate < currentDate;
 				var isOwnVehicle = request.session.seller && request.session.seller._id == vehicle.seller;
-				response.render('vehicle-profile-page', {
-					vehicle: vehicle,
-					seller: seller,
-					user: user,
-					dealerDisplay: seller.dealershipName === '' ? 'none' : '',
-					privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
-					formActionsDisplay: isOwnVehicle ? '' : 'none',
-					isLoggedIn: !!request.session.seller 
-				});
+				var isAuthorized = !isExpired || isOwnVehicle;
+				if (!isAuthorized) {
+					var error = new Error("The vehicle's advertisement period has expired.");
+					handleErrors(error, request, response);
+				} else {
+					response.render('vehicle-profile-page', {
+						vehicle: vehicle,
+						seller: seller,
+						user: user,
+						dealerDisplay: seller.dealershipName === '' ? 'none' : '',
+						privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
+						formActionsDisplay: isOwnVehicle ? '' : 'none',
+						isLoggedIn: !!request.session.seller 
+					});
+				}
 			}
 		});
 	},
@@ -549,7 +554,7 @@ var vehicles = module.exports = {
 	*
 	* @returns {undefined}
 	*/
-	editProfile: function (request, response) {
+	edit: function (request, response) {
 		if (isAuthorizedTo('edit', request, response)) {
 			var frmVehicle = request.body.vehicle;
 			
@@ -606,7 +611,7 @@ var vehicles = module.exports = {
 					};
 					checkDirectory(updateVehicle, request.files, callback);
 				});
-			}
+			};
 
 			var updateVehicle = function (vehicle, callback) {
 				delete vehicle._id;
@@ -618,19 +623,16 @@ var vehicles = module.exports = {
 					}
 					return callback(null, vehicle);
 				});
-			}
+			};
 
 			var editVehicle = function (callback) {
-				getVehicle(request.params.vehicleId, function (err, vehicle) {
-					
-				});
 				instantiateVehicle(function (err, vehicle) {
 					if (err) {
 						return callback(err);
 					}
 					updateVehicle(vehicle, callback);
 				});
-			}
+			};
 
 			editVehicle(function (err, vehicle) {
 				if (err) {
@@ -642,36 +644,83 @@ var vehicles = module.exports = {
 		}
 	},
 	/**
-	* @summary Responds to HTTP GET /vehicle/remove.
+	* @summary Responds to HTTP GET /vehicles/:vehicleId/remove. Removes the vehicle's profile, then displays the 
+	* logged-in seller's list of vehicles.
+	* 
+	* @description Preconditions:
+	* (1) The seller must be logged-in (var isLoggedIn).
+	* (2) The vehicle must belong to the logged-in seller (function checkOwnership).
+	* 
+	* Algorithm:
+	* (1) The vehicle (:vehicleId) is retrieved from the vehicles database collection (function findVehicle).
+	* (2) The id of the vehicle's seller is compared with the id of the logged-in user (function checkOwnership).
+	* (3) If the vehicle belongs to the logged-in seller, the vehicle is deleted (function deleteVehicle).
+	* 
+	* Error handling:
+	* (1) Appropriate error messages are displayed under the following conditions: 
+	* -- If the user is not logged-in.
+	* -- If a vehicle with the requested id does not exist.
+	* -- If the logged-in seller is not the owner of the vehicle.
+	* (2) All errors are handled by the handleErrors function.
 	*
 	* @param {object} request An HTTP request object received from the express.get() method.
 	* @param {object} response An HTTP response object received from the express.get() method.
 	*
 	* @returns {undefined}
 	*/
-	removeProfile: function (request, response) {
-		// TODO Make sure that a seller is logged-in and the he is the seller of the vehicle.
-		var ssnVehicle;
-		ssnVehicle = request.session.vehicle;
-		Vehicle.findById(ssnVehicle._id, function (err, vehicle) {
-			if (err) {
-				console.log(err);
-				main.showErrorPage(request, response);
-			} else {
+	remove: function (request, response) {
+		var isLoggedIn = !!request.session.seller;
+
+		if (isLoggedIn) {
+			var deleteVehicle = function (vehicle, callback) {
 				vehicle.remove(function (err) {
 					if (err) {
-						console.log(err);
-						main.showErrorPage(request, response);
-					} else {
-						listSellerVehicles(request, response);
+						return callback(err);
 					}
-
+					return callback(null);
 				});
-			}
-		});
+			};
+		
+			var checkOwnership = function (vehicle, callback) {
+				if (vehicle.seller.toString() !== request.session.seller._id.toString()) {
+					var error = new Error('You can only delete your own vehicles.');
+					return callback(error);
+				}
+				deleteVehicle(vehicle, callback);
+			};
+			
+			var findVehicle = function (callback) {
+				Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					}
+					if (!vehicle) {
+						var error = new Error('A vehicle with the requested id does not exist.');
+						return callback(error);
+					}
+					checkOwnership(vehicle, callback);
+				});
+			};
+		
+			findVehicle(function (err) {
+				if (err) {
+					handleErrors(err, request, response);
+				} else {
+					request.session.vehicleDeleted = {
+						message: 'The vehicle has been successfully deleted.',
+						alertDisplay: ''
+					};
+					response.redirect(302, path.join('/sellers', request.session.seller._id, 'vehicles'));
+				}
+			});
+		} else {
+			var error = new Error('You are not logged-in.');
+			error.action = 'remove';
+			handleErrors(error, request, response);
+		}
 	},
 	/**
-	* @summary Responds to HTTP GET /vehicle/:vehicleId/photo/:photoId. Sends a photo to the browser.
+	* @summary Responds to HTTP GET /vehicles/:vehicleId/photos/:photoId. Sends a photo to the browser.
 	*
 	* @param {object} request An HTTP request object received from the express.get() method.
 	* @param {object} response An HTTP response object received from the express.get() method.
@@ -679,7 +728,7 @@ var vehicles = module.exports = {
 	* @returns {undefined}
 	*/
 	sendPhoto: function (request, response) {
-		response.sendfile(path.join(__dirname, '..', '..', 'uploads/img/vehicles',
+		response.sendfile(path.join(__dirname, '..', 'uploads/img/vehicles',
 								request.params.vehicleId, request.params.photoId));
 	},
 	listSellerVehicles: function (request, response) {
@@ -693,9 +742,20 @@ var vehicles = module.exports = {
 				main.showErrorPage(request, response);
 			} else {
 				response.render('list-seller-vehicles-page', {
+					vehicleDeleted: request.session.vehicleDeleted || {
+						message: '',
+						alertDisplay: 'none'
+					},
 					seller: request.session.seller,
 					isLoggedIn: true,
 					vehicles: vehicles
+				}, function (err, html) {
+					request.session.vehicleDeleted = null;
+					if (err) {
+						handleErrors(err, request, response);
+					} else {
+						response.send(html);
+					}
 				});
 			}
 		});

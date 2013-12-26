@@ -1,6 +1,11 @@
 <% layout('../views/layout') -%>
 <% script('../../static/js/list-seller-vehicles-page.js') -%>
 
+<div id="vehicleDeletedAlert" class="alert alert-success"	style="display: <%=vehicleDeleted.alertDisplay%>">
+	<button type="button" class="close" data-dismiss="alert">&times;</button>
+	<%=vehicleDeleted.message%>
+</div>
+
 <div class="row">
 	<div class="span6">
 		<h2>My Vehicles</h2>
@@ -35,14 +40,14 @@
 				<% } else  { %>
 				<td><%=vehicle[i].expiryDate %></td>
 				<% } %>
-				<td><a href="/seller/<%=seller._id%>/vehicle/<%=vehicles[i]._id%>/view">View</a></td>
+				<td><a href="/vehicles/<%=vehicles[i]._id%>/view">View</a></td>
 			</tr>
 			<% } %>
 		</tbody>
 	</table>
 
 	<div class="form-actions">
-		<a href="/vehicle/add" class="btn btn-primary">Add Vehicle</a>
+		<a href="/vehicles/add" class="btn btn-primary">Add Vehicle</a>
 		<span class="btn-group">
 			<button id="viewCart" type="submit" class="btn btn-info">View Cart</button>
 			<button id="nrOfItems" type="button" class="btn btn-info">0</button>

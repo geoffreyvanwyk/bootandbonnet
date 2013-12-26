@@ -147,8 +147,8 @@ window.onload = function() {
 		if ($(this).is(':checked')) {
 			$('#dealerOrLocation').text('Location');
 			$('#dealershipDetails').css('display', 'none');
-			$('#dealershipName').attr('required', 'required');
-			$('#street').attr('required', 'required');
+			$('#dealershipName').removeAttr('required');
+			$('#street').removeAttr('required');
 			var divProvinces = $('#divProvinces').detach();
 			divProvinces.appendTo('#leftColumn');
 		}

@@ -4,8 +4,7 @@
 
 /**
  * @file models/sellers.js
- * Component: users
- * Purpose: Defines the Mongoose model for seller objects.
+ * @summary Component: Seller Registration. Defines the Mongoose model for seller objects.
  */
 
 /* Import external modules. */

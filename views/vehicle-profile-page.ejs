@@ -2,10 +2,10 @@
 
 <%
 
-var photo1 = vehicle.photos[0] ? "/vehicle/view/".concat(vehicle._id).concat("/photo/1") : "/static/img/image-placeholder.png";
-var photo2 = vehicle.photos[1] ? "/vehicle/view/".concat(vehicle._id).concat("/photo/2") : "/static/img/image-placeholder.png";
-var photo3 = vehicle.photos[2] ? "/vehicle/view/".concat(vehicle._id).concat("/photo/3") : "/static/img/image-placeholder.png";
-var photo4 = vehicle.photos[3] ? "/vehicle/view/".concat(vehicle._id).concat("/photo/4") : "/static/img/image-placeholder.png";
+var photo1 = vehicle.photos[0] ? "/vehicles/".concat(vehicle._id).concat("/photos/1") : "/static/img/image-placeholder.png";
+var photo2 = vehicle.photos[1] ? "/vehicles/".concat(vehicle._id).concat("/photos/2") : "/static/img/image-placeholder.png";
+var photo3 = vehicle.photos[2] ? "/vehicles/".concat(vehicle._id).concat("/photos/3") : "/static/img/image-placeholder.png";
+var photo4 = vehicle.photos[3] ? "/vehicles/".concat(vehicle._id).concat("/photos/4") : "/static/img/image-placeholder.png";
 
 if (vehicle.price.negotiable) {
 var negotiable = 'negotiable';
@@ -324,6 +324,6 @@ var colorRadio = 'red';
 	</div>
 </div>
 <div class="form-actions" style="display:<%=formActionsDisplay%>">
-	<a href="/vehicle/edit" class="btn">Edit</a>
-	<a href="/vehicle/remove" class="btn btn-link">Delete</a>
+	<a href="/vehicles/<%=vehicle._id%>/edit" class="btn">Edit</a>
+	<a href="/vehicles/<%=vehicle._id%>/remove" class="btn btn-link">Delete</a>
 </div>

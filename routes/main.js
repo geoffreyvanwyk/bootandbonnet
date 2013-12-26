@@ -2,12 +2,9 @@
 
 'use strict';
 
-/*
- * Component: main
- *
- * File: routes/main.js
- *
- * Purpose: Displays the home-page and the error page.
+/**
+ * @file routes/main.js
+ * @summary Component: main. Displays the home-page and the error page.
  */
 
 /* Import built-in modules. */

@@ -37,15 +37,15 @@
 				    <b class="caret"></b>
 				</a>
 				<ul class="dropdown-menu">
-				    <li><a href="/seller/<%=seller._id%>/view">Profile</a></li>
-				    <li><a href="/seller/<%=seller._id%>/vehicle/list">Vehicles</a></li>
+				    <li><a href="/sellers/<%=seller._id%>/view">Profile</a></li>
+				    <li><a href="/sellers/<%=seller._id%>/vehicles">Vehicles</a></li>
 					<li class="divider"></li>
 				    <li><a href="/?logout=true">Log out</a></li>
 				</ul>
 			    </li>
 			    <% } else { %>
 			    <li><a href="/login">Login</a></li>
-			    <li><a href="/seller/add">Register</a></li>
+			    <li><a href="/sellers/add">Register</a></li>
 			    <% } %>
 			</ul>
 		    </div><!--/.nav-collapse -->

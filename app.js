@@ -87,10 +87,10 @@ app.map(app, {
 			'/remove': {
 				get: sellers.removeProfile
 			},
-			'/list-vehicles': {
+			'/vehicles': {
 				get: vehicles.listSellerVehicles
 			},
-			'/list-orders': {
+			'/orders': {
 				get: orders.list
 			}
 		}
@@ -98,23 +98,23 @@ app.map(app, {
 	'/vehicles': {
 		'/add': {
 			get: vehicles.showRegistrationForm,
-			post: vehicles.addProfile
+			post: vehicles.add
 		},
 		'/:vehicleId': {
 			'/view': {
-				get: vehicles.showProfile
+				get: vehicles.show
 			},
-			'/photo': {
+			'/photos': {
 				'/:photoId': {
 					get: vehicles.sendPhoto
 				}
 			},
 			'/edit': {
 				get: vehicles.showEditForm,
-				post: vehicles.editProfile
+				post: vehicles.edit
 			},
 			'/remove': {
-				get: vehicles.removeProfile
+				get: vehicles.remove
 			}
 		}
 	},
