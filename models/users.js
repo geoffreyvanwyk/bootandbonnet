@@ -8,22 +8,21 @@
  */
 
 /* Import external modules. */
-var bcrypt = require('bcrypt');
-var mongoose = require('mongoose');
+var bcrypt = require('bcrypt'); // For hashing passwords.
+var mongoose = require('mongoose'); // For creating models.
 
 /* Model */
 var userSchema = mongoose.Schema({
 	emailAddress: {
 		type: String,
-		required: true,
-		unique: true,
-		validate: [
-			/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/gim,
+		trim: true,
+		lowercase: true,
+		match: [
+			/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
 			'invalid email address'
 		],
-		set: function (value) {
-			return value.toLowerCase().trim(); // The unique constraint is case-sensitive.
-		}
+		unique: true,
+		required: true
 	},
 	passwordHash: {
 		type: String,
