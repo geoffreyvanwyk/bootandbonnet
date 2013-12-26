@@ -71,7 +71,7 @@ app.map(app, {
 			}
 		}
 	},
-	'/seller': {
+	'/sellers': {
 		'/add': {
 			get: sellers.showRegistrationForm,
 			post: sellers.addProfile
@@ -87,52 +87,52 @@ app.map(app, {
 			'/remove': {
 				get: sellers.removeProfile
 			},
-			'/vehicle': {
-				'/add': {
-					get: vehicles.showRegistrationForm,
-					post: vehicles.addProfile
-				},
-				'/:vehicleId': {
-					'/view': {
-						get: vehicles.showProfile
-					},
-					'/photo': {
-						'/:photoId': {
-							get: vehicles.sendPhoto
-						}
-					},
-					'/edit': {
-						get: vehicles.showEditForm,
-						post: vehicles.editProfile
-					},
-					'/remove': {
-						get: vehicles.removeProfile
-					}
-				},
-				'/list': {
-					get: vehicles.listSellerVehicles
+			'/list-vehicles': {
+				get: vehicles.listSellerVehicles
+			},
+			'/list-orders': {
+				get: orders.list
+			}
+		}
+	},
+	'/vehicles': {
+		'/add': {
+			get: vehicles.showRegistrationForm,
+			post: vehicles.addProfile
+		},
+		'/:vehicleId': {
+			'/view': {
+				get: vehicles.showProfile
+			},
+			'/photo': {
+				'/:photoId': {
+					get: vehicles.sendPhoto
 				}
 			},
-			'/order': {
-				'/add': {
-					get: orders.showCart,
-					post: orders.checkout
-				},
-				'/:orderId': {
-					'/view': {
-						get: orders.showCart
-					},
-					'/edit': {
-						get: orders.showCart,
-						post: orders.edit
-					},
-					'/remove': {
-						get: orders.remove
-					}
-				},
-				'/list': {
-					get: orders.list
-				}
+			'/edit': {
+				get: vehicles.showEditForm,
+				post: vehicles.editProfile
+			},
+			'/remove': {
+				get: vehicles.removeProfile
+			}
+		}
+	},
+	'/orders': {
+		'/add': {
+			get: orders.showCart,
+			post: orders.checkout
+		},
+		'/:orderId': {
+			'/view': {
+				get: orders.showCart
+			},
+			'/edit': {
+				get: orders.showCart,
+				post: orders.edit
+			},
+			'/remove': {
+				get: orders.remove
 			}
 		}
 	},
