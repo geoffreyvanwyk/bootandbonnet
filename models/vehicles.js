@@ -13,8 +13,9 @@ var mongoose = require('mongoose');
 
 /* Model */
 var vehicleSchema = mongoose.Schema({
-	market: { // new or used
+	market: {
 		type: String,
+		enum: ['new', 'used'],
 		default: 'used',
 	},
 	type: {

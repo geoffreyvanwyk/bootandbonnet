@@ -434,7 +434,7 @@ var vehicles = module.exports = {
 			}
 			
 			findSeller(vehicle, isOwnVehicle, callback);
-		}:
+		};
 
 		var findVehicle = function (callback) {
 			Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
