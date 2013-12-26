@@ -67,7 +67,6 @@ var handleErrors = function (err, user, request, response) {
  * @returns {boolean}
  */
 var isLoggedIn = function (request, response) {
-	console.log('Starting isLoggedIn.');
 	var displayError = function () {
 		handleErrors(new Error('You are already logged-in.'), request, response);
 		return true;

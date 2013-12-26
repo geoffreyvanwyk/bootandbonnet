@@ -355,8 +355,7 @@ var vehicles = module.exports = {
 	* @summary Responds to HTTP GET /vehicles/:vehicleId/view. Displays the views/vehicle-profile-page.ejs.
 	* 
 	* @description Preconditions:
-	* (1) The vehicle's advertisement period has not expired (var isExpired). OR
-	* (2) The user is the owner of the vehicle (var isOwnVehicle). 
+	* (1) The user must be authorized to view the profile (function checkAuthorization).
 	* 
 	* Postconditions:
 	* (1) If a seller is logged-in, and the vehicle belongs to him/her, edit and delete buttons should also be 
@@ -365,9 +364,10 @@ var vehicles = module.exports = {
 	* Algorithm:
 	* (1) The vehicle referenced by the id in the url (:vehicleId) is first retrieved from the database (function 
 	* findVehicle).
-	* (2) Then the seller, who owns the vehicle, is retrieved from the database, based on the vehicle's seller property
+	* (2) The the checkAuthorization function checks whether the user is authorized to view the vehicle profile.
+	* (3) Then the seller, who owns the vehicle, is retrieved from the database, based on the vehicle's seller property
 	*  (function findSeller).
-	* (3) Then the user associated with the seller is retrieved from the database, based on the seller's user property 
+	* (4) Then the user associated with the seller is retrieved from the database, based on the seller's user property 
 	* (function findUser).
 	* 
 	* The seller needs to be retrieved to display the seller's contact numbers and address. The user needs to be 
@@ -375,7 +375,7 @@ var vehicles = module.exports = {
 	* 
 	* Error handling:
 	* (1) If a vehicle's advertisement period has expired, and the user is not the owner, an error message should be 
-	* displayed (function handleErrors).
+	* displayed.
 	* (2) All errors are handled by the handleErrors function.
 	*
 	* @param {object} request An HTTP request object received from the express.get() method.
@@ -384,7 +384,7 @@ var vehicles = module.exports = {
 	* @returns {undefined}
 	*/
 	show: function (request, response) {
-		var findUser = function (vehicle, seller, callback) {
+		var findUser = function (vehicle, seller, isOwnVehicle, callback) {
 			User.findById(seller.user, function (err, user) {
 				if (err) {
 					return callback(err);
@@ -393,11 +393,11 @@ var vehicles = module.exports = {
 					var error = new Error('A user with the requested id does not exist.');
 					return callback(error);
 				}
-				return callback(null, vehicle, seller, user);
+				return callback(null, vehicle, seller, user, isOwnVehicle);
 			});
 		};
 		
-		var findSeller = function (vehicle, callback) {
+		var findSeller = function (vehicle, isOwnVehicle, callback) {
 			Seller.findById(vehicle.seller, function (err, seller) {
 				if (err) {
 					return callback(err);
@@ -406,9 +406,35 @@ var vehicles = module.exports = {
 					var error = new Error('A seller with the requested id does not exist.');
 					return callback(error);
 				}
-				findUser(vehicle, seller, callback);
+				findUser(vehicle, seller, isOwnVehicle, callback);
 			});
 		};
+		
+		/**
+		 * @summary Checks whether the user is authorized to view the vehicle profile.
+		 * 
+		 * @description The user is authorized (var isAuthorized) if the following conditions are met:
+		 * (1) The vehicle's advertisement period has not expired (var isExpired). OR
+		 * (2) The logged-in seller is the owner of the vehicle (var isOwnVehicle).
+		 *
+		 * @param {object} vehicle The vehicle for which the profile is requested.
+		 * @param {function} callback A callback function.
+		 *
+		 * @returns {undefined}
+		 */ 
+		var checkAuthorization = function (vehicle, callback) {
+			var currentDate = new Date(Date.now());
+			var isExpired = vehicle.expiryDate < currentDate;
+			var isOwnVehicle = request.session.seller && request.session.seller._id == vehicle.seller;
+			var isAuthorized = !isExpired || isOwnVehicle;
+			
+			if (!isAuthorized) {
+				var error = new Error("The vehicle's advertisement period has expired.");
+				return callback(error);
+			}
+			
+			findSeller(vehicle, isOwnVehicle, callback);
+		}:
 
 		var findVehicle = function (callback) {
 			Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
@@ -419,32 +445,23 @@ var vehicles = module.exports = {
 					var error = new Error('A vehicle with the requested id does not exist.');
 					return callback(error);
 				}
-				findSeller(vehicle, callback);
+				checkAuthorization(vehicle, callback);
 			});
 		};
 
-		findVehicle(function (err, vehicle, seller, user) {
+		findVehicle(function (err, vehicle, seller, user, isOwnVehicle) {
 			if (err) {
 				handleErrors(err, request, response);
 			} else {
-				var currentDate = new Date(Date.now());
-				var isExpired = vehicle.expiryDate < currentDate;
-				var isOwnVehicle = request.session.seller && request.session.seller._id == vehicle.seller;
-				var isAuthorized = !isExpired || isOwnVehicle;
-				if (!isAuthorized) {
-					var error = new Error("The vehicle's advertisement period has expired.");
-					handleErrors(error, request, response);
-				} else {
-					response.render('vehicle-profile-page', {
-						vehicle: vehicle,
-						seller: seller,
-						user: user,
-						dealerDisplay: seller.dealershipName === '' ? 'none' : '',
-						privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
-						formActionsDisplay: isOwnVehicle ? '' : 'none',
-						isLoggedIn: !!request.session.seller 
-					});
-				}
+				response.render('vehicle-profile-page', {
+					vehicle: vehicle,
+					seller: seller,
+					user: user,
+					dealerDisplay: seller.dealershipName === '' ? 'none' : '',
+					privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
+					formActionsDisplay: isOwnVehicle ? '' : 'none',
+					isLoggedIn: !!request.session.seller 
+				});
 			}
 		});
 	},
