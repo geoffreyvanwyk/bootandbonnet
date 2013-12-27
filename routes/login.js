@@ -216,6 +216,7 @@ var login = module.exports = {
 					request.session.user = {
 						_id: user._id,
 						emailAddress: user.emailAddress,
+						password: '',
 						isEmailAddressVerified: user.isEmailAddressVerified
 					};
 					if (seller) { // The new user might not be a seller; might be an administrator.

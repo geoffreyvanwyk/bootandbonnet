@@ -74,18 +74,18 @@ app.map(app, {
 	'/sellers': {
 		'/add': {
 			get: sellers.showRegistrationForm,
-			post: sellers.addProfile
+			post: sellers.add
 		},
 		'/:sellerId': {
 			'/view': {
-				get: sellers.showProfile
+				get: sellers.show
 			},
 			'/edit': {
 				get: sellers.showEditForm,
-				post: sellers.editProfile
+				post: sellers.edit
 			},
 			'/remove': {
-				get: sellers.removeProfile
+				get: sellers.remove
 			},
 			'/vehicles': {
 				get: vehicles.listSellerVehicles

@@ -13,11 +13,13 @@ window.onload = function() {
 		spanElement.appendChild(textNode);
 	};
 
-	var emailBox = document.getElementById("email");
-
-	emailBox.onblur = function () {
+/* EMAIL ADDRESS */
+	
+	$('#email').blur(function () {
 		setValidationState("Email", "", "");
-	};
+	});
+	
+/* PASSWORDS */
 
 	var passwordBox = document.getElementById("password");
 	var confirmPasswordBox = document.getElementById("confirmPassword");
@@ -100,6 +102,8 @@ window.onload = function() {
 			}
 		}
 	});
+	
+/* CONTACT NUMBERS */
 
 	var isContactNumberProvided = function () {
 		return ($('#telephone').val() !== "") || ($('#cellphone').val() !== "");
@@ -122,11 +126,31 @@ window.onload = function() {
 			setValidationState("Cellphone", "", "");
 		}
 	});
-			
+
+/* SELLER TYPE */	
+
 	var isSellerTypeProvided = function () {
 		return $('#privateSeller').is(':checked') || $('#dealership').is(':checked');
 	};
 
+	var showDealershipFields = function () {
+		$('#dealerOrLocation').text('Dealership Details');
+		$('#dealershipDetails').css('display', '');
+		$('#dealershipName').attr('required', 'required');
+		$('#street').attr('required', 'required');
+		var divProvinces = $('#divProvinces').detach();
+		$('#rightColumn').prepend(divProvinces);
+	};
+	
+	var hideDealershipFields = function () {
+		$('#dealerOrLocation').text('Location');
+		$('#dealershipDetails').css('display', 'none');
+		$('#dealershipName').removeAttr('required');
+		$('#street').removeAttr('required');
+		var divProvinces = $('#divProvinces').detach();
+		divProvinces.appendTo('#leftColumn');
+	};
+	
 	/*
 	 * The sellerType element is a hidden input element. Its value is an empty string
 	 * when a new user registers.
@@ -134,9 +158,11 @@ window.onload = function() {
 	switch ($('#sellerType').val()) {
 		case 'privateSeller':
 			$('#privateSeller').attr('checked', 'checked');
+			hideDealershipFields();
 			break;
 		case 'dealership':
 			$('#dealership').attr('checked', 'checked');
+			showDealershipFields();
 			break;
 	}
 
@@ -145,25 +171,17 @@ window.onload = function() {
 	 */
 	$('#privateSeller').change(function() {
 		if ($(this).is(':checked')) {
-			$('#dealerOrLocation').text('Location');
-			$('#dealershipDetails').css('display', 'none');
-			$('#dealershipName').removeAttr('required');
-			$('#street').removeAttr('required');
-			var divProvinces = $('#divProvinces').detach();
-			divProvinces.appendTo('#leftColumn');
+			hideDealershipFields();
 		}
 	});
 
 	$('#dealership').change(function() {
 		if ($(this).is(':checked')) {
-			$('#dealerOrLocation').text('Dealership Details');
-			$('#dealershipDetails').css('display', '');
-			$('#dealershipName').attr('required', 'required');
-			$('#street').attr('required', 'required');
-			var divProvinces = $('#divProvinces').detach();
-			$('#rightColumn').prepend(divProvinces);
+			showDealershipFields();
 		}
 	});
+
+/* ADDRESS */
 
 	var isProvinceProvided = function () {
 		if ($('#provinces').val() === 'Please select ...') {
@@ -200,12 +218,14 @@ window.onload = function() {
 		}
 	});
 
-	var cancelButton = document.getElementById("cancelButton");
-	cancelButton.onclick = function() {
+/* CANCEL BUTTON */
+
+	$('#cancelButton').onclick = function() {
 		window.history.back();
 	};
 
-	/* Showing and hiding alert messages. */
+/* ALERTS */
+
 	var showContactNumbersAlert = function () {
 		document.getElementById("contactNumbersAlert").style.display = "";
 	};
@@ -232,12 +252,13 @@ window.onload = function() {
 		document.getElementById("locationAlert").style.display = "none";
 	};
 
-	var registrationForm = document.getElementById("register");
+/* FORM SUBMISSION */
+	
 	/**
 	 * Validate the form before submitting it. Display alert-spans for the required fields which
 	 * were not completed or which were completed incorrectly.
 	 */
-	registrationForm.onsubmit = function() {
+	$('#register').submit(function() {
 		if (!isPasswordValid() || !isPasswordConfirmed()) {
 			return false;
 		}
@@ -264,5 +285,5 @@ window.onload = function() {
 		}
 
 		return true;
-	};
+	});
 };

@@ -252,7 +252,7 @@ var isAuthorizedTo = function (action, request, response) {
 	 * and the seller property of request.session did not exist, the JavaScript interpreter would raise a reference 
 	 * error.
 	 */
-	var loggedInId = isLoggedIn && request.session.seller._id;
+	var loggedInId = isLoggedIn && request.session.seller._id.toString();
 	var profileId = request.params.sellerId;
 	var isOwnProfile = loggedInId === profileId;
 	var isAuthorized = isLoggedIn && isOwnProfile;
@@ -330,23 +330,6 @@ var sellers = module.exports = {
 			
 			if (frmSeller) {
 				sellerType = frmSeller.dealershipName === '' ? 'privateSeller' : 'dealership';
-			
-				frmSeller.contactPerson = {
-					firstname: frmSeller.firstname,
-					surname: frmSeller.surname
-				};
-				
-				frmSeller.contactNumbers = [
-					frmSeller.telephone,
-					frmSeller.cellphone
-				];
-				
-				frmSeller.address = {
-					street: frmSeller.street,
-					suburb: frmSeller.suburb,
-					town: frmSeller.town,
-					province: frmSeller.province
-				};
 			}
 			
 			Province.find(function (err, provinces) {
@@ -440,7 +423,7 @@ var sellers = module.exports = {
 	 *
 	 * @returns {undefined}
 	 */
-	addProfile: function (request, response) {
+	add: function (request, response) {
 		if (!isLoggedIn(request, response)) {
 			var frmUser = request.body.user;
 			var frmSeller = request.body.seller;
@@ -449,18 +432,18 @@ var sellers = module.exports = {
 				var seller = new Seller({
 					dealershipName: frmSeller.dealershipName,
 					contactPerson: {
-						firstname: sanitize(frmSeller.firstname),
-						surname: sanitize(frmSeller.surname)
+						firstname: sanitize(frmSeller.contactPerson.firstname),
+						surname: sanitize(frmSeller.contactPerson.surname)
 					},
 					contactNumbers: [
-						sanitize(frmSeller.telephone),
-						sanitize(frmSeller.cellphone)
+						sanitize(frmSeller.contactNumbers[0]),
+						sanitize(frmSeller.contactNumbers[1])
 					],
 					address: {
-						street: sanitize(frmSeller.street),
-						suburb: sanitize(frmSeller.suburb),
-						town: sanitize(frmSeller.town),
-						province: sanitize(frmSeller.province)
+						street: sanitize(frmSeller.address.street),
+						suburb: sanitize(frmSeller.address.suburb),
+						town: sanitize(frmSeller.address.town),
+						province: sanitize(frmSeller.address.province)
 					},
 					user: user._id
 				});
@@ -491,7 +474,9 @@ var sellers = module.exports = {
 				} else {
 					request.session.user = {
 						_id: user._id,
-						emailAddress: user.emailAddress
+						emailAddress: user.emailAddress,
+						password: '', 
+						isEmailAddressVerified: false
 					};
 					request.session.seller = seller;
 					response.redirect(302, path.join('/sellers', seller._id.toString(), 'view'));
@@ -521,7 +506,7 @@ var sellers = module.exports = {
 	 *
 	 * @returns {undefined} Returns the request and response objects to a callback function.
 	 */
-	showProfile: function (request, response, callback) {
+	show: function (request, response, callback) {
 		if (isAuthorizedTo('view', request, response)) {
 			response.render('seller-profile-page', {
 				user: request.session.user,
@@ -530,7 +515,9 @@ var sellers = module.exports = {
 				privateSellerDisplay: request.session.seller.dealershipName === '' ? '': 'none',
 				isLoggedIn: true
 			});
-			return callback(request, response);
+			if (typeof callback === 'function') {
+				return callback(request, response);
+			}
 		}
 	},
 	/**
@@ -596,11 +583,11 @@ var sellers = module.exports = {
 							locationAlertDisplay: 'none'
 						},
 						provinces: provinces,
-						action: path.join('/seller', ssnSeller._id.toString(), 'edit'),
+						action: path.join('/sellers', ssnSeller._id.toString(), 'edit'),
 						heading: 'Edit Seller',
-						buttonCaption: 'Edit',
-						user: frmUser || ssnUser,
-						seller: frmUser || ssnSeller,
+						buttonCaption: 'Save Changes',
+						user: frmUser || ssnUser, 
+						seller: frmSeller || ssnSeller,
 						sellerType: sellerType,
 						isLoggedIn: true
 					}, function (err, html) {
@@ -660,7 +647,7 @@ var sellers = module.exports = {
 	 *
 	 * @returns {undefined}
 	 */
-	editProfile: function (request, response) {
+	edit: function (request, response) {
 		if (isAuthorizedTo('edit', request, response)) {
 			var frmUser = request.body.user;
 			var frmSeller = request.body.seller;
@@ -715,18 +702,18 @@ var sellers = module.exports = {
 					$set: {
 						dealershipName: sanitize(frmSeller.dealershipName),
 						contactPerson: {
-							firstname: sanitize(frmSeller.firstname),
-							surname: sanitize(frmSeller.surname)
+							firstname: sanitize(frmSeller.contactPerson.firstname),
+							surname: sanitize(frmSeller.contactPerson.surname)
 						},
 						contactNumbers: [
-							sanitize(frmSeller.telephone),
-							sanitize(frmSeller.cellphone)
+							sanitize(frmSeller.contactNumbers.telephone),
+							sanitize(frmSeller.contactNumbers.cellphone)
 						],
 						address: {
-							street: sanitize(frmSeller.street),
-							suburb: sanitize(frmSeller.suburb),
-							town: sanitize(frmSeller.town),
-							province: sanitize(frmSeller.province)
+							street: sanitize(frmSeller.address.street),
+							suburb: sanitize(frmSeller.address.suburb),
+							town: sanitize(frmSeller.address.town),
+							province: sanitize(frmSeller.address.province)
 						}
 					}
 				}, function (err, seller) {
@@ -742,7 +729,7 @@ var sellers = module.exports = {
 				if (err) {
 					handleErrors(err, request, response, null, sellers.showEditForm);
 				} else {
-					sellers.showProfile(request, response);
+					response.redirect(302, path.join('/sellers', request.session.seller._id.toString(), 'view'));
 					if (isEmailChanged) {
 						verify.sendLink(request, response);
 					}
@@ -786,7 +773,7 @@ var sellers = module.exports = {
 	 *
 	 * @returns {undefined}
 	 */
-	removeProfile: function (request, response) {
+	remove: function (request, response) {
 		if (isAuthorizedTo('remove', request, response)) {
 			var deleteUser = function (callback) {
 				User.findByIdAndRemove(request.session.user._id, function (err) {

@@ -57,7 +57,7 @@ var provincesString = JSON.stringify(provinces);
 				<div id="divFirstName" class="control-group <%=validationErrors.firstnameAlertType%>">
 					<label class="control-label" for="first_name">First name</label>
 					<div class="controls">
-						<input type="text" id="first_name" name="seller[firstname]" 
+						<input type="text" id="first_name" name="seller[contactPerson][firstname]" 
 							value="<%=seller.contactPerson.firstname%>"/>
 						<span id="spanFirstName" class="help-inline"><%=validationErrors.firstnameError%></span>
 					</div>
@@ -66,7 +66,7 @@ var provincesString = JSON.stringify(provinces);
 				<div id="divSurname" class="control-group <%=validationErrors.surnameAlertType%>">
 					<label class="control-label"  for="surname">Surname</label>
 					<div class="controls">
-						<input type="text" id="surname" name="seller[surname]" 
+						<input type="text" id="surname" name="seller[contactPerson][surname]" 
 							value="<%=seller.contactPerson.surname%>"/>
 						<span id="spanSurname" class="help-inline"><%=validationErrors.surnameError%></span>
 					</div>
@@ -82,7 +82,7 @@ var provincesString = JSON.stringify(provinces);
 				<div id="divTelephone" class="control-group">
 					<label class="control-label" for="telephone">Telephone</label>
 					<div class="controls">
-						<input type="tel" id="telephone" name="seller[telephone]"
+						<input type="tel" id="telephone" name="seller[contactNumbers][telephone]"
 							value="<%=seller.contactNumbers[0]%>"/>
 						<span id="spanTelephone" class="help-inline">&nbsp;</span>
 					</div>
@@ -91,7 +91,7 @@ var provincesString = JSON.stringify(provinces);
 				<div id="divCellphone" class="control-group">
 					<label class="control-label" for="cellphone">Cell phone</label>
 					<div class="controls">
-						<input type="tel" id="cellphone" name="seller[cellphone]"
+						<input type="tel" id="cellphone" name="seller[contactNumbers][cellphone]"
 							value="<%=seller.contactNumbers[1]%>"/>
 						<span id="spanCellphone" class="help-inline">&nbsp;</span>
 					</div>
@@ -144,9 +144,9 @@ var provincesString = JSON.stringify(provinces);
 					<div class="control-group">
 						<label class="control-label" for="street">Street address</label>
 						<div class="controls">
-							<input type="text" id="street" name="seller[street]"
+							<input type="text" id="street" name="seller[address][street]"
 								   value="<%=seller.address.street%>" /><br />
-							<input type="text" id="suburb" name="seller[suburb]"
+							<input type="text" id="suburb" name="seller[address][suburb]"
 								   value="<%=seller.address.suburb%>" />
 							<span class="help-inline"></span>
 						</div>
@@ -156,7 +156,7 @@ var provincesString = JSON.stringify(provinces);
 				<div id="divProvinces" class="control-group <%=validationErrors.provinceAlertType%>">
 					<label class="control-label" for="provinces">Province</label>
 					<div class="controls">
-						<select id="provinces" name="seller[province]">
+						<select id="provinces" name="seller[address][province]">
 						<% if (seller.address.province) { %>
 							<option selected="selected" value="<%=seller.address.province%>">
 								<%=seller.address.province%>
@@ -178,7 +178,7 @@ var provincesString = JSON.stringify(provinces);
 				<div id="divTowns" class="control-group <%=validationErrors.townAlertType%>">
 					<label class="control-label" for="towns">Town</label>
 					<div class="controls">
-						<select id="towns" name="seller[town]">
+						<select id="towns" name="seller[address][town]">
 						<% if (seller.address.town) { %>
 							<option selected="selected" value="<%=seller.address.town%>">
 								<%=seller.address.town%>
