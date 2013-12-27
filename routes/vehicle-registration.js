@@ -218,7 +218,7 @@ var vehicles = module.exports = {
 		if (isLoggedIn('add', request, response)) {
 			var currentDateObject = new Date(Date.now());
 
-			getLookups(null, function (err, vehilce, makes, lookups) {
+			getLookups(null, function (err, vehicle, makes, lookups) {
 				if (err) {
 					handleErrors(err, request, response);
 				} else {
@@ -290,7 +290,14 @@ var vehicles = module.exports = {
 	/**
 	 * @summary Responds to HTTP POST /vehicles/add. Adds a new vehicle profile, then displays it 
 	 * (views/vehicle-profile-page.ejs).
+	 * 
+	 * @description Preconditions:
+	 * (1) A seller has to be logged-in (function isLoggedIn).
 	 *
+	 * Error handling:
+	 * (1) If a seller is not logged-in, an appropriate error message is displayed.
+	 * (2) All errors are handled by the handleErrors function.
+	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
