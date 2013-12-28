@@ -34,55 +34,60 @@ var handleErrors = function (err, request, response) {
 
 	switch (err.message) {
 		case 'The email address has not been registered.':
-			password.showForgotForm(request, response, {
+			request.session.passwordForgotError = {
 				emailAddress: err.emailAddress,
 				message: err.message,
 				emailAlertType: 'error'
-			});
+			};
+			password.showForgotForm(request, response); 
 			break;
 		case 'Key does not match hash of the email address. Please try again.':
-			password.showForgotForm(request, response, {
+			request.session.passwordForgot = {
 				emailAddress: err.emailAddress,
 				message: err.message,
 				emailAlertType: 'error'
-			});
+			};
+			password.showForgotForm(request, response); 
 			break;
 		default:
-			main.showErrorPage(request, response);
+			response.redirect(302, '/error');
 			break;
 	}
 };
 
 var password = module.exports = {
 	/**
-	 * @summary Responds to HTTP GET /password/forgot. Displays the password-forgot form.
+	 * @summary Responds to HTTP GET /password/forgot. Displays the views/password-forgot-form.ejs.
 	 *
-	 * @description If the passwordForgot property of the request.session object exists, it means that the form is
-	 * being redisplayed after
+	 * @description If the passwordForgotError property of the request.session object exists, it means that the form is
+	 * being redisplayed after:
 	 *
-	 * 1) an unregistered email address has been entered into the password-forgot-form, or that
-	 * 2) the user account has been deleted since the reset link was sent,
+	 * (1) an unregistered email address has been entered into the password-forgot-form (function sendLink). OR
+	 * (2) the key in the reset url does not match the hash of the email address (function showResetForm). OR
+	 * (3) the user account has been deleted since the reset link was sent (function reset).
 	 *
 	 * and that an error message must be displayed on the password-forgot form.
-	 *
-	 * In the first case, the passwordForgot property is set in the sendLink function, and, in the second case, in the
-	 * reset function.
-	 *
-	 * If the emailHashMismatch property of the request.session object exists, it means that the email address in
-	 * the password-reset link did not match the hash in the link, and that the an error message must be displayed
-	 * on the password-forgot form. The property is set in the showResetForm function.
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
 	 * @returns {undefined}
 	 */
-	showForgotForm: function (request, response, error, isPasswordReset) {
+	showForgotForm: function (request, response) {
 		response.render('password-forgot-form', {
-			emailAddress: error && error.emailAddress || '',
-			emailError: error && error.message || '',
-			emailAlertType: error ? 'error' : '',
+			error: request.session.passwordForgotError || {
+				emailAddress: '',
+				message: '',
+				emailAlertType: ''
+			},
 			isLoggedIn: !!request.session.user
+		}, function (err, html) {
+			if (err) {
+				handleErrors(err, request, response);
+			} else {
+				request.session.passwordForgotError = null;
+				response.send(html);
+			}
 		});
 	},
 	/**
@@ -117,7 +122,7 @@ var password = module.exports = {
 	 */
 	sendLink: function (request, response) {
 		/* The email address entered into the password-forgot form. */
-		var frmEmailAddress = request.body.seller.emailAddress.toLowerCase().trim();
+		var frmEmailAddress = request.body.user.emailAddress.toLowerCase().trim();
 
 		var sendMessage = function (key, callback) {
 			/* Link to the password-reset form. */
@@ -159,7 +164,7 @@ var password = module.exports = {
 				}
 				if (!user) {
 					var error = new Error('The email address has not been registered.');
-					err.emailAddress = frmEmailAddress;
+					error.emailAddress = frmEmailAddress;
 					return callback(error);
 				}
 				createKey(user, callback);
@@ -196,7 +201,7 @@ var password = module.exports = {
 				handleErrors(err, request, response);
 			} else if (!isMatch) {
 				var error = new Error('Key does not match hash of the email address. Please try again.');
-				err.emailAddress = qryEmailAddress;
+				error.emailAddress = qryEmailAddress;
 				handleErrors(error, request, response);
 			} else {
 				response.render('password-reset-form', {
@@ -237,7 +242,17 @@ var password = module.exports = {
 				$set: {
 					passwordHash: hash
 				}
-			}, callback);
+			}, function (err, user) {
+				if (err) {
+					return callback(err);
+				}
+				if(!user) {
+					var error = new Error('The email address has not been registered.');
+					error.emailAddress = frmEmailAddress;
+					return callback(error);
+				}
+				return callback(null, user);
+			});
 		};
 
 		var hashPassword = function (callback) {
@@ -253,7 +268,7 @@ var password = module.exports = {
 			if (err) {
 				handleErrors(err, request, response);
 			} else {
-				login.showForm(request, response, true);
+				login.showForm(request, response);
 			}
 		});
 	}

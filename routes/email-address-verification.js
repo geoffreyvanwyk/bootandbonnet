@@ -26,7 +26,7 @@ var email = require('../configuration/email').server;
 var User = require('../models/users');
 
 /* Import routes. */
-var main = require('../routes/main');
+var main = require('./main');
 
 /**
  * @summary Handles all the errors in this module.
@@ -69,7 +69,13 @@ var handleErrors = function (err, request, response) {
  */
 var showVerifiedPage = function (request, response, verificationErrors) {
 	response.render('email-address-verified-page', {
-		verificationErrors: verificationErrors,
+		verificationErrors: verificationErrors || {
+			keyError: '',
+			userError: ''
+		},
+		seller: request.session.seller || {
+			_id: ''
+		},
 		isLoggedIn: !!request.session.user
 	});
 };
@@ -88,20 +94,19 @@ var verify = module.exports = {
 	 * @returns {undefined}
 	 */
 	sendLink: function (request, response) {
-		var ssnEmailAddress = request.session.user.emailAddress;
-		var prmUserId = request.params.userId;
+		var ssnUser = request.session.user;
 
 		var sendMessage = function (key, callback) {
 			var link = 'http://localhost:3000/user/'
-						.concat(encodeURIComponent(prmUserId))
+						.concat(encodeURIComponent(ssnUser._id))
 						.concat('/verify-email-address/?emailAddress=')
-						.concat(encodeURIComponent(ssnEmailAddress))
+						.concat(encodeURIComponent(ssnUser.emailAddress))
 						.concat('&key=')
 						.concat(key);
 
 			var message = {
 				from: "BootandBonnet <info@bootandbon.net>",
-				to: ssnEmailAddress,
+				to: ssnUser.emailAddress,
 				subject: "Email Verification",
 				text: "Dear Sir/Madam,\n\n"
 					.concat("Thank you for registering a BootandBonnet account.\n\n")
@@ -117,9 +122,9 @@ var verify = module.exports = {
 		};
 
 		var createKey = function (callback) {
-			bcrypt.hash(ssnEmailAddress, 10, function (err, key) {
+			bcrypt.hash(ssnUser.emailAddress, 10, function (err, key) {
 				if (err) {
-					handleErrors(err, request, response);
+					return callback(err);
 				} else {
 					sendMessage(key, callback);
 				}
@@ -192,7 +197,7 @@ var verify = module.exports = {
 					var err = new Error('Key does not match hash of email address.');
 					return callback(err);
 				}
-				updateUser();
+				updateUser(callback);
 			});
 		};
 

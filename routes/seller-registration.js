@@ -436,8 +436,8 @@ var sellers = module.exports = {
 						surname: sanitize(frmSeller.contactPerson.surname)
 					},
 					contactNumbers: [
-						sanitize(frmSeller.contactNumbers[0]),
-						sanitize(frmSeller.contactNumbers[1])
+						sanitize(frmSeller.contactNumbers.telephone),
+						sanitize(frmSeller.contactNumbers.cellphone)
 					],
 					address: {
 						street: sanitize(frmSeller.address.street),

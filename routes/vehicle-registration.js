@@ -173,11 +173,6 @@ var getLookups = function (vehicle, callback) {
 	});
 };
 
-
-var isAuthorizedTo = function (action, request, response) {
-	
-};
-
 /**
  * @summary Returns true, if a seller is logged-in; otherwise, it displays an error message, then returns false.
  *  
@@ -497,113 +492,91 @@ var vehicles = module.exports = {
 		});
 	},
 	/**
-	 * @summary Responds to HTTP GET /seller/:sellerId/vehicle/:vehicleId/edit. Displays 
-	 * views/vehicle-registration-form.ejs with the requested vehicle's details prefilled.
+	 * @summary Responds to HTTP GET /vehicles/:vehicleId/edit. Displays views/vehicle-registration-form.ejs with the 
+	 * requested vehicle's details prefilled.
 	 *
 	 * @description Preconditions:
-	 * (1) A seller has to be logged-in.
-	 * (2) The vehicle requested for editing has to be owned by the logged-in seller.
-	 *
+	 * (1) The seller must be logged-in (function isLoggedIn).
+	 * (2) The vehicle must belong to the logged-in seller (function checkOwnership).
+	 * 
+	 * Algorithm:
+	 * (1) The vehicle (:vehicleId) is retrieved from the vehicles database collection (function findVehicle).
+	 * (2) The id of the vehicle's seller is compared with the id of the logged-in user (function checkOwnership).
+	 * (3) If the vehicle belongs to the logged-in seller, the edit form is displayed.
+	 * 
+	 * Error handling:
+	 * (1) Appropriate error messages are displayed under the following conditions: 
+	 * -- If the user is not logged-in.
+	 * -- If a vehicle with the requested id does not exist.
+	 * -- If the logged-in seller is not the owner of the vehicle.
+	 * (2) All errors are handled by the handleErrors function.
+	 * 
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
 	 * @returns	{undefined}
 	 */
 	showEditForm: function (request, response) {
-		if (isAuthorizedTo('edit', request, response)) {
-			var currentDateObject = new Date(Date.now());
+		if (isLoggedIn('edit', request, response)) {
+			var currentDate = new Date(Date.now());
 			
-			var getVehicle = function (vehicleId, callback) {
-				Vehicle.findById(vehicleId, function (err, vehicle) {
+			var checkOwnership = function (vehicle, callback) {
+				if (vehicle.seller.toString() !== request.session.seller._id.toString()) {
+					var error = new Error('You can only edit your own vehicles.');
+					return callback(error);
+				}
+				getLookups(vehicle, callback);
+			};
+			
+			var findVehicle = function (callback) {
+				Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
 					if (err) {
 						return callback(err);
-					} 
-					if (!vehicle) {
-						var error = new Error('No vehicle with that id exists.');
-						return callback(err);
 					}
-					getLookups(vehicle, callback);
+					if (!vehicle) {
+						var error = new Error('A vehicle with the requested id does not exist.');
+						return callback(error);
+					}
+					checkOwnership(vehicle, callback);
 				});
 			};
 			
-			getVehicle(request.params.vehicleId, function (err, vehicle, makes, lookups) {
+			findVehicle(request.params.vehicleId, function (err, vehicle, makes, lookups) {
 				if (err) {
 					handleErrors(err, request, response);
 				} else {
-					response.render('vehicles/registration-form', {
+					response.render('vehicle-registration-form', {
 						method: 'edit',
 						heading:  'Edit Vehicle',
 						buttonCaption: 'Save Changes',
-						vehicle: vehicle || {
-							_id: '',
-							market: '',
-							type: {
-								make: '',
-								model: '',
-								year: ''
-							},
-							description: {
-								mileage: '',
-								color: '',
-								fullServiceHistory: ''
-							},
-							mechanics: {
-								engineCapacity: '',
-								fuel: '',
-								transmission: '',
-								absBrakes: '',
-								powerSteering: ''
-							},
-							luxuries: {
-								airConditioning: '',
-								electricWindows: '',
-								radio: '',
-								cdPlayer: ''
-							},
-							security: {
-								alarm: '',
-								centralLocking: '',
-								immobilizer: '',
-								gearLock: ''
-							},
-							safety: {
-								airBags: ''
-							},
-							price: {
-								value: '',
-								negotiable: ''
-							},
-							photos: [
-								"/static/img/image-placeholder.png",
-								"/static/img/image-placeholder.png",
-								"/static/img/image-placeholder.png",
-								"/static/img/image-placeholder.png"
-							],
-							comments: '',
-							seller: ''
-						},
+						vehicle: vehicle,
 						makes: makes,
 						manufacturersString: JSON.stringify(makes),
 						colors: lookups[0].colors,
 						fuels: lookups[0].fuels,
 						transmissions: lookups[0].transmissions,
-						thisYear: currentDateObject.getFullYear(),
-						loggedIn: true
+						thisYear: currentDate.getFullYear(),
+						isLoggedIn: true
 					});
 				}
 			});
 		}
 	},
 	/**
-	* @summary Responds to HTTP POST /seller/:sellerId/vehicle/:vehicleId/edit.
+	* @summary Responds to HTTP POST /vehicles/:vehicleId/edit. Edits the requested vehicle's profile, then displays it 
+	* (views/vehicle-profile-page.ejs).
 	*
+	* @description Preconditions:
+	* (1) The seller must be logged-in (function isLoggedIn).
+	* (2) The vehicle must belong to the logged-in seller (function checkOwnership).
+	* 
 	* @param {object} request An HTTP request object received from the express.post() method.
 	* @param {object} response An HTTP response object received from the express.post() method.
 	*
 	* @returns {undefined}
 	*/
 	edit: function (request, response) {
-		if (isAuthorizedTo('edit', request, response)) {
+		if (isLoggedIn('edit', request, response)) {
 			var frmVehicle = request.body.vehicle;
 			
 			var instantiateVehicle = function (callback) {
@@ -657,6 +630,7 @@ var vehicles = module.exports = {
 						comments: sanitize(frmVehicle.comments),
 						photos: vehicle.photos
 					};
+					
 					checkDirectory(updateVehicle, request.files, callback);
 				});
 			};
@@ -696,7 +670,7 @@ var vehicles = module.exports = {
 	* logged-in seller's list of vehicles.
 	* 
 	* @description Preconditions:
-	* (1) The seller must be logged-in (var isLoggedIn).
+	* (1) The seller must be logged-in (function isLoggedIn).
 	* (2) The vehicle must belong to the logged-in seller (function checkOwnership).
 	* 
 	* Algorithm:

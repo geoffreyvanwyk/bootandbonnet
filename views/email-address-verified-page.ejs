@@ -1,6 +1,6 @@
-<% layout('../../views/layout') -%>
+<% layout('../views/layout') -%>
 
-<div style="display: <%= verificationErrors ? 'none' : '' %>">
+<div style="display: <%= verificationErrors.keyError === '' && verificationErrors.userError === '' ? '' : 'none' %>">
 	<h2>Thank you!</h2>
 	<p>Your email address has been verfied.</p>
 </div>
@@ -10,7 +10,7 @@
 	<p><%=verificationErrors.keyError%></p>
 </div>
 
-<div style="display: <%=verficationErrors.userError ? '' : 'none' %>">
+<div style="display: <%= verificationErrors.userError ? '' : 'none' %>">
 	<h2>Error</h2>
-	<p><%=verficationErrors.userError%></p>
+	<p><%=verificationErrors.userError%></p>
 </div>
