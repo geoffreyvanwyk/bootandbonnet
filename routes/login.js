@@ -29,7 +29,7 @@ var handleErrors = function (err, user, request, response) {
 	console.log('==================== BEGIN ERROR MESSAGE ====================');
 	console.log(err);
 	console.log('==================== END ERROR MESSAGE ======================');
-	
+
 	request.session.loginErrors = {
 		emailAddress: err.user && err.user.emailAddress,
 		emailError: '',
@@ -38,7 +38,7 @@ var handleErrors = function (err, user, request, response) {
 		passwordError: '',
 		passwordAlertType: 'error'
 	};
-	
+
 	switch (err.message) {
 		case 'The email address has not been registered.':
 			request.session.loginErrors.emailError = err.message;
@@ -48,12 +48,12 @@ var handleErrors = function (err, user, request, response) {
 			request.session.loginErrors.passwordError = err.message;
 			login.showForm(request, response);
 			break;
-		case 'You are already logged-in':
+		case 'You are already logged-in.':
 			request.session.specialError = err.message;
-			main.showErrorPage(request, response);
+			response.redirect(302, '/error');
 			break;
 		default:
-			main.showErrorPage(request, response);
+			response.redirect(302, '/error');
 			break;
 	}
 };
@@ -68,7 +68,7 @@ var handleErrors = function (err, user, request, response) {
  */
 var isLoggedIn = function (request, response) {
 	var displayError = function () {
-		handleErrors(new Error('You are already logged-in.'), request, response);
+		handleErrors(new Error('You are already logged-in.'), null, request, response);
 		return true;
 	};
 	if (request.session.user) {
@@ -123,6 +123,14 @@ var login = module.exports = {
 				},
 				resetDisplay: request.session.isPasswordReset ? '' : 'none',
 				isLoggedIn: false
+			}, function (err, html) {
+				if (err) {
+					handleErrors(err, null, request, response);
+				} else {
+					request.session.loginErrors = null;
+					request.session.isPasswordReset = null;
+					response.send(html);
+				}
 			});
 		}
 	},
@@ -211,7 +219,7 @@ var login = module.exports = {
 
 			findUser(function (err, user, seller) {
 				if (err) {
-					handleErrors(err, request, response);
+					handleErrors(err, user, request, response);
 				} else {
 					request.session.user = {
 						_id: user._id,
