@@ -2,7 +2,7 @@
 <% script('../../../static/js/vehicle-registration-form.js') -%>
 <% script('../../../static/js/bootstrap.file-input.js') -%>
 
-<form method="post" action="/vehicles/<%=method%>" enctype="multipart/form-data">
+<form method="post" action="<%=action%>" enctype="multipart/form-data">
 	<div class="page-header">
 		<h1><%=heading%></h1>
 	</div>
@@ -30,12 +30,8 @@
 			<fieldset>
 				<legend>Type</legend>
 
-				<input type="hidden" id="manufacturers" value="<%=manufacturersString %>" />
-
 				<label>Make:</label>
-
 				<select id="makes" name="vehicle[type][make]">
-
 					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.type.make%>"><%=vehicle.type.make%></option>
 					<% } else { %>
@@ -45,25 +41,19 @@
 					<% for (m in makes) { %>
 					<option><%=makes[m].name %></option>
 					<% } %>
-
 				</select>
 
 				<label>Model:</label>
-
 				<select id="models" name="vehicle[type][model]">
-
 					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.type.model%>"><%=vehicle.type.model%></option>
 					<% } else { %>
 					<option selected="selected">Please select ...</option>
 					<% } %>
-
 				</select>
 
 				<label>Year:</label>
-
 				<select id="year" name="vehicle[type][year]">
-
 					<% if (vehicle) { %>
 					<option selected="selected" value="<%=vehicle.type.year%>"><%=vehicle.type.year%></option>
 					<% } else { %>
@@ -388,7 +378,11 @@
             <ul class="thumbnails">
 				<li class="span3">
 					<div class="thumbnail">
-						<img id="photo1" src="<%=vehicle.photos[0]%>" alt="">
+						<img id="photo1"
+							src="<%=vehicle.photos[0] ?
+								"/vehicles/".concat(vehicle._id).concat("/photos/1")
+								: "/static/img/image-placeholder.png"%>"
+						>
 							<div class="caption">
 								<h4 >Photo 1</h4>
 								<p>
@@ -403,7 +397,11 @@
 				</li>
 				<li class="span3">
 					<div class="thumbnail">
-						<img id="photo2"  src="<%=vehicle.photos[1]%>" alt="">
+						<img id="photo2"
+							src="<%=vehicle.photos[1] ?
+								"/vehicles/".concat(vehicle._id).concat("/photos/2")
+								: "/static/img/image-placeholder.png"%>"
+						>
 							<div class="caption">
 								<h4>Photo 2</h4>
 								<p>
@@ -419,6 +417,11 @@
 				<li class="span3">
 					<div class="thumbnail">
 						<img id="photo3" src="<%=vehicle.photos[2]%>" alt="">
+						<img id="photo3"
+							src="<%=vehicle.photos[2] ?
+								"/vehicles/".concat(vehicle._id).concat("/photos/3")
+								: "/static/img/image-placeholder.png"%>"
+						>
 							<div class="caption">
 								<h4>Photo 3</h4>
 								<p>
@@ -433,7 +436,11 @@
 				</li>
 				<li class="span3">
 					<div class="thumbnail">
-						<img id="photo4" src="<%=vehicle.photos[3]%>" alt="">
+						<img id="photo4"
+							src="<%=vehicle.photos[3] ?
+								"/vehicles/".concat(vehicle._id).concat("/photos/4")
+								: "/static/img/image-placeholder.png"%>"
+						>
 							<div class="caption">
 								<h4>Photo 4</h4>
 								<p>
