@@ -2,35 +2,36 @@
 /*global FileReader*/
 /*global $*/
 
-'use strict';
-
 window.onload = function () {
+	'use strict';
 	var photoInputs, index, makesSelect, modelsSelect, removePhotoButtons;
 
-	/* Fill the models select element with the models corresponding with the selected make. */
-	makesSelect = document.getElementById("makes");
-	modelsSelect = document.getElementById("models");
-
-	makesSelect.onchange = function () {
-		var m, makes, modelOption, o, selectedMake;
-
-		selectedMake = this.value;
-		makes = JSON.parse(document.getElementById("manufacturers").value);
-		modelsSelect.innerHTML = "<option selected='selected'>Please select ...</option>";
-
-		for (m in makes) {
+	/**
+	 * Fill the models select element with the models corresponding with the selected make.
+	 */
+	var fillModels = function () {
+		var selectedMake = $('#makes').val();
+		var makes = JSON.parse($('#manufacturers').val());
+		for (var m in makes) {
 			if (makes.hasOwnProperty(m) && (makes[m].name === selectedMake)) {
-				for (o in makes[m].models) {
+				for (var o in makes[m].models) {
 					if (makes[m].models.hasOwnProperty(o)) {
-						modelOption = document.createElement("option");
-						modelOption.textContent = makes[m].models[o].name;
-						modelsSelect.appendChild(modelOption);
+						jQuery('<option/>', {
+							text: makes[m].models[o].name
+						}).appendTo('#models');
 					}
 				}
 				break;
 			}
 		}
 	};
+
+	fillModels();
+
+	$('#makes').change(function () {
+		$('#models').html("<option selected='selected'>Please select ...</option>");
+		fillModels();
+	});
 
 	/* Set the toggle states of toggle buttons. */
 	/* jQuery has to be used here, because the button method is only available in jQuery. */
