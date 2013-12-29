@@ -31,7 +31,7 @@ var sellers = require('./seller-registration');
 
 /**
  * @summary Handles all the errors in this module.
- * 
+ *
  * @param {object} err An error object.
  * @param {object} request An HTTP request object received from the express.get() method.
  * @param {object} response An HTTP response object received from the express.get() method.
@@ -42,7 +42,7 @@ var handleErrors = function (err, request, response) {
 	console.log('==================== BEGIN ERROR MESSAGE ====================');
 	console.log(err);
 	console.log('==================== END ERROR MESSAGE ======================');
-	
+
 	switch (err.message) {
 		case 'You are not logged-in.':
 			request.session.specialError = {
@@ -68,7 +68,7 @@ var handleErrors = function (err, request, response) {
 			request.session.specialError = err.message;
 			response.redirect(302, '/error');
 			break;
-		case "The vehicle's advertisement period has expired.": 
+		case "The vehicle's advertisement period has expired.":
 			request.session.specialError = err.message;
 			response.redirect(302, '/error');
 			break;
@@ -139,11 +139,11 @@ var checkDirectory = function (vehicle, files, callback) {
 /**
  * @summary Returns all the make documents makes database collection. Each make document also include the models of that
  * make.
- * 
+ *
  * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
  * @param {ojbect} lookups The lookup values for colors, fuel types, transmission types, etc.
  * @param {function} callback A callback function.
- * 
+ *
  * @returns {undefined}
  */
 var getMakes = function (vehicle, lookups, callback) {
@@ -158,10 +158,10 @@ var getMakes = function (vehicle, lookups, callback) {
 /**
  * @summary Returns all the lookup values for colors, fuel types, transmission types, etc. from the lookups database
  * collection.
- * 
+ *
  * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
  * @param {function} callback A callback function.
- * 
+ *
  * @returns {undefined}
  */
 var getLookups = function (vehicle, callback) {
@@ -175,20 +175,20 @@ var getLookups = function (vehicle, callback) {
 
 /**
  * @summary Returns true, if a seller is logged-in; otherwise, it displays an error message, then returns false.
- *  
+ *
  * @param {object} request An HTTP request object received from the express.get() or express.post() method.
  * @param {object} response An HTTP response object received from the express.get() or express.post() method.
- *  
+ *
  * @returns {boolean}
  */
 var isLoggedIn = function (action, request, response) {
 	var displayError = function () {
 		var error = new Error('You are not logged-in.');
-		error.action = action; 
+		error.action = action;
 		handleErrors(error, request, response);
 		return false;
 	};
-	
+
 	return !!request.session.seller || displayError();
 };
 
@@ -203,7 +203,7 @@ var vehicles = module.exports = {
 	 * Error handling:
 	 * (1) If a seller is not logged-in, an appropriate error message is displayed.
 	 * (2) All errors are handled by the handleErrors function.
-	 * 
+	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
@@ -218,7 +218,7 @@ var vehicles = module.exports = {
 					handleErrors(err, request, response);
 				} else {
 					response.render('vehicle-registration-form', {
-						method: 'add',
+						action: '/vehicles/add',
 						heading:  'Add Vehicle',
 						buttonCaption: 'Register',
 						seller: request.session.seller,
@@ -283,16 +283,16 @@ var vehicles = module.exports = {
 		}
 	},
 	/**
-	 * @summary Responds to HTTP POST /vehicles/add. Adds a new vehicle profile, then displays it 
+	 * @summary Responds to HTTP POST /vehicles/add. Adds a new vehicle profile, then displays it
 	 * (views/vehicle-profile-page.ejs).
-	 * 
+	 *
 	 * @description Preconditions:
 	 * (1) A seller has to be logged-in (function isLoggedIn).
 	 *
 	 * Error handling:
 	 * (1) If a seller is not logged-in, an appropriate error message is displayed.
 	 * (2) All errors are handled by the handleErrors function.
-	 * 
+	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
@@ -303,7 +303,7 @@ var vehicles = module.exports = {
 			var instantiateVehicle = function (callback) {
 				var ssnSeller = request.session.seller;
 				var frmVehicle = request.body.vehicle;
-				
+
 				var vehicle = new Vehicle({
 					market: sanitize(frmVehicle.market),
 					type: {
@@ -379,28 +379,28 @@ var vehicles = module.exports = {
 	},
 	/**
 	* @summary Responds to HTTP GET /vehicles/:vehicleId/view. Displays the views/vehicle-profile-page.ejs.
-	* 
+	*
 	* @description Preconditions:
 	* (1) The user must be authorized to view the profile (function checkAuthorization).
-	* 
+	*
 	* Postconditions:
-	* (1) If a seller is logged-in, and the vehicle belongs to him/her, edit and delete buttons should also be 
+	* (1) If a seller is logged-in, and the vehicle belongs to him/her, edit and delete buttons should also be
 	* displayed.
-	* 
+	*
 	* Algorithm:
-	* (1) The vehicle referenced by the id in the url (:vehicleId) is first retrieved from the database (function 
+	* (1) The vehicle referenced by the id in the url (:vehicleId) is first retrieved from the database (function
 	* findVehicle).
 	* (2) The the checkAuthorization function checks whether the user is authorized to view the vehicle profile.
 	* (3) Then the seller, who owns the vehicle, is retrieved from the database, based on the vehicle's seller property
 	*  (function findSeller).
-	* (4) Then the user associated with the seller is retrieved from the database, based on the seller's user property 
+	* (4) Then the user associated with the seller is retrieved from the database, based on the seller's user property
 	* (function findUser).
-	* 
-	* The seller needs to be retrieved to display the seller's contact numbers and address. The user needs to be 
+	*
+	* The seller needs to be retrieved to display the seller's contact numbers and address. The user needs to be
 	* retrieved, because the email address is necessary for the contact form.
-	* 
+	*
 	* Error handling:
-	* (1) If a vehicle's advertisement period has expired, and the user is not the owner, an error message should be 
+	* (1) If a vehicle's advertisement period has expired, and the user is not the owner, an error message should be
 	* displayed.
 	* (2) All errors are handled by the handleErrors function.
 	*
@@ -422,7 +422,7 @@ var vehicles = module.exports = {
 				return callback(null, vehicle, seller, user, isOwnVehicle);
 			});
 		};
-		
+
 		var findSeller = function (vehicle, isOwnVehicle, callback) {
 			Seller.findById(vehicle.seller, function (err, seller) {
 				if (err) {
@@ -435,10 +435,10 @@ var vehicles = module.exports = {
 				findUser(vehicle, seller, isOwnVehicle, callback);
 			});
 		};
-		
+
 		/**
 		 * @summary Checks whether the user is authorized to view the vehicle profile.
-		 * 
+		 *
 		 * @description The user is authorized (var isAuthorized) if the following conditions are met:
 		 * (1) The vehicle's advertisement period has not expired (var isExpired). OR
 		 * (2) The logged-in seller is the owner of the vehicle (var isOwnVehicle).
@@ -447,18 +447,18 @@ var vehicles = module.exports = {
 		 * @param {function} callback A callback function.
 		 *
 		 * @returns {undefined}
-		 */ 
+		 */
 		var checkAuthorization = function (vehicle, callback) {
 			var currentDate = new Date(Date.now());
 			var isExpired = vehicle.expiryDate < currentDate;
 			var isOwnVehicle = request.session.seller && request.session.seller._id == vehicle.seller;
 			var isAuthorized = !isExpired || isOwnVehicle;
-			
+
 			if (!isAuthorized) {
 				var error = new Error("The vehicle's advertisement period has expired.");
 				return callback(error);
 			}
-			
+
 			findSeller(vehicle, isOwnVehicle, callback);
 		};
 
@@ -466,7 +466,7 @@ var vehicles = module.exports = {
 			Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
 				if (err) {
 					return callback(err);
-				} 
+				}
 				if (!vehicle) {
 					var error = new Error('A vehicle with the requested id does not exist.');
 					return callback(error);
@@ -486,31 +486,31 @@ var vehicles = module.exports = {
 					dealerDisplay: seller.dealershipName === '' ? 'none' : '',
 					privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
 					formActionsDisplay: isOwnVehicle ? '' : 'none',
-					isLoggedIn: !!request.session.seller 
+					isLoggedIn: !!request.session.seller
 				});
 			}
 		});
 	},
 	/**
-	 * @summary Responds to HTTP GET /vehicles/:vehicleId/edit. Displays views/vehicle-registration-form.ejs with the 
+	 * @summary Responds to HTTP GET /vehicles/:vehicleId/edit. Displays views/vehicle-registration-form.ejs with the
 	 * requested vehicle's details prefilled.
 	 *
 	 * @description Preconditions:
 	 * (1) The seller must be logged-in (function isLoggedIn).
 	 * (2) The vehicle must belong to the logged-in seller (function checkOwnership).
-	 * 
+	 *
 	 * Algorithm:
 	 * (1) The vehicle (:vehicleId) is retrieved from the vehicles database collection (function findVehicle).
 	 * (2) The id of the vehicle's seller is compared with the id of the logged-in user (function checkOwnership).
 	 * (3) If the vehicle belongs to the logged-in seller, the edit form is displayed.
-	 * 
+	 *
 	 * Error handling:
-	 * (1) Appropriate error messages are displayed under the following conditions: 
+	 * (1) Appropriate error messages are displayed under the following conditions:
 	 * -- If the user is not logged-in.
 	 * -- If a vehicle with the requested id does not exist.
 	 * -- If the logged-in seller is not the owner of the vehicle.
 	 * (2) All errors are handled by the handleErrors function.
-	 * 
+	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
 	 *
@@ -519,34 +519,32 @@ var vehicles = module.exports = {
 	showEditForm: function (request, response) {
 		if (isLoggedIn('edit', request, response)) {
 			var currentDate = new Date(Date.now());
-			
+
 			var checkOwnership = function (vehicle, callback) {
 				if (vehicle.seller.toString() !== request.session.seller._id.toString()) {
-					var error = new Error('You can only edit your own vehicles.');
-					return callback(error);
+					return callback(new Error('You can only edit your own vehicles.'));
 				}
 				getLookups(vehicle, callback);
 			};
-			
-			var findVehicle = function (callback) {
-				Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
+
+			var findVehicle = function (vehicleId, callback) {
+				Vehicle.findById(vehicleId, function (err, vehicle) {
 					if (err) {
 						return callback(err);
 					}
 					if (!vehicle) {
-						var error = new Error('A vehicle with the requested id does not exist.');
-						return callback(error);
+						return callback(new Error('A vehicle with the requested id does not exist.'));
 					}
 					checkOwnership(vehicle, callback);
 				});
 			};
-			
+
 			findVehicle(request.params.vehicleId, function (err, vehicle, makes, lookups) {
 				if (err) {
 					handleErrors(err, request, response);
 				} else {
 					response.render('vehicle-registration-form', {
-						method: 'edit',
+						action: '/vehicles/'.concat(vehicle._id.toString()).concat('/edit'),
 						heading:  'Edit Vehicle',
 						buttonCaption: 'Save Changes',
 						vehicle: vehicle,
@@ -556,6 +554,7 @@ var vehicles = module.exports = {
 						fuels: lookups[0].fuels,
 						transmissions: lookups[0].transmissions,
 						thisYear: currentDate.getFullYear(),
+						seller: request.session.seller,
 						isLoggedIn: true
 					});
 				}
@@ -563,13 +562,20 @@ var vehicles = module.exports = {
 		}
 	},
 	/**
-	* @summary Responds to HTTP POST /vehicles/:vehicleId/edit. Edits the requested vehicle's profile, then displays it 
+	* @summary Responds to HTTP POST /vehicles/:vehicleId/edit. Edits the requested vehicle's profile, then displays it
 	* (views/vehicle-profile-page.ejs).
 	*
 	* @description Preconditions:
 	* (1) The seller must be logged-in (function isLoggedIn).
 	* (2) The vehicle must belong to the logged-in seller (function checkOwnership).
-	* 
+	*
+	* Error handling:
+	* (1) Appropriate error messages are displayed under the following conditions:
+	* -- If the user is not logged-in.
+	* -- If a vehicle with the requested id does not exist.
+	* -- If the logged-in seller is not the owner of the vehicle.
+	* (2) All errors are handled by the handleErrors function.
+	*
 	* @param {object} request An HTTP request object received from the express.post() method.
 	* @param {object} response An HTTP response object received from the express.post() method.
 	*
@@ -578,7 +584,7 @@ var vehicles = module.exports = {
 	edit: function (request, response) {
 		if (isLoggedIn('edit', request, response)) {
 			var frmVehicle = request.body.vehicle;
-			
+
 			var instantiateVehicle = function (callback) {
 				Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
 					if (err) {
@@ -630,7 +636,7 @@ var vehicles = module.exports = {
 						comments: sanitize(frmVehicle.comments),
 						photos: vehicle.photos
 					};
-					
+
 					checkDirectory(updateVehicle, request.files, callback);
 				});
 			};
@@ -660,26 +666,26 @@ var vehicles = module.exports = {
 				if (err) {
 					handleErrors(err, request, response);
 				} else {
-					response.redirect(302, path.join('/vehicle/view/', vehicle._id.toString()));
+					response.redirect(302, '/vehicles/'.concat(vehicle._id.toString()).concat('/view'));
 				}
 			});
 		}
 	},
 	/**
-	* @summary Responds to HTTP GET /vehicles/:vehicleId/remove. Removes the vehicle's profile, then displays the 
+	* @summary Responds to HTTP GET /vehicles/:vehicleId/remove. Removes the vehicle's profile, then displays the
 	* logged-in seller's list of vehicles.
-	* 
+	*
 	* @description Preconditions:
 	* (1) The seller must be logged-in (function isLoggedIn).
 	* (2) The vehicle must belong to the logged-in seller (function checkOwnership).
-	* 
+	*
 	* Algorithm:
 	* (1) The vehicle (:vehicleId) is retrieved from the vehicles database collection (function findVehicle).
 	* (2) The id of the vehicle's seller is compared with the id of the logged-in user (function checkOwnership).
 	* (3) If the vehicle belongs to the logged-in seller, the vehicle is deleted (function deleteVehicle).
-	* 
+	*
 	* Error handling:
-	* (1) Appropriate error messages are displayed under the following conditions: 
+	* (1) Appropriate error messages are displayed under the following conditions:
 	* -- If the user is not logged-in.
 	* -- If a vehicle with the requested id does not exist.
 	* -- If the logged-in seller is not the owner of the vehicle.
@@ -700,7 +706,7 @@ var vehicles = module.exports = {
 					return callback(null);
 				});
 			};
-		
+
 			var checkOwnership = function (vehicle, callback) {
 				if (vehicle.seller.toString() !== request.session.seller._id.toString()) {
 					var error = new Error('You can only delete your own vehicles.');
@@ -708,7 +714,7 @@ var vehicles = module.exports = {
 				}
 				deleteVehicle(vehicle, callback);
 			};
-			
+
 			var findVehicle = function (callback) {
 				Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
 					if (err) {
@@ -721,7 +727,7 @@ var vehicles = module.exports = {
 					checkOwnership(vehicle, callback);
 				});
 			};
-		
+
 			findVehicle(function (err) {
 				if (err) {
 					handleErrors(err, request, response);
