@@ -583,7 +583,7 @@ var sellers = module.exports = {
 							locationAlertDisplay: 'none'
 						},
 						provinces: provinces,
-						action: path.join('/sellers', ssnSeller._id.toString(), 'edit'),
+						action: '/sellers/'.concat(ssnSeller._id.toString()).concat('/edit'),
 						heading: 'Edit Seller',
 						buttonCaption: 'Save Changes',
 						user: frmUser || ssnUser, 
