@@ -4,5 +4,5 @@ uploads/
 build/
 db_dump/
 *~
-*.swp
+*swp
 *.directory
