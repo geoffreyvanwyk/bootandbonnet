@@ -22,6 +22,27 @@ var search = module.exports = {
 	 * @returns {undefined}
 	 */
 	emailSeller: function (request, response) {
-		console.log('hello world');
+		var frmBuyer = request.body.buyer;
+		var frmSeller = request.body.seller;
+		var frmVehicle = request.body.vehicle;
+		var message = {
+			from: 'Boot&Bonnet <info@bootandbon.net>',
+			to: frmSeller.emailAddress,
+			subject: 'Message from Potential Buyer',
+			text: 'Dear Sir/Madam, \n\n'
+				.concat('A potential buyer has sent you the following message: \n\n')
+				.concat('=============================================================').concat('\n\n')
+				.concat('Name: ').concat(frmBuyer.name).concat('\n')
+				.concat('Email address: ').concat(frmBuyer.emailAddress).concat('\n')
+				.concat('Message: ').concat('\n')
+				.concat(frmBuyer.message).concat('\n\n')
+				.concat('=============================================================').concat('\n\n')
+				.concat('Thank you, \n')
+				.concat('The Boot&Bonnet Team')
+		};
+		email.send(message, function (err, message) {
+			request.session.isEmailSentToSeller = true;
+			response.redirect(302, '/vehicles/'.concat(frmVehicle._id).concat('/view'));
+		});
 	}
 };

@@ -25,6 +25,7 @@ var login = require('./routes/login');
 var main = require('./routes/main');
 var orders = require('./routes/order-placement');
 var password = require('./routes/password-reset');
+var search = require('./routes/search');
 var sellers = require('./routes/seller-registration');
 var vehicles = require('./routes/vehicle-registration');
 
@@ -115,6 +116,9 @@ app.map(app, {
 			},
 			'/remove': {
 				get: vehicles.remove
+			},
+			'/email-seller': {
+				post: search.emailSeller
 			}
 		}
 	},
