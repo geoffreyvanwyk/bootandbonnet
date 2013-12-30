@@ -1,4 +1,5 @@
 <% layout('../views/layout') -%>
+<% script('../../static/js/vehicle-profile-page.js') -%>
 
 <%
 
@@ -318,8 +319,8 @@ var colorRadio = 'red';
 				<textarea id="buyerMessage" name="buyer[message]" class="span6" />
 				</textarea>
 
-				<button class="btn btn-success">Send</button>
-				<button class="btn">Clear</button>
+				<button type="submit" class="btn btn-success">Send</button>
+				<button type="button" id="clearButton" class="btn">Clear</button>
 
 				<input type="hidden" name="seller[emailAddress]" value="<%=user.emailAddress%>">
 				<input type="hidden" name="vehicle[_id]" value="<%=vehicle._id%>">
