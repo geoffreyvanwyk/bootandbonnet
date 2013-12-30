@@ -30,7 +30,7 @@ var search = module.exports = {
 			to: frmSeller.emailAddress,
 			subject: 'Message from Potential Buyer',
 			text: 'Dear Sir/Madam, \n\n'
-				.concat('A potential buyer has sent you the following message: \n\n')
+				.concat('A potential buyer has sent the following message to you: \n\n')
 				.concat('=============================================================').concat('\n\n')
 				.concat('Name: ').concat(frmBuyer.name).concat('\n')
 				.concat('Email address: ').concat(frmBuyer.emailAddress).concat('\n')
@@ -41,7 +41,19 @@ var search = module.exports = {
 				.concat('The Boot&Bonnet Team')
 		};
 		email.send(message, function (err, message) {
-			request.session.isEmailSentToSeller = true;
+			if (err) {
+				request.session.emailFeedback = {
+					alertType: 'error',
+					alertDisplay: '',
+					message: 'Unfortunately, your message could not be sent at this time. Please try again later.'
+				};
+			} else {
+				request.session.emailFeedback = {
+					alertType: 'success',
+					alertDisplay: '',
+					message: 'Your message was successfully sent to the seller.'
+				};
+			}
 			response.redirect(302, '/vehicles/'.concat(frmVehicle._id).concat('/view'));
 		});
 	}

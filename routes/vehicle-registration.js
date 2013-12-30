@@ -485,8 +485,20 @@ var vehicles = module.exports = {
 					user: user,
 					dealerDisplay: seller.dealershipName === '' ? 'none' : '',
 					privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
+					emailFeedback: request.session.emailFeedback || {
+						alertType: '',
+						alertDisplay: 'none',
+						message: ''
+					},
 					formActionsDisplay: isOwnVehicle ? '' : 'none',
 					isLoggedIn: !!request.session.seller
+				}, function (err, html) {
+					if (err) {
+						handleErrors(err, request, response);
+					} else {
+						request.session.emailFeedback = null;
+						response.send(html);
+					}
 				});
 			}
 		});

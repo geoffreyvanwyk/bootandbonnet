@@ -309,15 +309,20 @@ var colorRadio = 'red';
 			<fieldset>
 				<legend>Email seller</legend>
 
+				<div id="feedBackBanner" class="alert alert-<%=emailFeedback.alertType%>"
+					style="display: <%=emailFeedback.alertDisplay%>">
+					<button type="button" class="close" data-dismiss="alert">&times;</button>
+					<%=emailFeedback.message%>
+				</div>
+
 				<label>Your name:</label>
-				<input type="text" id="buyerName" name="buyer[name]" />
+				<input type="text" required="required" id="buyerName" name="buyer[name]" />
 
 				<label>Your email address:</label>
-				<input type="email" id="buyerEmailAddress" name="buyer[emailAddress]" />
+				<input type="email" required="required" id="buyerEmailAddress" name="buyer[emailAddress]" />
 
 				<label>Message:</label>
-				<textarea id="buyerMessage" name="buyer[message]" class="span6" />
-				</textarea>
+				<textarea name="buyer[message]" required="required" id="buyerMessage" class="span6" /></textarea>
 
 				<button type="submit" class="btn btn-success">Send</button>
 				<button type="button" id="clearButton" class="btn">Clear</button>
