@@ -10,6 +10,7 @@
 
 /* Import libraries. */
 var email = require('../configuration/email').server;
+var sanitize = require('../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
 
 var search = module.exports = {
 	/**
@@ -27,15 +28,15 @@ var search = module.exports = {
 		var frmVehicle = request.body.vehicle;
 		var message = {
 			from: 'Boot&Bonnet <info@bootandbon.net>',
-			to: frmSeller.emailAddress,
+			to: frmSeller.emailAddress.trim(),
 			subject: 'Message from Potential Buyer',
 			text: 'Dear Sir/Madam, \n\n'
 				.concat('A potential buyer has sent the following message to you: \n\n')
 				.concat('=============================================================').concat('\n\n')
-				.concat('Name: ').concat(frmBuyer.name).concat('\n')
+				.concat('Name: ').concat(sanitize(frmBuyer.name.trim())).concat('\n')
 				.concat('Email address: ').concat(frmBuyer.emailAddress).concat('\n')
 				.concat('Message: ').concat('\n')
-				.concat(frmBuyer.message).concat('\n\n')
+				.concat(sanitize(frmBuyer.message.trim())).concat('\n\n')
 				.concat('=============================================================').concat('\n\n')
 				.concat('Thank you, \n')
 				.concat('The Boot&Bonnet Team')
