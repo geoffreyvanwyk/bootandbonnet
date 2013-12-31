@@ -315,14 +315,24 @@ var colorRadio = 'red';
 					<%=emailFeedback.message%>
 				</div>
 
-				<label>Your name:</label>
-				<input type="text" required="required" id="buyerName" name="buyer[name]" />
+				<div id="divBuyerName" class="control-group">
+					<label class="control-label" for="buyerName">Your name:</label>
+					<div class="controls">
+						<input type="text" id="buyerName" name="buyer[name]" />
+						<span id="spanBuyerName" class="help-inline"></span>
+					</div>
+				</div>
 
 				<label>Your email address:</label>
-				<input type="email" required="required" id="buyerEmailAddress" name="buyer[emailAddress]" />
+				<input type="email" required id="buyerEmailAddress" name="buyer[emailAddress]" />
 
-				<label>Message:</label>
-				<textarea name="buyer[message]" required="required" id="buyerMessage" class="span6" /></textarea>
+				<div id="divBuyerMessage" class="control-group">
+					<label class="control-label" for="buyerMessage">Message:</label>
+					<div class="controls">
+						<textarea name="buyer[message]" id="buyerMessage" class="span6"></textarea>
+						<span id="spanBuyerMessage" class="help-inline"></span>
+					</div>
+				</div>
 
 				<button type="submit" class="btn btn-success">Send</button>
 				<button type="button" id="clearButton" class="btn">Clear</button>
