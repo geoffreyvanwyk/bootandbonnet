@@ -107,51 +107,55 @@ window.onload = function () {
 		$('#negotiableNo').button('toggle');
 	}
 
+/* THUMBNAILS */
+
 	/* Change the appearance of input controls of type file to look like a normal Bootstrap button. */
 	$('input[type=file]').bootstrapFileInput();
 	$('.file-inputs').bootstrapFileInput();
 
-	/* Display thumbnails of photographs before uploading them. */
-	function readURL(input, id) {
+	/**
+	 * @summary Displays thumbnails of photographs before uploading them.
+	 *
+	 * @param {object} input Input field of type files.
+	 * @param {string} id Name of the input field.
+	 *
+	 * @returns {undefined}
+	 */
+	var readURL = function (input, id) {
 		var reader;
 
 		if (input.files && input.files[0]) {
 			reader = new FileReader();
 
-			reader.onload = function (e) {
-				document.getElementById(id).src = e.target.result;
-			};
+			$(reader).load(function (e) {
+				$('#'.concat(id)).attr('src', e.target.result);
+			});
 
 			reader.readAsDataURL(input.files[0]);
 		}
-	}
-
-	photoInputs = document.getElementsByClassName('bootandbonnet-input-file');
-	for (index = 0; index < photoInputs.length; index++) {
-		photoInputs[index].onchange = function () {
-			readURL(this, this.name);
-		};
-	}
-
-	removePhotoButtons = document.getElementsByClassName('bootandbonnet-remove-file');
-	for (index = 0; index < removePhotoButtons.length; index++) {
-		removePhotoButtons[index].onclick = function () {
-			var name, newPhotoInput, oldPhotoInput;
-			newPhotoInput = document.createElement('input');
-			newPhotoInput.type = 'file';
-			newPhotoInput.className = 'bootandbonnet-input-file bootandbonnet-file-changed';
-			newPhotoInput.setAttribute('name', 'soup');
-			newPhotoInput.title = "Browse";
-			newPhotoInput.setAttribute('accept', 'images/*');
-			oldPhotoInput = this.previousSibling.previousSibling;
-			this.parentNode.replaceChild(newPhotoInput, oldPhotoInput);
-			$('.bootandbonnet-file-changed').bootstrapFileInput();
-			oldPhotoInput.className = 'bootandbonnet-input-file';
-		};
-	}
-
-	var cancelButton = document.getElementById("cancelButton");
-	cancelButton.onclick = function() {
-		window.history.back();
 	};
+
+	$('.bootandbonnet-input-file').change(function () {
+		readURL(this, this.name);
+	});
+
+	$('.bootandbonnet-remove-file').click(function () {
+		var name, newPhotoInput, oldPhotoInput;
+		newPhotoInput = document.createElement('input');
+		newPhotoInput.type = 'file';
+		newPhotoInput.className = 'bootandbonnet-input-file bootandbonnet-file-changed';
+		newPhotoInput.setAttribute('name', 'soup');
+		newPhotoInput.title = "Browse";
+		newPhotoInput.setAttribute('accept', 'images/*');
+		oldPhotoInput = this.previousSibling.previousSibling;
+		this.parentNode.replaceChild(newPhotoInput, oldPhotoInput);
+		$('.bootandbonnet-file-changed').bootstrapFileInput();
+		oldPhotoInput.className = 'bootandbonnet-input-file';
+	});
+
+/* CANCEL BUTTON */
+
+	$('#cancelButton').click(function () {
+		window.history.back();
+	});
 };

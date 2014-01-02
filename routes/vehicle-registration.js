@@ -79,64 +79,6 @@ var handleErrors = function (err, request, response) {
 	}
 };
 
-/* Helper functions */
-var movePhotos = function (vehicle, files, vehicleDir, webDir, callback) {
-	var counter, newPath, oldPath;
-
-	var photos = [];
-
-	for (var file in files) {
-		if (files.hasOwnProperty(file)) {
-			if (files[file].size > 0) {
-				photos.push(files[file]);
-			} else {
-				fs.unlinkSync(files[file].path);
-			}
-		}
-	}
-
-	counter = vehicle.photos.length;
-
-	async.forEach(photos, function (photo, callback1) {
-		counter = counter + 1;
-		oldPath = photo.path;
-		newPath = path.join(vehicleDir, counter.toString());
-		vehicle.photos.push(path.join(webDir, counter.toString()));
-
-		fs.rename(oldPath, newPath, function (err) {
-			if (err) {
-				return callback(err);
-			}
-			callback1();
-		});
-
-	}, function () {
-		return callback(null, vehicle);
-	});
-};
-
-var makeDirectory = function (vehicle, files, vehicleDir, webDir, callback) {
-	fs.mkdir(vehicleDir, '0755', function (err) {
-		if (err) {
-			return callback(err);
-		}
-		movePhotos(vehicle, files, vehicleDir, webDir, callback);
-	});
-};
-
-var checkDirectory = function (vehicle, files, callback) {
-	var webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
-	var vehicleDir = path.join(__dirname, '..', webDir);
-
-	fs.exists(vehicleDir, function (exists) {
-		if (exists) {
-			movePhotos(vehicle, files, vehicleDir, webDir, callback);
-		} else {
-			makeDirectory(vehicle, files, vehicleDir, webDir, callback);
-		}
-	});
-};
-
 /**
  * @summary Returns all the make documents makes database collection. Each make document also include the models of that
  * make.
@@ -296,6 +238,63 @@ var vehicles = module.exports = {
 	 */
 	add: function (request, response) {
 		if (isLoggedIn('add', request, response)) {
+			var movePhotos = function (vehicle, files, vehicleDir, webDir, callback) {
+				var newPath, oldPath;
+
+				var photos = [];
+
+				for (var file in files) {
+					if (files.hasOwnProperty(file)) {
+						if (files[file].size > 0) {
+							photos.push(files[file]);
+						} else {
+							fs.unlinkSync(files[file].path);
+						}
+					}
+				}
+
+				var counter = vehicle.photos.length;
+
+				async.forEach(photos, function (photo, callback1) {
+					counter = counter + 1;
+					oldPath = photo.path;
+					newPath = path.join(vehicleDir, counter.toString());
+					vehicle.photos.push(path.join(webDir, counter.toString()));
+
+					fs.rename(oldPath, newPath, function (err) {
+						if (err) {
+							return callback(err);
+						}
+						callback1();
+					});
+
+				}, function () {
+					return callback(null, vehicle);
+				});
+			};
+
+			var makeDirectory = function (vehicle, files, vehicleDir, webDir, callback) {
+				fs.mkdir(vehicleDir, '0755', function (err) {
+					if (err) {
+						return callback(err);
+					}
+					movePhotos(vehicle, files, vehicleDir, webDir, callback);
+				});
+			};
+
+			var checkDirectory = function (vehicle, files, callback) {
+				var webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
+				var vehicleDir = path.join(__dirname, '..', webDir);
+
+				fs.exists(vehicleDir, function (exists) {
+					if (exists) {
+						movePhotos(vehicle, files, vehicleDir, webDir, callback);
+					} else {
+						makeDirectory(vehicle, files, vehicleDir, webDir, callback);
+					}
+				});
+			};
+
 			var instantiateVehicle = function (callback) {
 				var ssnSeller = request.session.seller;
 				var frmVehicle = request.body.vehicle;
@@ -593,67 +592,8 @@ var vehicles = module.exports = {
 		if (isLoggedIn('edit', request, response)) {
 			var frmVehicle = request.body.vehicle;
 
-			var instantiateVehicle = function (callback) {
-				Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
-					if (err) {
-						return callback(err);
-					}
-					if (!vehicle) {
-						var error = new Error('No vehicle with that id exists.');
-						return callback(err);
-					}
-					var updateVehicle = {
-						_id: sanitize(frmVehicle._id),
-						market: sanitize(frmVehicle.market),
-						type: {
-							make: sanitize(frmVehicle.type.make),
-							model: sanitize(frmVehicle.type.model),
-							year: sanitize(frmVehicle.type.year)
-						},
-						description: {
-							mileage: sanitize(frmVehicle.description.mileage),
-							color: sanitize(frmVehicle.description.color),
-							fullServiceHistory: sanitize(frmVehicle.description.fullServiceHistory)
-						},
-						mechanics: {
-							engineCapacity: sanitize(frmVehicle.mechanics.engineCapacity),
-							fuel: sanitize(frmVehicle.mechanics.fuel),
-							transmission: sanitize(frmVehicle.mechanics.transmission),
-							absBrakes: sanitize(frmVehicle.absBrakes),
-							powerSteering: sanitize(frmVehicle.mechanics.powerSteering)
-						},
-						luxuries: {
-							airConditioning: sanitize(frmVehicle.luxuries.airConditioning),
-							electricWindows: sanitize(frmVehicle.luxuries.electricWindows),
-							radio: sanitize(frmVehicle.luxuries.radio),
-							cdPlayer: sanitize(frmVehicle.luxuries.cdPlayer)
-						},
-						security: {
-							alarm: sanitize(frmVehicle.security.alarm),
-							centralLocking: sanitize(frmVehicle.security.centralLocking),
-							immobilizer: sanitize(frmVehicle.security.immobilizer),
-							gearLock: sanitize(frmVehicle.security.gearLock)
-						},
-						safety: {
-							airBags: sanitize(frmVehicle.safety.airBags)
-						},
-						price: {
-							value: sanitize(frmVehicle.price.value),
-							negotiable: sanitize(frmVehicle.price.negotiable)
-						},
-						comments: sanitize(frmVehicle.comments),
-						photos: vehicle.photos
-					};
-
-					checkDirectory(updateVehicle, request.files, callback);
-				});
-			};
-
 			var updateVehicle = function (vehicle, callback) {
-				delete vehicle._id;
-				Vehicle.findByIdAndUpdate(frmVehicle._id, {
-					$set: vehicle
-				}, function (err, vehicle) {
+				vehicle.save(function (err, vehicle) {
 					if (err) {
 						return callback(err);
 					}
@@ -661,16 +601,142 @@ var vehicles = module.exports = {
 				});
 			};
 
-			var editVehicle = function (callback) {
-				instantiateVehicle(function (err, vehicle) {
-					if (err) {
-						return callback(err);
+			var movePhotos = function (vehicle, files, vehicleDir, webDir, callback) {
+				var photos = [];
+
+				for (var file in files) {
+					if (files.hasOwnProperty(file)) {
+						if (files[file].size > 0) {
+							files[file].name = file;
+							photos.push(files[file]);
+						} else {
+							fs.unlinkSync(files[file].path);
+						}
 					}
+				}
+
+				async.forEach(photos, function (photo, callback1) {
+					if (photo.name === 'photo1' && vehicle.photos[0]) {
+						fs.rename(photo.path, path.join(vehicleDir, '1'), function (err) {
+							if (err) {
+								return callback(err);
+							}
+							callback1();
+						});
+					} else if (photo.name === 'photo2' && vehicle.photos[1]) {
+						fs.rename(photo.path, path.join(vehicleDir, '2'), function (err) {
+							if (err) {
+								return callback(err);
+							}
+							callback1();
+						});
+					} else if (photo.name === 'photo3' && vehicle.photos[2]) {
+						fs.rename(photo.path, path.join(vehicleDir, '3'), function (err) {
+							if (err) {
+								return callback(err);
+							}
+							callback1();
+						});
+					} else if (photo.name === 'photo4' && vehicle.photos[3]) {
+						fs.rename(photo.path, path.join(vehicleDir, '4'), function (err) {
+							if (err) {
+								return callback(err);
+							}
+							callback1();
+						});
+					} else {
+						vehicle.photos.push(path.join(webDir, vehicle.photos.length + 1));
+						fs.rename(photo.path, path.join(vehicleDir, vehicle.photos.length + 1), function (err) {
+							if (err) {
+								return callback(err);
+							}
+							callback1();
+						});
+					}
+				}, function () {
 					updateVehicle(vehicle, callback);
 				});
 			};
 
-			editVehicle(function (err, vehicle) {
+			var makeDirectory = function (vehicle, files, vehicleDir, webDir, callback) {
+				fs.mkdir(vehicleDir, '0755', function (err) {
+					if (err) {
+						return callback(err);
+					}
+					movePhotos(vehicle, files, vehicleDir, webDir, callback);
+				});
+			};
+
+			var checkDirectory = function (vehicle, files, callback) {
+				var webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
+				var vehicleDir = path.join(__dirname, '..', webDir);
+
+				fs.exists(vehicleDir, function (exists) {
+					if (exists) {
+						movePhotos(vehicle, files, vehicleDir, webDir, callback);
+					} else {
+						makeDirectory(vehicle, files, vehicleDir, webDir, callback);
+					}
+				});
+			};
+
+			var setNewValues = function (vehicle, callback) {
+				vehicle.market = sanitize(frmVehicle.market);
+				vehicle.type = {
+					make: sanitize(frmVehicle.type.make),
+					model: sanitize(frmVehicle.type.model),
+					year: sanitize(frmVehicle.type.year)
+				};
+				vehicle.description = {
+					mileage: sanitize(frmVehicle.description.mileage),
+					color: sanitize(frmVehicle.description.color),
+					fullServiceHistory: sanitize(frmVehicle.description.fullServiceHistory)
+				};
+				vehicle.mechanics = {
+					engineCapacity: sanitize(frmVehicle.mechanics.engineCapacity),
+					fuel: sanitize(frmVehicle.mechanics.fuel),
+					transmission: sanitize(frmVehicle.mechanics.transmission),
+					absBrakes: sanitize(frmVehicle.absBrakes),
+					powerSteering: sanitize(frmVehicle.mechanics.powerSteering)
+				};
+				vehicle.luxuries = {
+					airConditioning: sanitize(frmVehicle.luxuries.airConditioning),
+					electricWindows: sanitize(frmVehicle.luxuries.electricWindows),
+					radio: sanitize(frmVehicle.luxuries.radio),
+					cdPlayer: sanitize(frmVehicle.luxuries.cdPlayer)
+				};
+				vehicle.security = {
+					alarm: sanitize(frmVehicle.security.alarm),
+					centralLocking: sanitize(frmVehicle.security.centralLocking),
+					immobilizer: sanitize(frmVehicle.security.immobilizer),
+					gearLock: sanitize(frmVehicle.security.gearLock)
+				};
+				vehicle.safety = {
+					airBags: sanitize(frmVehicle.safety.airBags)
+				};
+				vehicle.price = {
+					value: sanitize(frmVehicle.price.value),
+					negotiable: sanitize(frmVehicle.price.negotiable)
+				};
+				vehicle.comments = sanitize(frmVehicle.comments);
+
+				checkDirectory(vehicle, request.files, callback);
+			};
+
+			var findVehicle = function (vehicleId, callback) {
+				Vehicle.findById(vehicleId, function (err, vehicle) {
+					if (err) {
+						return callback(err);
+					}
+					if (!vehicle) {
+						var error = new Error('No vehicle with that id exists.');
+						return callback(err);
+					}
+					setNewValues(vehicle, callback);
+				});
+			};
+
+			findVehicle(request.params.vehicleId, function (err, vehicle) {
 				if (err) {
 					handleErrors(err, request, response);
 				} else {
@@ -711,8 +777,7 @@ var vehicles = module.exports = {
 	remove: function (request, response) {
 		if (isLoggedIn('remove', request, response)) {
 			var deletePhotos = function (callback) {
-				rimraf(path.join(__dirname, '..', 'uploads/img/vehicles', request.params.vehicleId.toString()),
-						  function (err) {
+				rimraf(path.join(__dirname, '..', 'uploads/img/vehicles', request.params.vehicleId), function (err) {
 					if (err) {
 						return callback(err);
 					}
