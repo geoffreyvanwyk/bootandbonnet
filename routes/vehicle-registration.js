@@ -10,6 +10,7 @@
 
 /* Import external modules. */
 var async = require('async'); // For asynchronous iteration.
+var rimraf = require('rimraf');
 
 /* Import built-in modules. */
 var fs = require('fs'); // For uploading photos.
@@ -686,10 +687,14 @@ var vehicles = module.exports = {
 	* (1) The seller must be logged-in (function isLoggedIn).
 	* (2) The vehicle must belong to the logged-in seller (function checkOwnership).
 	*
+	* Postconditions:
+	* (1) The vehicle's photos must also be deleted from the server.
+	*
 	* Algorithm:
 	* (1) The vehicle (:vehicleId) is retrieved from the vehicles database collection (function findVehicle).
 	* (2) The id of the vehicle's seller is compared with the id of the logged-in user (function checkOwnership).
-	* (3) If the vehicle belongs to the logged-in seller, the vehicle is deleted (function deleteVehicle).
+	* (3) If the vehicle belongs to the logged-in seller, the vehicle's is deleted (function deleteVehicle).
+	* (4) Then the vehicle's photos are deleted from the server (function deletePhotos).
 	*
 	* Error handling:
 	* (1) Appropriate error messages are displayed under the following conditions:
@@ -705,12 +710,22 @@ var vehicles = module.exports = {
 	*/
 	remove: function (request, response) {
 		if (isLoggedIn('remove', request, response)) {
+			var deletePhotos = function (callback) {
+				rimraf(path.join(__dirname, '..', 'uploads/img/vehicles', request.params.vehicleId.toString()),
+						  function (err) {
+					if (err) {
+						return callback(err);
+					}
+					return callback(null);
+				});
+			};
+
 			var deleteVehicle = function (vehicle, callback) {
 				vehicle.remove(function (err) {
 					if (err) {
 						return callback(err);
 					}
-					return callback(null);
+					deletePhotos(callback);
 				});
 			};
 

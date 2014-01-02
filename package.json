@@ -14,6 +14,7 @@
     "async": "~0.2.9",
     "sanitizer": "~0.0.15",
     "emailjs": "~0.3.6",
-    "mongoose": "~3.8.1"
+    "mongoose": "~3.8.1",
+    "rimraf": "~2.2.5"
   }
 }
