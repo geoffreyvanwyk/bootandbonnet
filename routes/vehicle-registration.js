@@ -80,11 +80,11 @@ var handleErrors = function (err, request, response) {
 
 /* Helper functions */
 var movePhotos = function (vehicle, files, vehicleDir, webDir, callback) {
-	var counter, file, newPath, oldPath, photos;
+	var counter, newPath, oldPath;
 
-	photos = [];
+	var photos = [];
 
-	for (file in files) {
+	for (var file in files) {
 		if (files.hasOwnProperty(file)) {
 			if (files[file].size > 0) {
 				photos.push(files[file]);
@@ -261,12 +261,7 @@ var vehicles = module.exports = {
 								value: '',
 								negotiable: ''
 							},
-							photos: [
-								"/static/img/image-placeholder.png",
-								"/static/img/image-placeholder.png",
-								"/static/img/image-placeholder.png",
-								"/static/img/image-placeholder.png"
-							],
+							photos: [],
 							comments: '',
 							seller: ''
 						},

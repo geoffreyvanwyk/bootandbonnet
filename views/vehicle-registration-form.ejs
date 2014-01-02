@@ -379,7 +379,7 @@
 				<li class="span3">
 					<div class="thumbnail">
 						<img id="photo1"
-							src="<%=vehicle.photos[0] ?
+							src="<%=vehicle._id && vehicle.photos[0] ?
 								"/vehicles/".concat(vehicle._id).concat("/photos/1")
 								: "/static/img/image-placeholder.png"%>"
 						>
@@ -398,7 +398,7 @@
 				<li class="span3">
 					<div class="thumbnail">
 						<img id="photo2"
-							src="<%=vehicle.photos[1] ?
+							src="<%=vehicle._id && vehicle.photos[1] ?
 								"/vehicles/".concat(vehicle._id).concat("/photos/2")
 								: "/static/img/image-placeholder.png"%>"
 						>
@@ -416,9 +416,8 @@
 				</li>
 				<li class="span3">
 					<div class="thumbnail">
-						<img id="photo3" src="<%=vehicle.photos[2]%>" alt="">
 						<img id="photo3"
-							src="<%=vehicle.photos[2] ?
+							src="<%=vehicle._id && vehicle.photos[2] ?
 								"/vehicles/".concat(vehicle._id).concat("/photos/3")
 								: "/static/img/image-placeholder.png"%>"
 						>
@@ -437,7 +436,7 @@
 				<li class="span3">
 					<div class="thumbnail">
 						<img id="photo4"
-							src="<%=vehicle.photos[3] ?
+							src="<%=vehicle._id && vehicle.photos[3] ?
 								"/vehicles/".concat(vehicle._id).concat("/photos/4")
 								: "/static/img/image-placeholder.png"%>"
 						>
