@@ -141,17 +141,33 @@ window.onload = function () {
 		}
 	};
 
+	/* Selecting a photo for upload. */
 	$('.bootandbonnet-input-file').change(function () {
 		readURL(this, this.name);
+		if ($(this).closest("hidden[name='deletedPhotos[]']").val() !== '') {
+			$(this).closest("hidden[name='deletedPhotos[]']").val('');
+		}
 	});
 
+	/* Cancelling a photo selected for upload. */
 	$('.bootandbonnet-remove-file').click(function () {
 		var inputName = $(this).attr('name').substring(3);
 		var input = $("input[name='".concat(inputName).concat("']"));
-		input.wrap('<form>').closest('form').get(0).reset();
-		input.unwrap();
-		var oldPhoto = $("[name='".concat('old').concat(inputName).concat("']")).val();
-		$('#'.concat(inputName)).attr('src', oldPhoto);
+		var isRemoveExistingPhoto = input.val() === '';
+		if (!isRemoveExistingPhoto) {
+			/* Clear the file-input field by wrapping a form around it, resetting the form, then unwrapping the form. */
+			input.wrap('<form>').closest('form').get(0).reset();
+			input.unwrap();
+			/* Reset the thumbnail. */
+			var oldPhoto = $("[name='".concat('old').concat(inputName).concat("']")).val();
+			$('#'.concat(inputName)).attr('src', oldPhoto);
+		} else {
+			$('#'.concat(inputName)).attr('src', '/static/img/image-placeholder.png');
+			var deletedPhotos = JSON.parse($("[name='deletedPhotos']").val());
+			deletedPhotos.push($(this).attr('name').substr(-1));
+			$("[name='deletedPhotos']").val(JSON.stringify(deletedPhotos));
+		}
+
 	});
 
 /* CANCEL BUTTON */

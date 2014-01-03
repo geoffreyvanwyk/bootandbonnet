@@ -591,6 +591,11 @@ var vehicles = module.exports = {
 	edit: function (request, response) {
 		if (isLoggedIn('edit', request, response)) {
 			var frmVehicle = request.body.vehicle;
+			var deletedPhotos = JSON.parse(request.body.deletedPhotos);
+
+			console.log('==================== BEGIN DEBUG MESSAGE ====================');
+			console.log('deletedPhotos: '.concat(deletedPhotos));
+			console.log('==================== END DEBUG MESSAGE ======================');
 
 			var updateVehicle = function (vehicle, callback) {
 				vehicle.save(function (err, vehicle) {
@@ -645,8 +650,9 @@ var vehicles = module.exports = {
 							callback1();
 						});
 					} else {
-						vehicle.photos.push(path.join(webDir, vehicle.photos.length + 1));
-						fs.rename(photo.path, path.join(vehicleDir, vehicle.photos.length + 1), function (err) {
+						var newPhotoNumber = vehicle.photos.length + 1;
+						vehicle.photos.push(path.join(webDir, newPhotoNumber.toString()));
+						fs.rename(photo.path, path.join(vehicleDir, newPhotoNumber.toString()), function (err) {
 							if (err) {
 								return callback(err);
 							}
@@ -654,7 +660,17 @@ var vehicles = module.exports = {
 						});
 					}
 				}, function () {
-					updateVehicle(vehicle, callback);
+					async.forEach(deletedPhotos, function (deletedPhoto, callback2) {
+						fs.unlink(path.join(vehicleDir, deletedPhoto), function (err) {
+							if (err) {
+								return callback(err);
+							}
+							vehicle.photos.splice(deletedPhoto - 1, 1);
+							callback2();
+						});
+					}, function () {
+						updateVehicle(vehicle, callback);
+					});
 				});
 			};
 
