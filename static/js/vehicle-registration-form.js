@@ -109,9 +109,15 @@ window.onload = function () {
 
 /* THUMBNAILS */
 
-	/* Change the appearance of input controls of type file to look like a normal Bootstrap button. */
+	/* Change the appearance of input controls of type file, to look like normal Bootstrap buttons. */
 	$('input[type=file]').bootstrapFileInput();
 	$('.file-inputs').bootstrapFileInput();
+
+	/* Store the links to the thumbnails in hidden fields. */
+	$('.bootandbonnet-old-photo').val(function () {
+		var imgName = $(this).attr('name').substring(3);
+		return $('#'.concat(imgName)).attr('src');
+	});
 
 	/**
 	 * @summary Displays thumbnails of photographs before uploading them.
@@ -140,17 +146,12 @@ window.onload = function () {
 	});
 
 	$('.bootandbonnet-remove-file').click(function () {
-		var name, newPhotoInput, oldPhotoInput;
-		newPhotoInput = document.createElement('input');
-		newPhotoInput.type = 'file';
-		newPhotoInput.className = 'bootandbonnet-input-file bootandbonnet-file-changed';
-		newPhotoInput.setAttribute('name', 'soup');
-		newPhotoInput.title = "Browse";
-		newPhotoInput.setAttribute('accept', 'images/*');
-		oldPhotoInput = this.previousSibling.previousSibling;
-		this.parentNode.replaceChild(newPhotoInput, oldPhotoInput);
-		$('.bootandbonnet-file-changed').bootstrapFileInput();
-		oldPhotoInput.className = 'bootandbonnet-input-file';
+		var inputName = $(this).attr('name').substring(3);
+		var input = $("input[name='".concat(inputName).concat("']"));
+		input.wrap('<form>').closest('form').get(0).reset();
+		input.unwrap();
+		var oldPhoto = $("[name='".concat('old').concat(inputName).concat("']")).val();
+		$('#'.concat(inputName)).attr('src', oldPhoto);
 	});
 
 /* CANCEL BUTTON */
