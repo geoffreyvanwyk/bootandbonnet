@@ -1,11 +1,9 @@
-/*jslint browser: true*/
-/*global $*/
-/*global alert*/
+/*jshint browser: true*/
 
 window.onload = function () {
 	'use strict';
 
-	function setViewCartAbility() {
+	var setViewCartAbility = function () {
 		if ($('#nrOfItems').text() === '0') {
 			$('#nrOfItems').attr('disabled', true);
 			$('#viewCart').attr('disabled', true);
@@ -13,7 +11,7 @@ window.onload = function () {
 			$('#nrOfItems').attr('disabled', false);
 			$('#viewCart').attr('disabled', false);
 		}
-	}
+	};
 
 	setViewCartAbility();
 

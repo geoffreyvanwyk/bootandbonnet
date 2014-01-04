@@ -3,10 +3,18 @@
 
 <%
 
-var photo1 = vehicle.photos[0] ? "/vehicles/".concat(vehicle._id).concat("/photos/1") : "/static/img/image-placeholder.png";
-var photo2 = vehicle.photos[1] ? "/vehicles/".concat(vehicle._id).concat("/photos/2") : "/static/img/image-placeholder.png";
-var photo3 = vehicle.photos[2] ? "/vehicles/".concat(vehicle._id).concat("/photos/3") : "/static/img/image-placeholder.png";
-var photo4 = vehicle.photos[3] ? "/vehicles/".concat(vehicle._id).concat("/photos/4") : "/static/img/image-placeholder.png";
+var photo1 = vehicle.photos[0] ?
+				"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[0].substr(-1))
+				: "/static/img/image-placeholder.png";
+var photo2 = vehicle.photos[1] ?
+				"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[1].substr(-1))
+				: "/static/img/image-placeholder.png";
+var photo3 = vehicle.photos[2] ?
+				"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[2].substr(-1))
+				: "/static/img/image-placeholder.png";
+var photo4 = vehicle.photos[3] ?
+				"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[3].substr(-1))
+				: "/static/img/image-placeholder.png";
 
 if (vehicle.price.negotiable) {
 var negotiable = 'negotiable';

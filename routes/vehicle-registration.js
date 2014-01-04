@@ -594,7 +594,7 @@ var vehicles = module.exports = {
 			var deletedPhotos = JSON.parse(request.body.deletedPhotos);
 
 			console.log('==================== BEGIN DEBUG MESSAGE ====================');
-			console.log('deletedPhotos: '.concat(deletedPhotos));
+			console.log('deletedPhotos Array: '.concat(deletedPhotos));
 			console.log('==================== END DEBUG MESSAGE ======================');
 
 			var updateVehicle = function (vehicle, callback) {
@@ -650,13 +650,18 @@ var vehicles = module.exports = {
 							callback1();
 						});
 					} else {
-						var newPhotoNumber = vehicle.photos.length + 1;
-						vehicle.photos.push(path.join(webDir, newPhotoNumber.toString()));
-						fs.rename(photo.path, path.join(vehicleDir, newPhotoNumber.toString()), function (err) {
+						fs.readdir(vehicleDir, function (err, files) {
 							if (err) {
 								return callback(err);
 							}
-							callback1();
+							var newPhotoNumber = +files.sort().pop() + 1;
+							vehicle.photos.push(path.join(webDir, newPhotoNumber.toString()));
+							fs.rename(photo.path, path.join(vehicleDir, newPhotoNumber.toString()), function (err) {
+								if (err) {
+									return callback(err);
+								}
+								callback1();
+							});
 						});
 					}
 				}, function () {
@@ -665,7 +670,10 @@ var vehicles = module.exports = {
 							if (err) {
 								return callback(err);
 							}
-							vehicle.photos.splice(deletedPhoto - 1, 1);
+							console.log('==================== BEGIN DEBUG MESSAGE ====================');
+							console.log('Vehicle Photo: '.concat(vehicle.photos[deletedPhoto - 1]));
+							console.log('==================== END DEBUG MESSAGE ======================');
+							vehicle.photos.splice(deletedPhoto - 1, 1, '');
 							callback2();
 						});
 					}, function () {

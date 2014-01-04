@@ -382,7 +382,7 @@
 					<div class="thumbnail">
 						<img id="photo1"
 							src="<%=vehicle._id && vehicle.photos[0] ?
-								"/vehicles/".concat(vehicle._id).concat("/photos/1")
+								"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[0].substr(-1))
 								: "/static/img/image-placeholder.png"%>"
 						>
 						<div class="caption">
@@ -402,7 +402,7 @@
 					<div class="thumbnail">
 						<img id="photo2"
 							src="<%=vehicle._id && vehicle.photos[1] ?
-								"/vehicles/".concat(vehicle._id).concat("/photos/2")
+								"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[1].substr(-1))
 								: "/static/img/image-placeholder.png"%>"
 						>
 						<div class="caption">
@@ -422,7 +422,7 @@
 					<div class="thumbnail">
 						<img id="photo3"
 							src="<%=vehicle._id && vehicle.photos[2] ?
-								"/vehicles/".concat(vehicle._id).concat("/photos/3")
+								"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[2].substr(-1))
 								: "/static/img/image-placeholder.png"%>"
 						>
 						<div class="caption">
@@ -442,7 +442,7 @@
 					<div class="thumbnail">
 						<img id="photo4"
 							src="<%=vehicle._id && vehicle.photos[3] ?
-								"/vehicles/".concat(vehicle._id).concat("/photos/4")
+								"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[3].substr(-1))
 								: "/static/img/image-placeholder.png"%>"
 						>
 						<div class="caption">
