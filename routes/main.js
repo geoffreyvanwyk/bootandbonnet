@@ -16,13 +16,13 @@ module.exports = {
 			request.session.user = null;
 			request.session.seller = null;
 		}
-		response.render(path.join(__dirname, '../views/home'), {
+		response.render('home-page', {
 			isLoggedIn: !!request.session.user,
-			seller: request.session.seller || {_id: ''} 
+			seller: request.session.seller || {_id: ''}
 		});
 	},
 	showErrorPage: function (request, response) {
-		response.render(path.join(__dirname, '../views/error-page'), {
+		response.render('error-page', {
 			isLoggedIn: !!request.session.user,
 			seller: request.session.seller || {id: ''},
 			error: request.session.specialError || 'We apologise for the inconvenience. Please try again later.'
