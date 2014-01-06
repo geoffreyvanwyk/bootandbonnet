@@ -7,8 +7,8 @@ var provincesString = JSON.stringify(provinces);
 
 <div id="specialErrorAlert" class="alert alert-error"	style="display: <%=specialError.alertDisplay%>">
 	<button type="button" class="close" data-dismiss="alert">&times;</button>
-	<%=specialError.message%> You have to be registered as a seller, and logged-in, to <%=specialError.action%> a 
-	vehicle profile. Complete the form below to register. If you are already registered, 
+	<%=specialError.message%> You have to be registered as a seller, and logged-in, to <%=specialError.action%> a
+	vehicle profile. Complete the form below to register. If you are already registered,
 	please <a href="/login">log in</a>
 </div>
 
@@ -57,7 +57,7 @@ var provincesString = JSON.stringify(provinces);
 				<div id="divFirstName" class="control-group <%=validationErrors.firstnameAlertType%>">
 					<label class="control-label" for="first_name">First name</label>
 					<div class="controls">
-						<input type="text" id="first_name" name="seller[contactPerson][firstname]" 
+						<input type="text" id="first_name" name="seller[contactPerson][firstname]"
 							value="<%=seller.contactPerson.firstname%>"/>
 						<span id="spanFirstName" class="help-inline"><%=validationErrors.firstnameError%></span>
 					</div>
@@ -66,7 +66,7 @@ var provincesString = JSON.stringify(provinces);
 				<div id="divSurname" class="control-group <%=validationErrors.surnameAlertType%>">
 					<label class="control-label"  for="surname">Surname</label>
 					<div class="controls">
-						<input type="text" id="surname" name="seller[contactPerson][surname]" 
+						<input type="text" id="surname" name="seller[contactPerson][surname]"
 							value="<%=seller.contactPerson.surname%>"/>
 						<span id="spanSurname" class="help-inline"><%=validationErrors.surnameError%></span>
 					</div>
@@ -196,6 +196,6 @@ var provincesString = JSON.stringify(provinces);
 
     <div class="form-actions">
 		<button type="submit" class="btn btn-primary" ><%=buttonCaption%></button>
-		<button type="button" class="btn" id="cancelButton" >Cancel</button>
+		<button type="button" class="btn btn-default" id="cancelButton" >Cancel</button>
     </div>
 </form>
