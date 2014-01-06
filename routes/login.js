@@ -33,10 +33,10 @@ var handleErrors = function (err, user, request, response) {
 	request.session.loginErrors = {
 		emailAddress: err.user && err.user.emailAddress,
 		emailError: '',
-		emailAlertType: 'error',
+		emailAlertType: 'has-error',
 		password: err.user && err.user.password,
 		passwordError: '',
-		passwordAlertType: 'error'
+		passwordAlertType: 'has-error'
 	};
 
 	switch (err.message) {
