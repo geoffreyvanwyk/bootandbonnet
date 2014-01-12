@@ -218,12 +218,6 @@ window.onload = function() {
 		}
 	});
 
-/* CANCEL BUTTON */
-
-	$('#cancelButton').onclick = function() {
-		window.history.back();
-	};
-
 /* ALERTS */
 
 	var showContactNumbersAlert = function () {
