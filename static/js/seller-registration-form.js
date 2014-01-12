@@ -8,17 +8,17 @@ window.onload = function() {
 		var textNode = document.createTextNode(message);
 		var spanElement = document.getElementById("span".concat(control));
 		var divElement = document.getElementById("div".concat(control));
-		divElement.className = "control-group ".concat(state);
+		divElement.className = "form-group ".concat('has-').concat(state);
 		spanElement.textContent = "";
 		spanElement.appendChild(textNode);
 	};
 
 /* EMAIL ADDRESS */
-	
+
 	$('#email').blur(function () {
 		setValidationState("Email", "", "");
 	});
-	
+
 /* PASSWORDS */
 
 	var passwordBox = document.getElementById("password");
@@ -53,7 +53,7 @@ window.onload = function() {
 		if (!isPasswordValid()) {
 			setValidationState("ConfirmPassword", "", "");
 		} else if (!isPasswordConfirmed()) {
-			setValidationState("ConfirmPassword", "info", "The passwords do not match yet.");
+			setValidationState("ConfirmPassword", "warning", "The passwords do not match yet.");
 		} else {
 			setValidationState("ConfirmPassword", "success", "The passwords match!");
 		}
@@ -62,14 +62,14 @@ window.onload = function() {
 	$('#password').on({
 		focus:function() {
 			if (!isPasswordValid()) {
-				setValidationState("Password", "info", "Minimum ten characters.");
+				setValidationState("Password", "warning", "Minimum ten characters.");
 			}
 		},
 		keyup: function() {
 			if (isPasswordValid()) {
 				setValidationState("Password", "success", "Good!");
 			} else {
-				setValidationState("Password", "info", "Minimum ten characters.");
+				setValidationState("Password", "warning", "Minimum ten characters.");
 			}
 
 			if (confirmPasswordBox.value.length > 0) {
@@ -90,7 +90,7 @@ window.onload = function() {
 			if (!isPasswordValid() || confirmPasswordBox.value.length === 0) {
 				setValidationState("ConfirmPassword", "", "");
 			} else if (!isPasswordConfirmed()) {
-				setValidationState("ConfirmPassword", "info", "The passwords do not match yet.");
+				setValidationState("ConfirmPassword", "warning", "The passwords do not match yet.");
 			}
 		},
 		keyup: confirmPasswordOnKeyUp,
@@ -102,7 +102,7 @@ window.onload = function() {
 			}
 		}
 	});
-	
+
 /* CONTACT NUMBERS */
 
 	var isContactNumberProvided = function () {
@@ -111,7 +111,7 @@ window.onload = function() {
 
 	$('#telephone').on({
 		focus: function () {
-			setValidationState("Telephone", "info", "Use digits only, e.g. 0123456789.");
+			setValidationState("Telephone", "warning", "Use digits only, e.g. 0123456789.");
 		},
 		blur: function () {
 			setValidationState("Telephone", "", "");
@@ -120,14 +120,14 @@ window.onload = function() {
 
 	$('#cellphone').on({
 		focus: function () {
-			setValidationState("Cellphone", "info", "Use digits only, e.g. 0834567819.");
+			setValidationState("Cellphone", "warning", "Use digits only, e.g. 0834567819.");
 		},
 		blur: function () {
 			setValidationState("Cellphone", "", "");
 		}
 	});
 
-/* SELLER TYPE */	
+/* SELLER TYPE */
 
 	var isSellerTypeProvided = function () {
 		return $('#privateSeller').is(':checked') || $('#dealership').is(':checked');
@@ -141,7 +141,7 @@ window.onload = function() {
 		var divProvinces = $('#divProvinces').detach();
 		$('#rightColumn').prepend(divProvinces);
 	};
-	
+
 	var hideDealershipFields = function () {
 		$('#dealerOrLocation').text('Location');
 		$('#dealershipDetails').css('display', 'none');
@@ -150,7 +150,7 @@ window.onload = function() {
 		var divProvinces = $('#divProvinces').detach();
 		divProvinces.appendTo('#leftColumn');
 	};
-	
+
 	/*
 	 * The sellerType element is a hidden input element. Its value is an empty string
 	 * when a new user registers.
@@ -196,7 +196,7 @@ window.onload = function() {
 		}
 		return true;
 	};
-	
+
 	var provinces = JSON.parse($('#locations').val());
 	/**
 	 * Fills the #towns select element with the towns in the province selected in the #provinces
@@ -253,7 +253,7 @@ window.onload = function() {
 	};
 
 /* FORM SUBMISSION */
-	
+
 	/**
 	 * Validate the form before submitting it. Display alert-spans for the required fields which
 	 * were not completed or which were completed incorrectly.

@@ -5,9 +5,9 @@
 var provincesString = JSON.stringify(provinces);
 %>
 
-<div id="specialErrorAlert" class="alert alert-error"	style="display: <%=specialError.alertDisplay%>">
+<div id="specialErrorAlert" class="alert alert-danger"	style="display: <%=specialError.alertDisplay%>">
 	<button type="button" class="close" data-dismiss="alert">&times;</button>
-	<%=specialError.message%> You have to be registered as a seller, and logged-in, to <%=specialError.action%> a
+	<strong>Error!</strong><%=specialError.message%> You have to be registered as a seller, and logged-in, to <%=specialError.action%> a
 	vehicle profile. Complete the form below to register. If you are already registered,
 	please <a href="/login">log in</a>
 </div>
@@ -27,7 +27,7 @@ var provincesString = JSON.stringify(provinces);
 					<label for="email" class="control-label">Email address</label>
 					<input type="email" name="user[emailAddress]" value="<%=user.emailAddress%>" required
 						id="email" class="form-control">
-					<span id="spanEmail" class="help-inline"><%=validationErrors.emailError%></span>
+					<span id="spanEmail" class="help-block"><%=validationErrors.emailError%></span>
 				</div>
 			</div>
 			<div class="col-md-6">
@@ -37,7 +37,7 @@ var provincesString = JSON.stringify(provinces);
 					<input type="password" name="user[password]" value="<%=user.password%>"
 						id="password" class="form-control"
 					>
-					<span id="spanPassword" class="help-inline"><%=validationErrors.passwordError%></span>
+					<span id="spanPassword" class="help-block"><%=validationErrors.passwordError%></span>
 				</div>
 	<!-- Confirm password -->
 				<div id="divConfirmPassword" class="form-group">
@@ -45,7 +45,7 @@ var provincesString = JSON.stringify(provinces);
 					<input type="password" name="user[confirmPassword]"	value="<%=user.password%>"
 						id="confirmPassword" class="form-control"
 					>
-					<span id="spanConfirmPassword" class="help-inline"></span>
+					<span id="spanConfirmPassword" class="help-block"></span>
 				</div>
 			</div>
 		</div>
@@ -61,7 +61,7 @@ var provincesString = JSON.stringify(provinces);
 						value="<%=seller.contactPerson.firstname%>"
 						id="first_name" class="form-control"
 					>
-					<span id="spanFirstName" class="help-inline"><%=validationErrors.firstnameError%></span>
+					<span id="spanFirstName" class="help-block"><%=validationErrors.firstnameError%></span>
 				</div>
 	<!-- Surname -->
 				<div id="divSurname" class="form-group <%=validationErrors.surnameAlertType%>">
@@ -70,11 +70,11 @@ var provincesString = JSON.stringify(provinces);
 						value="<%=seller.contactPerson.surname%>"
 						id="surname" class="form-control"
 					>
-					<span id="spanSurname" class="help-inline"><%=validationErrors.surnameError%></span>
+					<span id="spanSurname" class="help-block"><%=validationErrors.surnameError%></span>
 				</div>
 			</div>
 			<div class="col-md-6">
-				<div id="contactNumbersAlert" class="alert alert-error"
+				<div id="contactNumbersAlert" class="alert alert-danger"
 						style="display: <%=validationErrors.contactNumbersAlertDisplay%>">
 					<button type="button" class="close" data-dismiss="alert">&times;</button>
 					<strong>Error!</strong> Please supply either a telephone or a cellphone number, or both. Use only digits, e.g. 0123456789.
@@ -86,7 +86,7 @@ var provincesString = JSON.stringify(provinces);
 						value="<%=seller.contactNumbers[0]%>"
 						id="telephone" class="form-control"
 					>
-					<span id="spanTelephone" class="help-inline"></span>
+					<span id="spanTelephone" class="help-block"></span>
 				</div>
 	<!-- Cellphone -->
 				<div id="divCellphone" class="form-group">
@@ -95,7 +95,7 @@ var provincesString = JSON.stringify(provinces);
 						value="<%=seller.contactNumbers[1]%>"
 						id="cellphone" class="form-control"
 					>
-					<span id="spanCellphone" class="help-inline"></span>
+					<span id="spanCellphone" class="help-block"></span>
 				</div>
 			</div>
 		</div>
@@ -103,7 +103,7 @@ var provincesString = JSON.stringify(provinces);
     <fieldset>
 		<legend>Seller type</legend>
 		<input type="hidden" id="sellerType" value="<%=sellerType%>" />
-		<div id="sellerTypeAlert" class="alert alert-error" style="display: none">
+		<div id="sellerTypeAlert" class="alert alert-danger" style="display: none">
 			<button type="button" class="close" data-dismiss="alert">&times;</button>
 			Please specify which type of seller you are by clicking either the Private seller option button or the
 			Dealership option button.
@@ -121,7 +121,7 @@ var provincesString = JSON.stringify(provinces);
     </fieldset>
     <fieldset>
 		<legend id="dealerOrLocation">Location</legend>
-		<div id="locationAlert" class="alert alert-error" style="display: <%=validationErrors.locationAlertDisplay%>">
+		<div id="locationAlert" class="alert alert-danger" style="display: <%=validationErrors.locationAlertDisplay%>">
 			<button type="button" class="close" data-dismiss="alert">&times;</button>
 			Please specify the province and town.
 		</div>
@@ -134,7 +134,7 @@ var provincesString = JSON.stringify(provinces);
 						<input type="text"  name="seller[dealershipName]" value="<%=seller.dealershipName%>"
 							id="dealershipName" class="form-control"
 						>
-						<span class="help-inline"></span>
+						<span class="help-block"></span>
 					</div>
 	<!-- Street address -->
 					<div class="form-group">
@@ -145,7 +145,7 @@ var provincesString = JSON.stringify(provinces);
 						<br>
 						<input type="text"  name="seller[address][suburb]" value="<%=seller.address.suburb%>"
 							id="suburb" class="form-control">
-						<span class="help-inline"></span>
+						<span class="help-block"></span>
 					</div>
 				</div>
 	<!-- Province -->
@@ -163,7 +163,7 @@ var provincesString = JSON.stringify(provinces);
 						<option value="<%=provinces[p].name%>"><%=provinces[p].name%></option>
 					<% } %>
 					</select>
-					<span id="spanProvinces" class="help-inline"><%=validationErrors.provinceError%></span>
+					<span id="spanProvinces" class="help-block"><%=validationErrors.provinceError%></span>
 				</div>
 			</div>
 			<div class="col-md-6" id="rightColumn">
@@ -180,7 +180,7 @@ var provincesString = JSON.stringify(provinces);
 						<option selected="selected">Please select ...</option>
 					<% } %>
 					</select>
-					<span id="spanTowns" class="help-inline"><%=validationErrors.townError%></span>
+					<span id="spanTowns" class="help-block"><%=validationErrors.townError%></span>
 				</div>
 			</div>
 		</div>
