@@ -2,120 +2,133 @@
 <% script('../../../static/js/vehicle-registration-form.js') -%>
 <% script('../../../static/js/bootstrap.file-input.js') -%>
 
-<form method="post" action="<%=action%>" enctype="multipart/form-data">
-	<div class="page-header">
-		<h1><%=heading%></h1>
-	</div>
+<div class="page-header">
+	<h1><%=heading%></h1>
+</div>
 
+<form action="<%=action%>" method="post"  enctype="multipart/form-data">
 	<input type="hidden" name="vehicle[_id]" value="<%=vehicle._id%>" />
 
-	<p class="span4" style="margin-left:0">
-		<span>Market:</span>
+	<div class="row">
+		<div class="col-md-6" style="margin-left:0">
+			<span><strong>Market</strong></span>
 
-		<span class="btn-group pull-right" data-toggle="buttons-radio">
-			<button id="marketNew" type="button" class="btn btn-small"
-					onclick="document.getElementById('market').value = 'new';">New</button>
-			<button id="marketUsed" type="button" class="btn btn-small"
-					onclick="document.getElementById('market').value = 'used';">Used</button>
-		</span>
+			<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+				<label for="marketNew" class="btn btn-default">
+					<input type="radio" id="marketNew"
+						onclick="document.getElementById('market').value = 'new';"> New
+				</label>
+				<label for="marketUsed" class="btn btn-default">
+					<input type="radio" id="marketUsed"
+						onclick="document.getElementById('market').value = 'used';"> Used
+				</label>
+			</div>
 
-		<input type="hidden" id="market"
-			   name="vehicle[market]" value="<%=vehicle.market%>" />
-	</p>
-
-	<br /><br />
+			<input type="hidden" name="vehicle[market]" value="<%=vehicle.market%>" id="market">
+		</div>
+	</div>
 
 	<div class="row">
-		<div class="span6">
+		<div class="col-md-6">
 			<fieldset>
 				<legend>Type</legend>
 
-				<label>Make:</label>
-				<select id="makes" name="vehicle[type][make]">
+				<div class="form-group">
+					<label for="makes" class="control-label">Make</label>
+					<select name="vehicle[type][make]" id="makes" class="form-control">
 					<% if (vehicle) { %>
-					<option selected="selected" value="<%=vehicle.type.make%>"><%=vehicle.type.make%></option>
+						<option selected="selected" value="<%=vehicle.type.make%>"><%=vehicle.type.make%></option>
 					<% } else { %>
-					<option selected="selected">Please select ...</option>
+						<option selected="selected">Please select ...</option>
 					<% } %>
 
 					<% for (m in makes) { %>
-					<option><%=makes[m].name %></option>
+						<option><%=makes[m].name %></option>
 					<% } %>
-				</select>
+					</select>
+				</div>
 
-				<label>Model:</label>
-				<select id="models" name="vehicle[type][model]">
+				<div class="form-group">
+					<label for="models" class="control-label">Model</label>
+					<select name="vehicle[type][model]" id="models" class="form-control">
 					<% if (vehicle) { %>
-					<option selected="selected" value="<%=vehicle.type.model%>"><%=vehicle.type.model%></option>
+						<option selected="selected" value="<%=vehicle.type.model%>"><%=vehicle.type.model%></option>
 					<% } else { %>
-					<option selected="selected">Please select ...</option>
+						<option selected="selected">Please select ...</option>
 					<% } %>
-				</select>
+					</select>
+				</div>
 
-				<label>Year:</label>
-				<select id="year" name="vehicle[type][year]">
+				<div class="form-group">
+					<label for="year" class="control-label">Year:</label>
+					<select name="vehicle[type][year]" id="year" class="form-control">
 					<% if (vehicle) { %>
-					<option selected="selected" value="<%=vehicle.type.year%>"><%=vehicle.type.year%></option>
+						<option selected="selected" value="<%=vehicle.type.year%>"><%=vehicle.type.year%></option>
 					<% } else { %>
-					<option selected="selected">Please select ...</option>
+						<option selected="selected">Please select ...</option>
 					<% } %>
 
 					<% for (var year = thisYear; year >= 1886; year--) { %>
-					<option value="<%=year%>"><%=year %></option>
+						<option value="<%=year%>"><%=year %></option>
 					<% } %>
-				</select>
+					</select>
+				</div>
 
 				<input type="hidden" id="manufacturers" value="<%=manufacturersString %>"/>
 			</fieldset>
 		</div>
 
-		<div class="span6">
+		<div class="col-md-6">
 			<fieldset>
 				<legend>Description</legend>
 
-				<div class="input-append">
-					<label>Mileage:</label>
-
-					<input id="mileage" type="text" name="vehicle[description][mileage]"
-						   value="<%=vehicle.description.mileage%>"/>
-
-					<span class="add-on">km</span>
+				<div class="form-group">
+					<label for="mileage" class="control-label">Mileage</label>
+					<div class="input-group">
+						<input type="text" name="vehicle[description][mileage]" value="<%=vehicle.description.mileage%>"
+							id="mileage" class="form-control"
+						>
+						<span class="input-group-addon">km</span>
+					</div>
 				</div>
 
-				<label for="color">Colour:</label>
-
-				<select id="color" name="vehicle[description][color]">
-
+				<div class="form-group">
+					<label for="color" class="control-label">Colour</label>
+					<select name="vehicle[description][color]" id="color" class="form-control">
 					<% if (vehicle) { %>
-					<option selected="selected" value="<%=vehicle.description.color%>">
-						<%=vehicle.description.color%>
-					</option>
+						<option selected="selected" value="<%=vehicle.description.color%>">
+							<%=vehicle.description.color%>
+						</option>
 					<% } else { %>
-					<option selected="selected">Please select ...</option>
+						<option selected="selected">Please select ...</option>
 					<% } %>
 
 					<% for (var i = 0; i < colors.length; i++) { %>
-					<option value="<%=colors[i]%>"><%=colors[i]%></option>
+						<option value="<%=colors[i]%>"><%=colors[i]%></option>
 					<% } %>
+					</select>
+				</div>
 
-				</select>
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>Full Service History</strong></span>
 
-				<br /><br />
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="fullServiceHistoryYes" class="btn btn-default">
+								<input type="radio" id="fullServiceHistoryYes"
+									onclick="document.getElementById('fullServiceHistory').value = true;"> Yes
+							</label>
+							<label for="fullServiceHistoryNo" class="btn btn-default">
+								<input type="radio" id="fullServiceHistoryNo"
+									onclick="$document.getElementById('fullServiceHistory').value = false;"> No
+							</label>
+						</div>
 
-				<p class="span4" style="margin-left:0">
-					<span>Full service history:</span>
-
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="fullServiceHistoryYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('fullServiceHistory').value = true;">Yes</button>
-						<button id="fullServiceHistoryNo" type="button" class="btn btn-small"
-								onclick="$document.getElementById('fullServiceHistory').value = false;">No</button>
-					</span>
-
-					<input type="hidden" id="fullServiceHistory"
-						   name="vehicle[description][fullServiceHistory]"
-						   value="<%=vehicle.description.fullServiceHistory%>" />
-				</p>
+						<input type="hidden" name="vehicle[description][fullServiceHistory]"
+							value="<%=vehicle.description.fullServiceHistory%>" id="fullServiceHistory"
+						>
+					</div>
+				</div>
 			</fieldset>
 		</div>
 	</div>

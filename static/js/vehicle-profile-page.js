@@ -109,7 +109,7 @@ $(window).load(function () {
 		}
 	});
 
-/* CANCEL BUTTON */
+/* CLEAR BUTTON */
 
 	$('#clearButton').click(function () {
 		$('#buyerName').val('');
