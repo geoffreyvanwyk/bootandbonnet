@@ -134,163 +134,198 @@
 	</div>
 
 	<div class="row">
-		<div class="span6">
+		<div class="col-md-6">
 			<fieldset>
 				<legend>Mechanics</legend>
 
-				<div class="input-append">
-					<label>Engine Capacity:</label>
-					<input class="input-small" type="text" id="engineCapacity"
-						   name="vehicle[mechanics][engineCapacity]"
-						   value="<%=vehicle.mechanics.engineCapacity%>" />
-					<span class="add-on">L</span>
+				<div class="form-group">
+					<label for="engineCapacity" class="control-label">Engine Capacity</label>
+					<div class="input-group">
+						<input type="text"
+							name="vehicle[mechanics][engineCapacity]" value="<%=vehicle.mechanics.engineCapacity%>"
+							id="engineCapacity" class="form-control"
+						>
+						<span class="input-group-addon">L</span>
+					</div>
 				</div>
 
-				<br />
-
-				<label>Fuel Type:</label>
-
-				<select id="fuelTypes" name="vehicle[mechanics][fuel]">
-
+				<div class="form-group">
+					<label for="makes" class="control-label">Fuel Type</label>
+					<select name="vehicle[mechanics][fuel]" id="fuelTypes" class="form-control">
 					<% if (vehicle) { %>
-					<option selected="selected" value="<%=vehicle.mechanics.fuel%>">
-						<%=vehicle.mechanics.fuel%>
-					</option>
+						<option selected="selected" value="<%=vehicle.mechanics.fuel%>">
+							<%=vehicle.mechanics.fuel%>
+						</option>
 					<% } else { %>
-					<option selected="selected">Please select ...</option>
+						<option selected="selected">Please select ...</option>
 					<% } %>
 
 					<% for (var i = 0; i < fuels.length; i++) { %>
-					<option value="<%=fuels[i]%>"><%=fuels[i]%></option>
+						<option value="<%=fuels[i]%>"><%=fuels[i]%></option>
 					<% } %>
+					</select>
+				</div>
 
-				</select>
-
-				<br />
-
-				<label>Transmission Type:</label>
-
-				<select id="transmissionTypes" name="vehicle[mechanics][transmission]">
-
+				<div class="form-group">
+					<label for="transmissionTypes" class="control-label">Transmission Type</label>
+					<select name="vehicle[mechanics][transmission]" id="transmissionTypes" class="form-control">
 					<% if (vehicle) { %>
-					<option selected="selected" value="<%=vehicle.mechanics.transmission%>">
-						<%=vehicle.mechanics.transmission%>
-					</option>
+						<option selected="selected" value="<%=vehicle.mechanics.transmission%>">
+							<%=vehicle.mechanics.transmission%>
+						</option>
 					<% } else { %>
-					<option selected="selected">Please select ...</option>
+						<option selected="selected">Please select ...</option>
 					<% } %>
 
 					<% for (var i = 0; i < transmissions.length; i++) { %>
-					<option value="<%=transmissions[i]%>"><%=transmissions[i]%></option>
+						<option value="<%=transmissions[i]%>"><%=transmissions[i]%></option>
 					<% } %>
+					</select>
+				</div>
 
-				</select>
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>ABS Brakes</strong></span>
 
-				<br /><br />
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="absBrakesYes" class="btn btn-default">
+								<input type="radio" id="absBrakesYes"
+									onclick="document.getElementById('absBrakes').value = true;"> Yes
+							</label>
+							<label for="absBrakesNo" class="btn btn-default">
+								<input type="radio" id="absBrakesNo"
+									onclick="document.getElementById('absBrakes').value = false;"> No
+							</label>
+						</div>
 
-				<p class="span4" style="margin-left:0">
-					<span>ABS Brakes:</span>
+						<input type="hidden"
+							name="vehicle[mechanics][absBrakes]" value="<%=vehicle.mechanics.absBrakes%>"
+							id="absBrakes"
+						>
+					</div>
+				</div>
 
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="absBrakesYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('absBrakes').value = true;">Yes</button>
-						<button id="absBrakesNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('absBrakes').value = false;">No</button>
-					</span>
+				<br>
 
-					<input type="hidden" id="absBrakes" name="vehicle[mechanics][absBrakes]"
-						   value="<%=vehicle.mechanics.absBrakes%>" />
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>Power Steering</strong></span>
 
-					<br /><br />
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="powerSteeringYes" class="btn btn-default">
+								<input type="radio" id="powerSteeringYes"
+									onclick="document.getElementById('powerSteering').value = true;"> Yes
+							</label>
+							<label for="powerSteeringNo" class="btn btn-default">
+								<input type="radio" id="powerSteeringNo"
+									onclick="document.getElementById('powerSteering').value = false;"> No
+							</label>
+						</div>
 
-					<span>Power Steering:</span>
-
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="powerSteeringYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('powerSteering').value = true;">Yes</button>
-						<button id="powerSteeringNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('powerSteering').value = false;">No</button>
-					</span>
-
-					<input type="hidden" id="powerSteering"
-						   name="vehicle[mechanics][powerSteering]"
-						   value="<%=vehicle.mechanics.powerSteering%>" />
-				</p>
+						<input type="hidden"
+						   name="vehicle[mechanics][powerSteering]" value="<%=vehicle.mechanics.powerSteering%>"
+						   id="powerSteering"
+						>
+					</div>
+				</div>
 			</fieldset>
 		</div>
 
-		<div class="span6">
+		<div class="col-md-6">
 			<fieldset>
 				<legend>Luxuries</legend>
 
-				<label>Electric Windows:</label>
-
-				<select id="electricWindows" name="vehicle[luxuries][electricWindows]">
-
+				<div class="form-group">
+					<label for="electricWindows" class="control-label">Electric Windows</label>
+					<select name="vehicle[luxuries][electricWindows]" id="electricWindows" class="form-control">
 					<% if (vehicle) { %>
-					<option selected="selected" value="<%=vehicle.luxuries.electricWindows%>">
-						<%=vehicle.luxuries.electricWindows%>
-					</option>
+						<option selected="selected" value="<%=vehicle.luxuries.electricWindows%>">
+							<%=vehicle.luxuries.electricWindows%>
+						</option>
 					<% } else { %>
-					<option selected="selected">Please select ...</option>
+						<option selected="selected">Please select ...</option>
 					<% } %>
-					<option value="None">None</option>
-					<option value="Front Only">Front Only</option>
-					<option value="Front and Back">Front and Back</option>
-				</select>
+						<option value="None">None</option>
+						<option value="Front Only">Front Only</option>
+						<option value="Front and Back">Front and Back</option>
+					</select>
+				</div>
 
-				<br /><br />
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>Air Conditioning</strong></span>
 
-				<p class="span4" style="margin-left:0">
-					<span>Air Conditioning:</span>
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="airConditioningYes" class="btn btn-default">
+								<input type="radio" id="airConditioningYes"
+									onclick="document.getElementById('airConditioning').value = true;"> Yes
+							</label>
+							<label for="airConditioningNo" class="btn btn-default">
+								<input type="radio" id="airConditioningNo"
+									onclick="document.getElementById('airConditioning').value = false;"> No
+							</label>
+						</div>
 
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="airConditioningYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('airConditioning').value = true;">Yes</button>
-						<button id="airConditioningNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('airConditioning').value = false;">No</button>
-					</span>
+						<input type="hidden"
+							name="vehicle[luxuries][airConditioning]" value="<%=vehicle.luxuries.airConditioning%>"
+							id="airConditioning"
+						>
+					</div>
+				</div>
 
-					<input type="hidden" id="airConditioning"
-						   name="vehicle[luxuries][airConditioning]"
-						   value="<%=vehicle.luxuries.airConditioning%>" />
+				<br>
 
-					<br /><br />
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>CD Player</strong></span>
 
-					<span>CD Player:</span>
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="cdPlayerYes" class="btn btn-default">
+								<input type="radio" id="cdPlayerYes"
+									onclick="document.getElementById('cdPlayer').value = true;"> Yes
+							</label>
+							<label for="cdPlayerNo" class="btn btn-default">
+								<input type="radio" id="cdPlayerNo"
+									onclick="document.getElementById('cdPlayer').value = false;"> No
+							</label>
+						</div>
 
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="cdPlayerYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('cdPlayer').value = true;">Yes</button>
-						<button id="cdPlayerNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('cdPlayer').value = false;">No</button>
-					</span>
+						<input type="hidden"
+							name="vehicle[luxuries][cdPlayer]" value="<%=vehicle.luxuries.cdPlayer%>"
+							id="cdPlayer"
+						>
+					</div>
+				</div>
 
-					<input type="hidden" id="cdPlayer"
-						   name="vehicle[luxuries][cdPlayer]"
-						   value="<%=vehicle.luxuries.cdPlayer%>" />
+				<br>
 
-					<br /><br />
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>Radio</strong></span>
 
-					<span>Radio:</span>
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="radioYes" class="btn btn-default">
+								<input type="radio" id="radioYes"
+									onclick="document.getElementById('radio').value = true;"> Yes
+							</label>
+							<label for="radioNo" class="btn btn-default">
+								<input type="radio" id="radioNo"
+									onclick="document.getElementById('radio').value = false;"> No
+							</label>
+						</div>
 
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="radioYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('radio').value = true;">Yes</button>
-						<button id="radioNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('radio').value = false;">No</button>
-					</span>
+						<input type="hidden" id="radio"
+							name="vehicle[luxuries][radio]"
+							value="<%=vehicle.luxuries.radio%>" />
+					</div>
+				</div>
 
-					<input type="hidden" id="radio"
-						   name="vehicle[luxuries][radio]"
-						   value="<%=vehicle.luxuries.radio%>" />
-				</p>
 			</fieldset>
 		</div>
 	</div>
 
 	<div class="row">
-		<div class="span6">
+		<div class="col-md-6">
 			<fieldset>
 				<legend>Security</legend>
 
