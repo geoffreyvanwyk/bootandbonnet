@@ -314,9 +314,10 @@
 							</label>
 						</div>
 
-						<input type="hidden" id="radio"
-							name="vehicle[luxuries][radio]"
-							value="<%=vehicle.luxuries.radio%>" />
+						<input type="hidden"
+							name="vehicle[luxuries][radio]" value="<%=vehicle.luxuries.radio%>"
+							id="radio"
+						>
 					</div>
 				</div>
 
@@ -329,235 +330,291 @@
 			<fieldset>
 				<legend>Security</legend>
 
-				<p class="span4" style="margin-left:0">
-					<span>Alarm:</span>
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>Alarm</strong></span>
 
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="alarmYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('alarm').value = true;">Yes</button>
-						<button id="alarmNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('alarm').value = false;">No</button>
-					</span>
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="alarmYes" class="btn btn-default">
+								<input type="radio" id="alarmYes"
+									onclick="document.getElementById('alarm').value = true;"> Yes
+							</label>
+							<label for="alarmNo" class="btn btn-default">
+								<input type="radio" id="alarmNo"
+									onclick="document.getElementById('alarm').value = false;"> No
+							</label>
+						</div>
 
-					<input type="hidden" id="alarm"
-						   name="vehicle[security][alarm]"
-						   value="<%=vehicle.security.alarm%>" />
+						<input type="hidden"
+							name="vehicle[security][alarm]" value="<%=vehicle.security.alarm%>"
+							id="alarm"
+						>
+					</div>
+				</div>
 
-					<br /><br />
+				<br>
 
-					<span>Central Locking:</span>
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>Central Locking</strong></span>
 
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="centralLockingYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('centralLocking').value = true;">Yes</button>
-						<button id="centralLockingNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('centralLocking').value = false;">
-							No
-						</button>
-					</span>
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="centralLockingYes" class="btn btn-default">
+								<input type="radio" id="centralLockingYes"
+									onclick="document.getElementById('centralLocking').value = true;"> Yes
+							</label>
+							<label for="centralLockingNo" class="btn btn-default">
+								<input type="radio" id="centralLockingNo"
+									onclick="document.getElementById('centralLocking').value = false;"> No
+							</label>
+						</div>
 
-					<input type="hidden" id="centralLocking"
-						   name="vehicle[security][centralLocking]"
-						   value="<%=vehicle.security.centralLocking%>" />
+						<input type="hidden"
+							name="vehicle[security][centralLocking]" value="<%=vehicle.security.centralLocking%>"
+							id="centralLocking"
+						>
+					</div>
+				</div>
 
-					<br /><br />
+				<br>
 
-					<span>Immobilizer:</span>
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>Immobilizer</strong></span>
 
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="immobilizerYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('immobilizer').value = true;">Yes</button>
-						<button id="immobilizerNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('immobilizer').value = false;">No</button>
-					</span>
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="immobilizerYes" class="btn btn-default">
+								<input type="radio" id="immobilizerYes"
+									onclick="document.getElementById('immobilizer').value = true;"> Yes
+							</label>
+							<label for="immobilizerNo" class="btn btn-default">
+								<input type="radio" id="immobilizerNo"
+									onclick="document.getElementById('immobilizer').value = false;"> No
+							</label>
+						</div>
 
-					<input type="hidden" id="immobilizer"
-						   name="vehicle[security][immobilizer]"
-						   value="<%=vehicle.security.immobilizer%>" />
+						<input type="hidden"
+							name="vehicle[security][immobilizer]" value="<%=vehicle.security.immobilizer%>"
+							id="immobilizer"
+						>
+					</div>
+				</div>
 
-					<br /><br />
+				<br>
 
-					<span>Gear Lock:</span>
+				<div class="row">
+					<div class="col-md-12">
+						<span><strong>Gear Lock</strong></span>
 
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="gearLockYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('gearLock').value = true;">Yes</button>
-						<button id="gearLockNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('gearLock').value = false;">No</button>
-					</span>
+						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+							<label for="gearLockYes" class="btn btn-default">
+								<input type="radio" id="gearLockYes"
+									onclick="document.getElementById('gearLock').value = true;"> Yes
+							</label>
+							<label for="gearLockNo" class="btn btn-default">
+								<input type="radio" id="gearLockNo"
+									onclick="document.getElementById('gearLock').value = false;"> No
+							</label>
+						</div>
 
-					<input type="hidden" id="gearLock"
-						   name="vehicle[security][gearLock]"
-						   value="<%=vehicle.security.gearLock%>" />
-				</p>
+						<input type="hidden"
+							name="vehicle[security][gearLock]" value="<%=vehicle.security.gearLock%>"
+							id="gearLock"
+						>
+					</div>
+				</div>
 			</fieldset>
 		</div>
 
-		<div class="span6">
+		<div class="col-md-6">
 			<fieldset>
 				<legend>Safety</legend>
 
-				<label>Air Bags:</label>
-
-				<select id="airBags" name="vehicle[safety][airBags]">
-
+				<div class="form-group">
+					<label for="airBags" class="control-label">Air Bags</label>
+					<select name="vehicle[safety][airBags]" id="airBags" class="form-control">
 					<% if (vehicle) { %>
-					<option selected="selected" value="<%=vehicle.safety.airBags%>">
-						<%=vehicle.safety.airBags%>
-					</option>
+						<option selected="selected" value="<%=vehicle.safety.airBags%>">
+							<%=vehicle.safety.airBags%>
+						</option>
 					<% } else { %>
-					<option selected="selected">Please select ...</option>
+						<option selected="selected">Please select ...</option>
 					<% } %>
-					<option value=0>0</option>
-					<option value=1>1</option>
-					<option value=2>2</option>
-					<option value=3>3</option>
-					<option value=4>4</option>
-				</select>
+						<option value=0>0</option>
+						<option value=1>1</option>
+						<option value=2>2</option>
+						<option value=3>3</option>
+						<option value=4>4</option>
+					</select>
+				</div>
 			</fieldset>
 		</div>
 	</div>
 
-	<fieldset id="photos">
-		<legend>Photos</legend>
+	<div class="row">
+		<div class="col-md-12">
+			<fieldset id="photos">
+				<legend>Photos</legend>
 
-		<input type="hidden" name="deletedPhotos" value="[]">
-
-		<div class="row">
-			<div class="span12">
-            <ul class="thumbnails">
-				<li class="span3">
-					<div class="thumbnail">
-						<img id="photo1"
-							src="<%=vehicle._id && vehicle.photos[0] ?
-								"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[0].substr(-1))
-								: "/static/img/image-placeholder.png"%>"
-						>
-						<div class="caption">
-							<h4 >Photo 1</h4>
-							<p>
-								<input type="file" class="bootandbonnet-input-file" name="photo1"
-										title="Browse" accept="images/*" />
-								<button type="button" name="btnphoto1" class="btn-link bootandbonnet-remove-file">
-									Remove
-								</button>
-							</p>
+				<div class="container" style="padding-left: 0; padding-right: 0">
+					<div class="row">
+						<div class="col-xs-6 col-md-3">
+							<div class="thumbnail">
+								<img id="photo1" class="img-responsive"
+									src="<%=vehicle._id && vehicle.photos[0] ?
+										"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[0].substr(-1))
+										: "/static/img/image-placeholder.png"%>"
+								>
+								<div class="caption">
+									<h4>Photo 1</h4>
+									<p>
+										<input type="file" title="Browse" accept="images/*"
+											name="photo1"
+											class="btn btn-default bootandbonnet-input-file"
+										>
+										<button type="button" name="btnphoto1"
+											class="btn btn-link bootandbonnet-remove-file">
+											Remove
+										</button>
+									</p>
+								</div>
+								<input type="hidden" name="oldphoto1" class="bootandbonnet-old-photo">
+							</div>
 						</div>
-						<input type="hidden" name="oldphoto1" class="bootandbonnet-old-photo">
-					</div>
-				</li>
-				<li class="span3">
-					<div class="thumbnail">
-						<img id="photo2"
-							src="<%=vehicle._id && vehicle.photos[1] ?
-								"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[1].substr(-1))
-								: "/static/img/image-placeholder.png"%>"
-						>
-						<div class="caption">
-							<h4>Photo 2</h4>
-							<p>
-								<input type="file" class="bootandbonnet-input-file" name="photo2"
-										title="Browse" accept="images/*" />
-								<button type="button" name="btnphoto2" class="btn-link bootandbonnet-remove-file">
-									Remove
-								</button>
-							</p>
+
+						<div class="col-xs-6 col-md-3">
+							<div class="thumbnail">
+								<img id="photo2" class="img-responsive"
+									src="<%=vehicle._id && vehicle.photos[1] ?
+										"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[1].substr(-1))
+										: "/static/img/image-placeholder.png"%>"
+								>
+								<div class="caption">
+									<h4>Photo 2</h4>
+									<p>
+										<input type="file" title="Browse" accept="images/*"
+											name="photo2"
+											class="btn btn-default bootandbonnet-input-file"
+										>
+										<button type="button"
+											name="btnphoto2"
+											class="btn btn-link bootandbonnet-remove-file"
+										>
+											Remove
+										</button>
+									</p>
+								</div>
+								<input type="hidden" name="oldphoto2" class="bootandbonnet-old-photo">
+							</div>
 						</div>
-						<input type="hidden" name="oldphoto2" class="bootandbonnet-old-photo">
-					</div>
-				</li>
-				<li class="span3">
-					<div class="thumbnail">
-						<img id="photo3"
-							src="<%=vehicle._id && vehicle.photos[2] ?
-								"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[2].substr(-1))
-								: "/static/img/image-placeholder.png"%>"
-						>
-						<div class="caption">
-							<h4>Photo 3</h4>
-							<p>
-								<input type="file" class="bootandbonnet-input-file" name="photo3"
-										title="Browse" accept="images/*" />
-								<button type="button" name="btnphoto3" class="btn-link bootandbonnet-remove-file">
-									Remove
-								</button>
-							</p>
+
+						<div class="col-xs-6 col-md-3">
+							<div class="thumbnail">
+								<img id="photo3" class="img-responsive"
+									src="<%=vehicle._id && vehicle.photos[2] ?
+										"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[2].substr(-1))
+										: "/static/img/image-placeholder.png"%>"
+								>
+								<div class="caption">
+									<h4>Photo 3</h4>
+									<p>
+										<input type="file" title="Browse" accept="images/*"
+											name="photo3"
+											class="btn btn-default bootandbonnet-input-file"
+										>
+										<button type="button"
+											name="btnphoto3"
+											class="btn btn-link bootandbonnet-remove-file"
+										>
+											Remove
+										</button>
+									</p>
+								</div>
+								<input type="hidden" name="oldphoto3" class="bootandbonnet-old-photo">
+							</div>
 						</div>
-						<input type="hidden" name="oldphoto3" class="bootandbonnet-old-photo">
-					</div>
-				</li>
-				<li class="span3">
-					<div class="thumbnail">
-						<img id="photo4"
-							src="<%=vehicle._id && vehicle.photos[3] ?
-								"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[3].substr(-1))
-								: "/static/img/image-placeholder.png"%>"
-						>
-						<div class="caption">
-							<h4>Photo 4</h4>
-							<p>
-								<input type="file" class="bootandbonnet-input-file" name="photo4"
-										title="Browse" accept="images/*" />
-								<button type="button" name="btnphoto4" class="btn-link bootandbonnet-remove-file">
-									Remove
-								</button>
-							</p>
+
+						<div class="col-xs-6 col-md-3">
+							<div class="thumbnail">
+								<img id="photo4" class="img-responsive"
+									src="<%=vehicle._id && vehicle.photos[3] ?
+										"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[3].substr(-1))
+										: "/static/img/image-placeholder.png"%>"
+								>
+								<div class="caption">
+									<h4>Photo 4</h4>
+									<p>
+										<input type="file" title="Browse" accept="images/*"
+											name="photo4"
+											class="btn btn-default bootandbonnet-input-file"
+										>
+										<button type="button"
+											name="btnphoto4"
+											class="btn btn-link bootandbonnet-remove-file"
+										>
+											Remove
+										</button>
+									</p>
+								</div>
+								<input type="hidden" name="oldphoto4" class="bootandbonnet-old-photo">
+							</div>
 						</div>
-						<input type="hidden" name="oldphoto4" class="bootandbonnet-old-photo">
 					</div>
-				</li>
-            </ul>
-			</div>
-		</div>
-	</fieldset>
-
-	<fieldset>
-		<legend>Price</legend>
-
-		<div class="row">
-			<div class="span6">
-				<div class="input-prepend input-append">
-
-					<label>Price:</label>
-
-					<span class="add-on">R</span>
-
-					<input id="price" type="text" name="vehicle[price][value]"
-						   value="<%=vehicle.price.value%>" />
-
-					<span class="add-on">.00</span>
 				</div>
-			</div>
 
-			<br />
-
-			<div class="span6">
-				<p class="span4" style="margin-left:0">
-					<span>Negotiable:</span>
-
-					<span class="btn-group pull-right" data-toggle="buttons-radio">
-						<button id="negotiableYes" type="button" class="btn btn-small"
-								onclick="document.getElementById('negotiable').value = true;">Yes</button>
-						<button id="negotiableNo" type="button" class="btn btn-small"
-								onclick="document.getElementById('negotiable').value = false;">No</button>
-					</span>
-
-					<input type="hidden" id="negotiable"
-						   name="vehicle[price][negotiable]"
-						   value="<%=vehicle.price.negotiable%>" />
-				</p>
-			</div>
+				<input type="hidden" name="deletedPhotos" value="[]">
+			</fieldset>
 		</div>
-	</fieldset>
-
-	<br />
-
-	<label>Comments:</label>
-
-	<textarea class="span5" cols="1" rows="3" id="comments" name="vehicle[comments]"><%=vehicle.comments%></textarea>
-
-	<div class="form-actions">
-		<button type="submit" class="btn btn-primary" ><%=buttonCaption%></button>
-		<button type="button" class="btn btn-default" id="cancelButton" >Cancel</button>
 	</div>
+
+	<div class="row">
+		<div class="col-md-6">
+			<fieldset>
+				<legend>Price</legend>
+
+				<div class="input-group">
+					<span class="input-group-addon">R</span>
+					<input type="text"
+						name="vehicle[price][value]" value="<%=vehicle.price.value%>"
+						id="price" class="form-control"
+					>
+					<span class="input-group-addon">.00</span>
+				</div>
+
+				<br>
+
+				<span><strong>Negotiable</strong></span>
+
+				<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+					<label for="negotiableYes" class="btn btn-default">
+						<input type="radio" id="negotiableYes"
+							onclick="document.getElementById('negotiable').value = true;"> Yes
+					</label>
+					<label for="negotiableNo" class="btn btn-default">
+						<input type="radio" id="negotiableNo"
+							onclick="document.getElementById('negotiable').value = false;"> No
+					</label>
+				</div>
+
+				<input type="hidden"
+					name="vehicle[price][negotiable]" value="<%=vehicle.price.negotiable%>"
+					id="negotiable"
+				>
+			</fieldset>
+		</div>
+
+		<div class="col-md-6">
+			<fieldset>
+				<legend>Comments</legend>
+				<textarea name="vehicle[comments]" cols="1" rows="3"
+					id="comments" class="form-control"
+				><%=vehicle.comments%></textarea>
+			</fieldset>
+		</div>
+	</div>
+
+	<br>
+
+	<button type="submit" class="btn btn-primary" ><%=buttonCaption%></button>
+	<button type="button" id="cancelButton" class="btn btn-default">Cancel</button>
 </form>
