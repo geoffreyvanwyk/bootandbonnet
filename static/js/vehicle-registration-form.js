@@ -33,6 +33,17 @@ window.onload = function () {
 		fillModels();
 	});
 
+/* BUTTON GROUPS */
+
+	/* Change button colours when toggled. */
+	$('.bootandbonnet-yes-button').change(function () {
+		$(this).closest('label').attr('class', 'btn btn-success').next().attr('class', 'btn btn-default');
+	});
+
+	$('.bootandbonnet-no-button').change(function () {
+		$(this).closest('label').attr('class', 'btn btn-danger').prev().attr('class', 'btn btn-default');
+	});
+
 	/* Set the toggle states of toggle buttons. */
 	/* jQuery has to be used here, because the button method is only available in jQuery. */
 	if ($('#market').val() === 'new') {
