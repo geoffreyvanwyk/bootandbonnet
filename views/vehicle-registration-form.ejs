@@ -7,10 +7,12 @@
 </div>
 
 <form action="<%=action%>" method="post"  enctype="multipart/form-data">
+
 	<input type="hidden" name="vehicle[_id]" value="<%=vehicle._id%>" />
-	<div class="container" style="padding-left: 0; padding-right: 0">
+
+	<div class="container" style="padding-left: 0; padding-right: 0;">
 		<div class="row">
-				<div class="col-md-6" style="margin-left:0">
+			<div class="col-md-6">
 				<span><strong>Market</strong></span>
 
 				<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
@@ -456,7 +458,7 @@
 				<fieldset id="photos">
 					<legend>Photos</legend>
 
-					<div class="container" style="padding-left: 0; padding-right: 0">
+					<div class="container" style="padding-left: 0; padding-right: 0;">
 						<div class="row">
 							<div class="col-xs-6 col-md-3">
 								<div class="thumbnail">
@@ -568,53 +570,55 @@
 		</div>
 
 		<div class="row">
-		<div class="col-md-6">
-			<fieldset>
-				<legend>Price</legend>
+			<div class="col-md-6">
+				<fieldset>
+					<legend>Price</legend>
 
-				<div class="input-group">
-					<span class="input-group-addon">R</span>
-					<input type="text"
-						name="vehicle[price][value]" value="<%=vehicle.price.value%>"
-						id="price" class="form-control"
+					<div class="input-group">
+						<span class="input-group-addon">R</span>
+						<input type="text"
+							name="vehicle[price][value]" value="<%=vehicle.price.value%>"
+							id="price" class="form-control"
+						>
+						<span class="input-group-addon">.00</span>
+					</div>
+
+					<br>
+
+					<span><strong>Negotiable</strong></span>
+
+					<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+						<label for="negotiableYes" class="btn btn-default">
+							<input type="radio" id="negotiableYes" class="bootandbonnet-yes-button"
+								onclick="document.getElementById('negotiable').value = true;"> Yes
+						</label>
+						<label for="negotiableNo" class="btn btn-default">
+							<input type="radio" id="negotiableNo" class="bootandbonnet-no-button"
+								onclick="document.getElementById('negotiable').value = false;"> No
+						</label>
+					</div>
+
+					<input type="hidden"
+						name="vehicle[price][negotiable]" value="<%=vehicle.price.negotiable%>"
+						id="negotiable"
 					>
-					<span class="input-group-addon">.00</span>
-				</div>
+				</fieldset>
+			</div>
 
-				<br>
-
-				<span><strong>Negotiable</strong></span>
-
-				<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-					<label for="negotiableYes" class="btn btn-default">
-						<input type="radio" id="negotiableYes" class="bootandbonnet-yes-button"
-							onclick="document.getElementById('negotiable').value = true;"> Yes
-					</label>
-					<label for="negotiableNo" class="btn btn-default">
-						<input type="radio" id="negotiableNo" class="bootandbonnet-no-button"
-							onclick="document.getElementById('negotiable').value = false;"> No
-					</label>
-				</div>
-
-				<input type="hidden"
-					name="vehicle[price][negotiable]" value="<%=vehicle.price.negotiable%>"
-					id="negotiable"
-				>
-			</fieldset>
+			<div class="col-md-6">
+				<fieldset>
+					<legend>Comments</legend>
+					<textarea name="vehicle[comments]" cols="1" rows="3"
+						id="comments" class="form-control"
+					><%=vehicle.comments%></textarea>
+				</fieldset>
+			</div>
 		</div>
-
-		<div class="col-md-6">
-			<fieldset>
-				<legend>Comments</legend>
-				<textarea name="vehicle[comments]" cols="1" rows="3"
-					id="comments" class="form-control"
-				><%=vehicle.comments%></textarea>
-			</fieldset>
-		</div>
-	</div>
 	</div>
 	<br>
 
 	<button type="submit" class="btn btn-primary" ><%=buttonCaption%></button>
 	<button type="button" id="cancelButton" class="btn btn-default">Cancel</button>
+
+	<br>
 </form>
