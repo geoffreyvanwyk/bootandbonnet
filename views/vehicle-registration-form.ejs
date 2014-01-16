@@ -8,566 +8,566 @@
 
 <form action="<%=action%>" method="post"  enctype="multipart/form-data">
 	<input type="hidden" name="vehicle[_id]" value="<%=vehicle._id%>" />
+	<div class="container" style="padding-left: 0; padding-right: 0">
+		<div class="row">
+				<div class="col-md-6" style="margin-left:0">
+				<span><strong>Market</strong></span>
 
-	<div class="row">
-		<div class="col-md-6" style="margin-left:0">
-			<span><strong>Market</strong></span>
+				<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+					<label for="marketNew" class="btn btn-default">
+						<input type="radio" id="marketNew" class="bootandbonnet-yes-button"
+							onclick="document.getElementById('market').value = 'new';"> New
+					</label>
+					<label for="marketUsed" class="btn btn-default">
+						<input type="radio" id="marketUsed" class="bootandbonnet-no-button"
+							onclick="document.getElementById('market').value = 'used';"> Used
+					</label>
+				</div>
 
-			<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-				<label for="marketNew" class="btn btn-default">
-					<input type="radio" id="marketNew" class="bootandbonnet-yes-button"
-						onclick="document.getElementById('market').value = 'new';"> New
-				</label>
-				<label for="marketUsed" class="btn btn-default">
-					<input type="radio" id="marketUsed" class="bootandbonnet-no-button"
-						onclick="document.getElementById('market').value = 'used';"> Used
-				</label>
+				<input type="hidden" name="vehicle[market]" value="<%=vehicle.market%>" id="market">
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-6">
+				<fieldset>
+					<legend>Type</legend>
+
+					<div class="form-group">
+						<label for="makes" class="control-label">Make</label>
+						<select name="vehicle[type][make]" id="makes" class="form-control">
+						<% if (vehicle) { %>
+							<option selected="selected" value="<%=vehicle.type.make%>"><%=vehicle.type.make%></option>
+						<% } else { %>
+							<option selected="selected">Please select ...</option>
+						<% } %>
+
+						<% for (m in makes) { %>
+							<option><%=makes[m].name %></option>
+						<% } %>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="models" class="control-label">Model</label>
+						<select name="vehicle[type][model]" id="models" class="form-control">
+						<% if (vehicle) { %>
+							<option selected="selected" value="<%=vehicle.type.model%>"><%=vehicle.type.model%></option>
+						<% } else { %>
+							<option selected="selected">Please select ...</option>
+						<% } %>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="year" class="control-label">Year:</label>
+						<select name="vehicle[type][year]" id="year" class="form-control">
+						<% if (vehicle) { %>
+							<option selected="selected" value="<%=vehicle.type.year%>"><%=vehicle.type.year%></option>
+						<% } else { %>
+							<option selected="selected">Please select ...</option>
+						<% } %>
+
+						<% for (var year = thisYear; year >= 1886; year--) { %>
+							<option value="<%=year%>"><%=year %></option>
+						<% } %>
+						</select>
+					</div>
+
+					<input type="hidden" id="manufacturers" value="<%=manufacturersString %>"/>
+				</fieldset>
 			</div>
 
-			<input type="hidden" name="vehicle[market]" value="<%=vehicle.market%>" id="market">
-		</div>
-	</div>
+			<div class="col-md-6">
+				<fieldset>
+					<legend>Description</legend>
 
-	<div class="row">
-		<div class="col-md-6">
-			<fieldset>
-				<legend>Type</legend>
-
-				<div class="form-group">
-					<label for="makes" class="control-label">Make</label>
-					<select name="vehicle[type][make]" id="makes" class="form-control">
-					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.type.make%>"><%=vehicle.type.make%></option>
-					<% } else { %>
-						<option selected="selected">Please select ...</option>
-					<% } %>
-
-					<% for (m in makes) { %>
-						<option><%=makes[m].name %></option>
-					<% } %>
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="models" class="control-label">Model</label>
-					<select name="vehicle[type][model]" id="models" class="form-control">
-					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.type.model%>"><%=vehicle.type.model%></option>
-					<% } else { %>
-						<option selected="selected">Please select ...</option>
-					<% } %>
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="year" class="control-label">Year:</label>
-					<select name="vehicle[type][year]" id="year" class="form-control">
-					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.type.year%>"><%=vehicle.type.year%></option>
-					<% } else { %>
-						<option selected="selected">Please select ...</option>
-					<% } %>
-
-					<% for (var year = thisYear; year >= 1886; year--) { %>
-						<option value="<%=year%>"><%=year %></option>
-					<% } %>
-					</select>
-				</div>
-
-				<input type="hidden" id="manufacturers" value="<%=manufacturersString %>"/>
-			</fieldset>
-		</div>
-
-		<div class="col-md-6">
-			<fieldset>
-				<legend>Description</legend>
-
-				<div class="form-group">
-					<label for="mileage" class="control-label">Mileage</label>
-					<div class="input-group">
-						<input type="text" name="vehicle[description][mileage]" value="<%=vehicle.description.mileage%>"
-							id="mileage" class="form-control"
-						>
-						<span class="input-group-addon">km</span>
-					</div>
-				</div>
-
-				<div class="form-group">
-					<label for="color" class="control-label">Colour</label>
-					<select name="vehicle[description][color]" id="color" class="form-control">
-					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.description.color%>">
-							<%=vehicle.description.color%>
-						</option>
-					<% } else { %>
-						<option selected="selected">Please select ...</option>
-					<% } %>
-
-					<% for (var i = 0; i < colors.length; i++) { %>
-						<option value="<%=colors[i]%>"><%=colors[i]%></option>
-					<% } %>
-					</select>
-				</div>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>Full Service History</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="fullServiceHistoryYes" class="btn btn-default">
-								<input type="radio" id="fullServiceHistoryYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('fullServiceHistory').value = true;"> Yes
-							</label>
-							<label for="fullServiceHistoryNo" class="btn btn-default">
-								<input type="radio" id="fullServiceHistoryNo" class="bootandbonnet-no-button"
-									onclick="$document.getElementById('fullServiceHistory').value = false;"> No
-							</label>
+					<div class="form-group">
+						<label for="mileage" class="control-label">Mileage</label>
+						<div class="input-group">
+							<input type="text" name="vehicle[description][mileage]" value="<%=vehicle.description.mileage%>"
+								id="mileage" class="form-control"
+							>
+							<span class="input-group-addon">km</span>
 						</div>
-
-						<input type="hidden" name="vehicle[description][fullServiceHistory]"
-							value="<%=vehicle.description.fullServiceHistory%>" id="fullServiceHistory"
-						>
 					</div>
-				</div>
-			</fieldset>
-		</div>
-	</div>
 
-	<div class="row">
-		<div class="col-md-6">
-			<fieldset>
-				<legend>Mechanics</legend>
+					<div class="form-group">
+						<label for="color" class="control-label">Colour</label>
+						<select name="vehicle[description][color]" id="color" class="form-control">
+						<% if (vehicle) { %>
+							<option selected="selected" value="<%=vehicle.description.color%>">
+								<%=vehicle.description.color%>
+							</option>
+						<% } else { %>
+							<option selected="selected">Please select ...</option>
+						<% } %>
 
-				<div class="form-group">
-					<label for="engineCapacity" class="control-label">Engine Capacity</label>
-					<div class="input-group">
-						<input type="text"
-							name="vehicle[mechanics][engineCapacity]" value="<%=vehicle.mechanics.engineCapacity%>"
-							id="engineCapacity" class="form-control"
-						>
-						<span class="input-group-addon">L</span>
+						<% for (var i = 0; i < colors.length; i++) { %>
+							<option value="<%=colors[i]%>"><%=colors[i]%></option>
+						<% } %>
+						</select>
 					</div>
-				</div>
 
-				<div class="form-group">
-					<label for="makes" class="control-label">Fuel Type</label>
-					<select name="vehicle[mechanics][fuel]" id="fuelTypes" class="form-control">
-					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.mechanics.fuel%>">
-							<%=vehicle.mechanics.fuel%>
-						</option>
-					<% } else { %>
-						<option selected="selected">Please select ...</option>
-					<% } %>
-
-					<% for (var i = 0; i < fuels.length; i++) { %>
-						<option value="<%=fuels[i]%>"><%=fuels[i]%></option>
-					<% } %>
-					</select>
-				</div>
-
-				<div class="form-group">
-					<label for="transmissionTypes" class="control-label">Transmission Type</label>
-					<select name="vehicle[mechanics][transmission]" id="transmissionTypes" class="form-control">
-					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.mechanics.transmission%>">
-							<%=vehicle.mechanics.transmission%>
-						</option>
-					<% } else { %>
-						<option selected="selected">Please select ...</option>
-					<% } %>
-
-					<% for (var i = 0; i < transmissions.length; i++) { %>
-						<option value="<%=transmissions[i]%>"><%=transmissions[i]%></option>
-					<% } %>
-					</select>
-				</div>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>ABS Brakes</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="absBrakesYes" class="btn btn-default">
-								<input type="radio" id="absBrakesYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('absBrakes').value = true;"> Yes
-							</label>
-							<label for="absBrakesNo" class="btn btn-default">
-								<input type="radio" id="absBrakesNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('absBrakes').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-							name="vehicle[mechanics][absBrakes]" value="<%=vehicle.mechanics.absBrakes%>"
-							id="absBrakes"
-						>
-					</div>
-				</div>
-
-				<br>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>Power Steering</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="powerSteeringYes" class="btn btn-default">
-								<input type="radio" id="powerSteeringYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('powerSteering').value = true;"> Yes
-							</label>
-							<label for="powerSteeringNo" class="btn btn-default">
-								<input type="radio" id="powerSteeringNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('powerSteering').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-						   name="vehicle[mechanics][powerSteering]" value="<%=vehicle.mechanics.powerSteering%>"
-						   id="powerSteering"
-						>
-					</div>
-				</div>
-			</fieldset>
-		</div>
-
-		<div class="col-md-6">
-			<fieldset>
-				<legend>Luxuries</legend>
-
-				<div class="form-group">
-					<label for="electricWindows" class="control-label">Electric Windows</label>
-					<select name="vehicle[luxuries][electricWindows]" id="electricWindows" class="form-control">
-					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.luxuries.electricWindows%>">
-							<%=vehicle.luxuries.electricWindows%>
-						</option>
-					<% } else { %>
-						<option selected="selected">Please select ...</option>
-					<% } %>
-						<option value="None">None</option>
-						<option value="Front Only">Front Only</option>
-						<option value="Front and Back">Front and Back</option>
-					</select>
-				</div>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>Air Conditioning</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="airConditioningYes" class="btn btn-default">
-								<input type="radio" id="airConditioningYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('airConditioning').value = true;"> Yes
-							</label>
-							<label for="airConditioningNo" class="btn btn-default">
-								<input type="radio" id="airConditioningNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('airConditioning').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-							name="vehicle[luxuries][airConditioning]" value="<%=vehicle.luxuries.airConditioning%>"
-							id="airConditioning"
-						>
-					</div>
-				</div>
-
-				<br>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>CD Player</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="cdPlayerYes" class="btn btn-default">
-								<input type="radio" id="cdPlayerYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('cdPlayer').value = true;"> Yes
-							</label>
-							<label for="cdPlayerNo" class="btn btn-default">
-								<input type="radio" id="cdPlayerNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('cdPlayer').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-							name="vehicle[luxuries][cdPlayer]" value="<%=vehicle.luxuries.cdPlayer%>"
-							id="cdPlayer"
-						>
-					</div>
-				</div>
-
-				<br>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>Radio</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="radioYes" class="btn btn-default">
-								<input type="radio" id="radioYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('radio').value = true;"> Yes
-							</label>
-							<label for="radioNo" class="btn btn-default">
-								<input type="radio" id="radioNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('radio').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-							name="vehicle[luxuries][radio]" value="<%=vehicle.luxuries.radio%>"
-							id="radio"
-						>
-					</div>
-				</div>
-
-			</fieldset>
-		</div>
-	</div>
-
-	<div class="row">
-		<div class="col-md-6">
-			<fieldset>
-				<legend>Security</legend>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>Alarm</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="alarmYes" class="btn btn-default">
-								<input type="radio" id="alarmYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('alarm').value = true;"> Yes
-							</label>
-							<label for="alarmNo" class="btn btn-default">
-								<input type="radio" id="alarmNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('alarm').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-							name="vehicle[security][alarm]" value="<%=vehicle.security.alarm%>"
-							id="alarm"
-						>
-					</div>
-				</div>
-
-				<br>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>Central Locking</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="centralLockingYes" class="btn btn-default">
-								<input type="radio" id="centralLockingYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('centralLocking').value = true;"> Yes
-							</label>
-							<label for="centralLockingNo" class="btn btn-default">
-								<input type="radio" id="centralLockingNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('centralLocking').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-							name="vehicle[security][centralLocking]" value="<%=vehicle.security.centralLocking%>"
-							id="centralLocking"
-						>
-					</div>
-				</div>
-
-				<br>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>Immobilizer</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="immobilizerYes" class="btn btn-default">
-								<input type="radio" id="immobilizerYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('immobilizer').value = true;"> Yes
-							</label>
-							<label for="immobilizerNo" class="btn btn-default">
-								<input type="radio" id="immobilizerNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('immobilizer').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-							name="vehicle[security][immobilizer]" value="<%=vehicle.security.immobilizer%>"
-							id="immobilizer"
-						>
-					</div>
-				</div>
-
-				<br>
-
-				<div class="row">
-					<div class="col-md-12">
-						<span><strong>Gear Lock</strong></span>
-
-						<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-							<label for="gearLockYes" class="btn btn-default">
-								<input type="radio" id="gearLockYes" class="bootandbonnet-yes-button"
-									onclick="document.getElementById('gearLock').value = true;"> Yes
-							</label>
-							<label for="gearLockNo" class="btn btn-default">
-								<input type="radio" id="gearLockNo" class="bootandbonnet-no-button"
-									onclick="document.getElementById('gearLock').value = false;"> No
-							</label>
-						</div>
-
-						<input type="hidden"
-							name="vehicle[security][gearLock]" value="<%=vehicle.security.gearLock%>"
-							id="gearLock"
-						>
-					</div>
-				</div>
-			</fieldset>
-		</div>
-
-		<div class="col-md-6">
-			<fieldset>
-				<legend>Safety</legend>
-
-				<div class="form-group">
-					<label for="airBags" class="control-label">Air Bags</label>
-					<select name="vehicle[safety][airBags]" id="airBags" class="form-control">
-					<% if (vehicle) { %>
-						<option selected="selected" value="<%=vehicle.safety.airBags%>">
-							<%=vehicle.safety.airBags%>
-						</option>
-					<% } else { %>
-						<option selected="selected">Please select ...</option>
-					<% } %>
-						<option value=0>0</option>
-						<option value=1>1</option>
-						<option value=2>2</option>
-						<option value=3>3</option>
-						<option value=4>4</option>
-					</select>
-				</div>
-			</fieldset>
-		</div>
-	</div>
-
-	<div class="row">
-		<div class="col-md-12">
-			<fieldset id="photos">
-				<legend>Photos</legend>
-
-				<div class="container" style="padding-left: 0; padding-right: 0">
 					<div class="row">
-						<div class="col-xs-6 col-md-3">
-							<div class="thumbnail">
-								<img id="photo1" class="img-responsive"
-									src="<%=vehicle._id && vehicle.photos[0] ?
-										"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[0].substr(-1))
-										: "/static/img/image-placeholder.png"%>"
-								>
-								<div class="caption">
-									<h4>Photo 1</h4>
-									<p>
-										<input type="file" title="Browse" accept="images/*"
-											name="photo1"
-											class="btn btn-default bootandbonnet-input-file"
-										>
-										<button type="button" name="btnphoto1"
-											class="btn btn-link bootandbonnet-remove-file">
-											Remove
-										</button>
-									</p>
-								</div>
-								<input type="hidden" name="oldphoto1" class="bootandbonnet-old-photo">
-							</div>
-						</div>
+						<div class="col-md-12">
+							<span><strong>Full Service History</strong></span>
 
-						<div class="col-xs-6 col-md-3">
-							<div class="thumbnail">
-								<img id="photo2" class="img-responsive"
-									src="<%=vehicle._id && vehicle.photos[1] ?
-										"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[1].substr(-1))
-										: "/static/img/image-placeholder.png"%>"
-								>
-								<div class="caption">
-									<h4>Photo 2</h4>
-									<p>
-										<input type="file" title="Browse" accept="images/*"
-											name="photo2"
-											class="btn btn-default bootandbonnet-input-file"
-										>
-										<button type="button"
-											name="btnphoto2"
-											class="btn btn-link bootandbonnet-remove-file"
-										>
-											Remove
-										</button>
-									</p>
-								</div>
-								<input type="hidden" name="oldphoto2" class="bootandbonnet-old-photo">
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="fullServiceHistoryYes" class="btn btn-default">
+									<input type="radio" id="fullServiceHistoryYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('fullServiceHistory').value = true;"> Yes
+								</label>
+								<label for="fullServiceHistoryNo" class="btn btn-default">
+									<input type="radio" id="fullServiceHistoryNo" class="bootandbonnet-no-button"
+										onclick="$document.getElementById('fullServiceHistory').value = false;"> No
+								</label>
 							</div>
-						</div>
 
-						<div class="col-xs-6 col-md-3">
-							<div class="thumbnail">
-								<img id="photo3" class="img-responsive"
-									src="<%=vehicle._id && vehicle.photos[2] ?
-										"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[2].substr(-1))
-										: "/static/img/image-placeholder.png"%>"
-								>
-								<div class="caption">
-									<h4>Photo 3</h4>
-									<p>
-										<input type="file" title="Browse" accept="images/*"
-											name="photo3"
-											class="btn btn-default bootandbonnet-input-file"
-										>
-										<button type="button"
-											name="btnphoto3"
-											class="btn btn-link bootandbonnet-remove-file"
-										>
-											Remove
-										</button>
-									</p>
-								</div>
-								<input type="hidden" name="oldphoto3" class="bootandbonnet-old-photo">
+							<input type="hidden" name="vehicle[description][fullServiceHistory]"
+								value="<%=vehicle.description.fullServiceHistory%>" id="fullServiceHistory"
+							>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-6">
+				<fieldset>
+					<legend>Mechanics</legend>
+
+					<div class="form-group">
+						<label for="engineCapacity" class="control-label">Engine Capacity</label>
+						<div class="input-group">
+							<input type="text"
+								name="vehicle[mechanics][engineCapacity]" value="<%=vehicle.mechanics.engineCapacity%>"
+								id="engineCapacity" class="form-control"
+							>
+							<span class="input-group-addon">L</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label for="makes" class="control-label">Fuel Type</label>
+						<select name="vehicle[mechanics][fuel]" id="fuelTypes" class="form-control">
+						<% if (vehicle) { %>
+							<option selected="selected" value="<%=vehicle.mechanics.fuel%>">
+								<%=vehicle.mechanics.fuel%>
+							</option>
+						<% } else { %>
+							<option selected="selected">Please select ...</option>
+						<% } %>
+
+						<% for (var i = 0; i < fuels.length; i++) { %>
+							<option value="<%=fuels[i]%>"><%=fuels[i]%></option>
+						<% } %>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="transmissionTypes" class="control-label">Transmission Type</label>
+						<select name="vehicle[mechanics][transmission]" id="transmissionTypes" class="form-control">
+						<% if (vehicle) { %>
+							<option selected="selected" value="<%=vehicle.mechanics.transmission%>">
+								<%=vehicle.mechanics.transmission%>
+							</option>
+						<% } else { %>
+							<option selected="selected">Please select ...</option>
+						<% } %>
+
+						<% for (var i = 0; i < transmissions.length; i++) { %>
+							<option value="<%=transmissions[i]%>"><%=transmissions[i]%></option>
+						<% } %>
+						</select>
+					</div>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>ABS Brakes</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="absBrakesYes" class="btn btn-default">
+									<input type="radio" id="absBrakesYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('absBrakes').value = true;"> Yes
+								</label>
+								<label for="absBrakesNo" class="btn btn-default">
+									<input type="radio" id="absBrakesNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('absBrakes').value = false;"> No
+								</label>
 							</div>
-						</div>
 
-						<div class="col-xs-6 col-md-3">
-							<div class="thumbnail">
-								<img id="photo4" class="img-responsive"
-									src="<%=vehicle._id && vehicle.photos[3] ?
-										"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[3].substr(-1))
-										: "/static/img/image-placeholder.png"%>"
-								>
-								<div class="caption">
-									<h4>Photo 4</h4>
-									<p>
-										<input type="file" title="Browse" accept="images/*"
-											name="photo4"
-											class="btn btn-default bootandbonnet-input-file"
-										>
-										<button type="button"
-											name="btnphoto4"
-											class="btn btn-link bootandbonnet-remove-file"
-										>
-											Remove
-										</button>
-									</p>
+							<input type="hidden"
+								name="vehicle[mechanics][absBrakes]" value="<%=vehicle.mechanics.absBrakes%>"
+								id="absBrakes"
+							>
+						</div>
+					</div>
+
+					<br>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>Power Steering</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="powerSteeringYes" class="btn btn-default">
+									<input type="radio" id="powerSteeringYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('powerSteering').value = true;"> Yes
+								</label>
+								<label for="powerSteeringNo" class="btn btn-default">
+									<input type="radio" id="powerSteeringNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('powerSteering').value = false;"> No
+								</label>
+							</div>
+
+							<input type="hidden"
+							name="vehicle[mechanics][powerSteering]" value="<%=vehicle.mechanics.powerSteering%>"
+							id="powerSteering"
+							>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+
+			<div class="col-md-6">
+				<fieldset>
+					<legend>Luxuries</legend>
+
+					<div class="form-group">
+						<label for="electricWindows" class="control-label">Electric Windows</label>
+						<select name="vehicle[luxuries][electricWindows]" id="electricWindows" class="form-control">
+						<% if (vehicle) { %>
+							<option selected="selected" value="<%=vehicle.luxuries.electricWindows%>">
+								<%=vehicle.luxuries.electricWindows%>
+							</option>
+						<% } else { %>
+							<option selected="selected">Please select ...</option>
+						<% } %>
+							<option value="None">None</option>
+							<option value="Front Only">Front Only</option>
+							<option value="Front and Back">Front and Back</option>
+						</select>
+					</div>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>Air Conditioning</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="airConditioningYes" class="btn btn-default">
+									<input type="radio" id="airConditioningYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('airConditioning').value = true;"> Yes
+								</label>
+								<label for="airConditioningNo" class="btn btn-default">
+									<input type="radio" id="airConditioningNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('airConditioning').value = false;"> No
+								</label>
+							</div>
+
+							<input type="hidden"
+								name="vehicle[luxuries][airConditioning]" value="<%=vehicle.luxuries.airConditioning%>"
+								id="airConditioning"
+							>
+						</div>
+					</div>
+
+					<br>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>CD Player</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="cdPlayerYes" class="btn btn-default">
+									<input type="radio" id="cdPlayerYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('cdPlayer').value = true;"> Yes
+								</label>
+								<label for="cdPlayerNo" class="btn btn-default">
+									<input type="radio" id="cdPlayerNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('cdPlayer').value = false;"> No
+								</label>
+							</div>
+
+							<input type="hidden"
+								name="vehicle[luxuries][cdPlayer]" value="<%=vehicle.luxuries.cdPlayer%>"
+								id="cdPlayer"
+							>
+						</div>
+					</div>
+
+					<br>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>Radio</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="radioYes" class="btn btn-default">
+									<input type="radio" id="radioYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('radio').value = true;"> Yes
+								</label>
+								<label for="radioNo" class="btn btn-default">
+									<input type="radio" id="radioNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('radio').value = false;"> No
+								</label>
+							</div>
+
+							<input type="hidden"
+								name="vehicle[luxuries][radio]" value="<%=vehicle.luxuries.radio%>"
+								id="radio"
+							>
+						</div>
+					</div>
+
+				</fieldset>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-6">
+				<fieldset>
+					<legend>Security</legend>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>Alarm</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="alarmYes" class="btn btn-default">
+									<input type="radio" id="alarmYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('alarm').value = true;"> Yes
+								</label>
+								<label for="alarmNo" class="btn btn-default">
+									<input type="radio" id="alarmNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('alarm').value = false;"> No
+								</label>
+							</div>
+
+							<input type="hidden"
+								name="vehicle[security][alarm]" value="<%=vehicle.security.alarm%>"
+								id="alarm"
+							>
+						</div>
+					</div>
+
+					<br>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>Central Locking</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="centralLockingYes" class="btn btn-default">
+									<input type="radio" id="centralLockingYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('centralLocking').value = true;"> Yes
+								</label>
+								<label for="centralLockingNo" class="btn btn-default">
+									<input type="radio" id="centralLockingNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('centralLocking').value = false;"> No
+								</label>
+							</div>
+
+							<input type="hidden"
+								name="vehicle[security][centralLocking]" value="<%=vehicle.security.centralLocking%>"
+								id="centralLocking"
+							>
+						</div>
+					</div>
+
+					<br>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>Immobilizer</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="immobilizerYes" class="btn btn-default">
+									<input type="radio" id="immobilizerYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('immobilizer').value = true;"> Yes
+								</label>
+								<label for="immobilizerNo" class="btn btn-default">
+									<input type="radio" id="immobilizerNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('immobilizer').value = false;"> No
+								</label>
+							</div>
+
+							<input type="hidden"
+								name="vehicle[security][immobilizer]" value="<%=vehicle.security.immobilizer%>"
+								id="immobilizer"
+							>
+						</div>
+					</div>
+
+					<br>
+
+					<div class="row">
+						<div class="col-md-12">
+							<span><strong>Gear Lock</strong></span>
+
+							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
+								<label for="gearLockYes" class="btn btn-default">
+									<input type="radio" id="gearLockYes" class="bootandbonnet-yes-button"
+										onclick="document.getElementById('gearLock').value = true;"> Yes
+								</label>
+								<label for="gearLockNo" class="btn btn-default">
+									<input type="radio" id="gearLockNo" class="bootandbonnet-no-button"
+										onclick="document.getElementById('gearLock').value = false;"> No
+								</label>
+							</div>
+
+							<input type="hidden"
+								name="vehicle[security][gearLock]" value="<%=vehicle.security.gearLock%>"
+								id="gearLock"
+							>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+
+			<div class="col-md-6">
+				<fieldset>
+					<legend>Safety</legend>
+
+					<div class="form-group">
+						<label for="airBags" class="control-label">Air Bags</label>
+						<select name="vehicle[safety][airBags]" id="airBags" class="form-control">
+						<% if (vehicle) { %>
+							<option selected="selected" value="<%=vehicle.safety.airBags%>">
+								<%=vehicle.safety.airBags%>
+							</option>
+						<% } else { %>
+							<option selected="selected">Please select ...</option>
+						<% } %>
+							<option value=0>0</option>
+							<option value=1>1</option>
+							<option value=2>2</option>
+							<option value=3>3</option>
+							<option value=4>4</option>
+						</select>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="col-md-12">
+				<fieldset id="photos">
+					<legend>Photos</legend>
+
+					<div class="container" style="padding-left: 0; padding-right: 0">
+						<div class="row">
+							<div class="col-xs-6 col-md-3">
+								<div class="thumbnail">
+									<img id="photo1" class="img-responsive"
+										src="<%=vehicle._id && vehicle.photos[0] ?
+											"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[0].substr(-1))
+											: "/static/img/image-placeholder.png"%>"
+									>
+									<div class="caption">
+										<h4>Photo 1</h4>
+										<p>
+											<input type="file" title="Browse" accept="images/*"
+												name="photo1"
+												class="btn btn-default bootandbonnet-input-file"
+											>
+											<button type="button" name="btnphoto1"
+												class="btn btn-link bootandbonnet-remove-file">
+												Remove
+											</button>
+										</p>
+									</div>
+									<input type="hidden" name="oldphoto1" class="bootandbonnet-old-photo">
 								</div>
-								<input type="hidden" name="oldphoto4" class="bootandbonnet-old-photo">
+							</div>
+
+							<div class="col-xs-6 col-md-3">
+								<div class="thumbnail">
+									<img id="photo2" class="img-responsive"
+										src="<%=vehicle._id && vehicle.photos[1] ?
+											"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[1].substr(-1))
+											: "/static/img/image-placeholder.png"%>"
+									>
+									<div class="caption">
+										<h4>Photo 2</h4>
+										<p>
+											<input type="file" title="Browse" accept="images/*"
+												name="photo2"
+												class="btn btn-default bootandbonnet-input-file"
+											>
+											<button type="button"
+												name="btnphoto2"
+												class="btn btn-link bootandbonnet-remove-file"
+											>
+												Remove
+											</button>
+										</p>
+									</div>
+									<input type="hidden" name="oldphoto2" class="bootandbonnet-old-photo">
+								</div>
+							</div>
+
+							<div class="col-xs-6 col-md-3">
+								<div class="thumbnail">
+									<img id="photo3" class="img-responsive"
+										src="<%=vehicle._id && vehicle.photos[2] ?
+											"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[2].substr(-1))
+											: "/static/img/image-placeholder.png"%>"
+									>
+									<div class="caption">
+										<h4>Photo 3</h4>
+										<p>
+											<input type="file" title="Browse" accept="images/*"
+												name="photo3"
+												class="btn btn-default bootandbonnet-input-file"
+											>
+											<button type="button"
+												name="btnphoto3"
+												class="btn btn-link bootandbonnet-remove-file"
+											>
+												Remove
+											</button>
+										</p>
+									</div>
+									<input type="hidden" name="oldphoto3" class="bootandbonnet-old-photo">
+								</div>
+							</div>
+
+							<div class="col-xs-6 col-md-3">
+								<div class="thumbnail">
+									<img id="photo4" class="img-responsive"
+										src="<%=vehicle._id && vehicle.photos[3] ?
+											"/vehicles/".concat(vehicle._id).concat("/photos/").concat(vehicle.photos[3].substr(-1))
+											: "/static/img/image-placeholder.png"%>"
+									>
+									<div class="caption">
+										<h4>Photo 4</h4>
+										<p>
+											<input type="file" title="Browse" accept="images/*"
+												name="photo4"
+												class="btn btn-default bootandbonnet-input-file"
+											>
+											<button type="button"
+												name="btnphoto4"
+												class="btn btn-link bootandbonnet-remove-file"
+											>
+												Remove
+											</button>
+										</p>
+									</div>
+									<input type="hidden" name="oldphoto4" class="bootandbonnet-old-photo">
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
 
-				<input type="hidden" name="deletedPhotos" value="[]">
-			</fieldset>
+					<input type="hidden" name="deletedPhotos" value="[]">
+				</fieldset>
+			</div>
 		</div>
-	</div>
 
-	<div class="row">
+		<div class="row">
 		<div class="col-md-6">
 			<fieldset>
 				<legend>Price</legend>
@@ -612,7 +612,7 @@
 			</fieldset>
 		</div>
 	</div>
-
+	</div>
 	<br>
 
 	<button type="submit" class="btn btn-primary" ><%=buttonCaption%></button>
