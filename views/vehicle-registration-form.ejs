@@ -16,17 +16,21 @@
 				<span><strong>Market</strong></span>
 
 				<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-					<label for="marketNew" class="btn btn-default">
-						<input type="radio" id="marketNew" class="bootandbonnet-yes-button"
-							onclick="document.getElementById('market').value = 'new';"> New
+					<label id="marketNew" class="btn btn-default">
+						<input type="radio"
+							name="vehicle[market]" value="new"
+							class="bootandbonnet-yes-button"
+						> New
 					</label>
-					<label for="marketUsed" class="btn btn-default">
-						<input type="radio" id="marketUsed" class="bootandbonnet-no-button"
-							onclick="document.getElementById('market').value = 'used';"> Used
+					<label id="marketUsed" class="btn btn-default">
+						<input type="radio"
+							name="vehicle[market]" value="used"
+							class="bootandbonnet-no-button"
+						> Used
 					</label>
 				</div>
 
-				<input type="hidden" name="vehicle[market]" value="<%=vehicle.market%>" id="market">
+				<input type="hidden" value="<%=vehicle.market%>" id="market">
 			</div>
 		</div>
 
@@ -116,18 +120,23 @@
 							<span><strong>Full Service History</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="fullServiceHistoryYes" class="btn btn-default">
-									<input type="radio" id="fullServiceHistoryYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('fullServiceHistory').value = true;"> Yes
+								<label id="fullServiceHistoryYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[description][fullServiceHistory]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="fullServiceHistoryNo" class="btn btn-default">
-									<input type="radio" id="fullServiceHistoryNo" class="bootandbonnet-no-button"
-										onclick="$document.getElementById('fullServiceHistory').value = false;"> No
+								<label id="fullServiceHistoryNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[description][fullServiceHistory]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
-							<input type="hidden" name="vehicle[description][fullServiceHistory]"
-								value="<%=vehicle.description.fullServiceHistory%>" id="fullServiceHistory"
+							<input type="hidden"
+								value="<%=vehicle.description.fullServiceHistory%>"
+								id="fullServiceHistory"
 							>
 						</div>
 					</div>
@@ -190,18 +199,22 @@
 							<span><strong>ABS Brakes</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="absBrakesYes" class="btn btn-default">
-									<input type="radio" id="absBrakesYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('absBrakes').value = true;"> Yes
+								<label id="absBrakesYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[mechanics][absBrakes]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="absBrakesNo" class="btn btn-default">
-									<input type="radio" id="absBrakesNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('absBrakes').value = false;"> No
+								<label id="absBrakesNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[mechanics][absBrakes]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
 							<input type="hidden"
-								name="vehicle[mechanics][absBrakes]" value="<%=vehicle.mechanics.absBrakes%>"
+								value="<%=vehicle.mechanics.absBrakes%>"
 								id="absBrakes"
 							>
 						</div>
@@ -214,19 +227,23 @@
 							<span><strong>Power Steering</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="powerSteeringYes" class="btn btn-default">
-									<input type="radio" id="powerSteeringYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('powerSteering').value = true;"> Yes
+								<label id="powerSteeringYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[mechanics][powerSteering]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="powerSteeringNo" class="btn btn-default">
-									<input type="radio" id="powerSteeringNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('powerSteering').value = false;"> No
+								<label id="powerSteeringNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[mechanics][powerSteering]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
 							<input type="hidden"
-							name="vehicle[mechanics][powerSteering]" value="<%=vehicle.mechanics.powerSteering%>"
-							id="powerSteering"
+								value="<%=vehicle.mechanics.powerSteering%>"
+								id="powerSteering"
 							>
 						</div>
 					</div>
@@ -258,18 +275,22 @@
 							<span><strong>Air Conditioning</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="airConditioningYes" class="btn btn-default">
-									<input type="radio" id="airConditioningYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('airConditioning').value = true;"> Yes
+								<label id="airConditioningYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[luxuries][airConditioning]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="airConditioningNo" class="btn btn-default">
-									<input type="radio" id="airConditioningNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('airConditioning').value = false;"> No
+								<label id="airConditioningNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[luxuries][airConditioning]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
 							<input type="hidden"
-								name="vehicle[luxuries][airConditioning]" value="<%=vehicle.luxuries.airConditioning%>"
+								value="<%=vehicle.luxuries.airConditioning%>"
 								id="airConditioning"
 							>
 						</div>
@@ -282,18 +303,22 @@
 							<span><strong>CD Player</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="cdPlayerYes" class="btn btn-default">
-									<input type="radio" id="cdPlayerYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('cdPlayer').value = true;"> Yes
+								<label id="cdPlayerYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[luxuries][cdPlayer]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="cdPlayerNo" class="btn btn-default">
-									<input type="radio" id="cdPlayerNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('cdPlayer').value = false;"> No
+								<label id="cdPlayerNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[luxuries][cdPlayer]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
 							<input type="hidden"
-								name="vehicle[luxuries][cdPlayer]" value="<%=vehicle.luxuries.cdPlayer%>"
+								value="<%=vehicle.luxuries.cdPlayer%>"
 								id="cdPlayer"
 							>
 						</div>
@@ -306,23 +331,26 @@
 							<span><strong>Radio</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="radioYes" class="btn btn-default">
-									<input type="radio" id="radioYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('radio').value = true;"> Yes
+								<label id="radioYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[luxuries][radio]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="radioNo" class="btn btn-default">
-									<input type="radio" id="radioNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('radio').value = false;"> No
+								<label id="radioNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[luxuries][radio]" value="false"
+										class="bootandbonnet-no-button"
+								> No
 								</label>
 							</div>
 
 							<input type="hidden"
-								name="vehicle[luxuries][radio]" value="<%=vehicle.luxuries.radio%>"
+								value="<%=vehicle.luxuries.radio%>"
 								id="radio"
 							>
 						</div>
 					</div>
-
 				</fieldset>
 			</div>
 		</div>
@@ -337,18 +365,22 @@
 							<span><strong>Alarm</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="alarmYes" class="btn btn-default">
-									<input type="radio" id="alarmYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('alarm').value = true;"> Yes
+								<label id="alarmYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[security][alarm]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="alarmNo" class="btn btn-default">
-									<input type="radio" id="alarmNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('alarm').value = false;"> No
+								<label id="alarmNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[security][alarm]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
 							<input type="hidden"
-								name="vehicle[security][alarm]" value="<%=vehicle.security.alarm%>"
+								value="<%=vehicle.security.alarm%>"
 								id="alarm"
 							>
 						</div>
@@ -361,18 +393,22 @@
 							<span><strong>Central Locking</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="centralLockingYes" class="btn btn-default">
-									<input type="radio" id="centralLockingYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('centralLocking').value = true;"> Yes
+								<label id="centralLockingYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[security][centralLocking]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="centralLockingNo" class="btn btn-default">
-									<input type="radio" id="centralLockingNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('centralLocking').value = false;"> No
+								<label id="centralLockingNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[security][centralLocking]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
 							<input type="hidden"
-								name="vehicle[security][centralLocking]" value="<%=vehicle.security.centralLocking%>"
+								value="<%=vehicle.security.centralLocking%>"
 								id="centralLocking"
 							>
 						</div>
@@ -385,18 +421,22 @@
 							<span><strong>Immobilizer</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="immobilizerYes" class="btn btn-default">
-									<input type="radio" id="immobilizerYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('immobilizer').value = true;"> Yes
+								<label id="immobilizerYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[security][immobilizer]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="immobilizerNo" class="btn btn-default">
-									<input type="radio" id="immobilizerNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('immobilizer').value = false;"> No
+								<label id="immobilizerNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[security][immobilizer]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
 							<input type="hidden"
-								name="vehicle[security][immobilizer]" value="<%=vehicle.security.immobilizer%>"
+								value="<%=vehicle.security.immobilizer%>"
 								id="immobilizer"
 							>
 						</div>
@@ -409,18 +449,22 @@
 							<span><strong>Gear Lock</strong></span>
 
 							<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-								<label for="gearLockYes" class="btn btn-default">
-									<input type="radio" id="gearLockYes" class="bootandbonnet-yes-button"
-										onclick="document.getElementById('gearLock').value = true;"> Yes
+								<label id="gearLockYes" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[security][gearLock]" value="true"
+										class="bootandbonnet-yes-button"
+									> Yes
 								</label>
-								<label for="gearLockNo" class="btn btn-default">
-									<input type="radio" id="gearLockNo" class="bootandbonnet-no-button"
-										onclick="document.getElementById('gearLock').value = false;"> No
+								<label id="gearLockNo" class="btn btn-default">
+									<input type="radio"
+										name="vehicle[security][gearLock]" value="false"
+										class="bootandbonnet-no-button"
+									> No
 								</label>
 							</div>
 
 							<input type="hidden"
-								name="vehicle[security][gearLock]" value="<%=vehicle.security.gearLock%>"
+								value="<%=vehicle.security.gearLock%>"
 								id="gearLock"
 							>
 						</div>
@@ -588,18 +632,22 @@
 					<span><strong>Negotiable</strong></span>
 
 					<div class="btn-group btn-group-sm pull-right" data-toggle="buttons">
-						<label for="negotiableYes" class="btn btn-default">
-							<input type="radio" id="negotiableYes" class="bootandbonnet-yes-button"
-								onclick="document.getElementById('negotiable').value = true;"> Yes
+						<label id="negotiableYes" class="btn btn-default">
+							<input type="radio"
+								name="vehicle[price][negotiable]" value="true"
+								class="bootandbonnet-yes-button"
+							> Yes
 						</label>
-						<label for="negotiableNo" class="btn btn-default">
-							<input type="radio" id="negotiableNo" class="bootandbonnet-no-button"
-								onclick="document.getElementById('negotiable').value = false;"> No
+						<label id="negotiableNo" class="btn btn-default">
+							<input type="radio"
+								name="vehicle[price][negotiable]" value="false"
+								class="bootandbonnet-no-button"
+							> No
 						</label>
 					</div>
 
 					<input type="hidden"
-						name="vehicle[price][negotiable]" value="<%=vehicle.price.negotiable%>"
+						value="<%=vehicle.price.negotiable%>"
 						id="negotiable"
 					>
 				</fieldset>
