@@ -1,6 +1,6 @@
 /*jshint browser: true*/
 
-window.onload = function () {
+$(window).load(function () {
 	'use strict';
 
 	var setViewCartAbility = function () {
@@ -15,7 +15,7 @@ window.onload = function () {
 
 	setViewCartAbility();
 
-	$('.cardog-btn-advertise').on({
+	$('.bootandbonnet-btn-advertise').on({
 		click: function () {
 			var vehicleId, vehicleObject;
 
@@ -75,4 +75,4 @@ window.onload = function () {
 	$('#nrOfItems').click(function () {
 		$('#items').submit();
 	});
-};
+});

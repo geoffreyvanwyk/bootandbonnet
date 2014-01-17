@@ -1,27 +1,26 @@
 <% layout('../views/layout') -%>
-<% script('../../static/js/list-seller-vehicles-page.js') -%>
+<% script('../../static/js/seller-vehicles-page.js') -%>
 
 <div id="vehicleDeletedAlert" class="alert alert-success"	style="display: <%=vehicleDeleted.alertDisplay%>">
 	<button type="button" class="close" data-dismiss="alert">&times;</button>
 	<%=vehicleDeleted.message%>
 </div>
 
-<div class="row">
-	<div class="span6">
-		<h2>My Vehicles</h2>
-	</div>
+<div class="page-header">
+	<h1>My Vehicles</h1>
 </div>
 
 <form id="items" action="/order/add" method="get">
 	<table class="table">
 		<thead>
 			<tr>
-				<th>&nbsp;</th>
+				<th>#</th>
 				<th>Make</th>
 				<th>Model</th>
 				<th>Year</th>
 				<th>Price</th>
 				<th>Expires</th>
+				<th>View</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -34,23 +33,21 @@
 				<td><%=vehicles[i].price.value %></td>
 				<% if (vehicles[i].expiryDate < Date.now()) { var vehicle = JSON.stringify(vehicles[i]); %>
 				<td><button type="button" name="<%=vehicles[i]._id%>"
-							class="cardog-btn-advertise btn btn-success"
+							class="bootandbonnet-btn-advertise btn btn-success"
 							value="<%=vehicle%>">
 						Advertise</button></td>
 				<% } else  { %>
 				<td><%=vehicle[i].expiryDate %></td>
 				<% } %>
-				<td><a href="/vehicles/<%=vehicles[i]._id%>/view">View</a></td>
+				<td><a href="/vehicles/<%=vehicles[i]._id%>/view" class="btn btn-default">View</a></td>
 			</tr>
 			<% } %>
 		</tbody>
 	</table>
 
-	<div class="form-actions">
-		<a href="/vehicles/add" class="btn btn-primary">Add Vehicle</a>
-		<span class="btn-group">
-			<button id="viewCart" type="submit" class="btn btn-info">View Cart</button>
-			<button id="nrOfItems" type="button" class="btn btn-info">0</button>
-		</span>
-	</div>
+	<a href="/vehicles/add" class="btn btn-primary">Add Vehicle</a>
+	<span class="btn-group">
+		<button id="viewCart" type="submit" class="btn btn-info">View Cart</button>
+		<button id="nrOfItems" type="button" class="btn btn-info">0</button>
+	</span>
 </form>
