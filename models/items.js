@@ -2,16 +2,15 @@
 
 'use strict';
 
-/*
- * Component: orders
- *
- * File: models/orders/items.js
- *
- * Purpose: Defines Mongoose model for item objects.
+/**
+ * @file models/items.js
+ * @summary Component: Order Placement. Defines Mongoose model for item objects.
  */
 
+/* Import external modules. */
 var mongoose = require('mongoose');
 
+/* Model */
 var itemSchema = mongoose.Schema({
 	order: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -33,10 +32,4 @@ var itemSchema = mongoose.Schema({
 	}
 });
 
-var Item = mongoose.model('Item', itemSchema);
-
-module.exports = {
-	Item: Item
-};
-
-
+module.exports = mongoose.model('Item', itemSchema);
