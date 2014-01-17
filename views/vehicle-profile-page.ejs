@@ -105,26 +105,32 @@ var colorRadio = 'red';
 </h2>
 
 <div class="row">
-	<div class="span6"> <!-- Thumbnails -->
-		<ul class="thumbnails">
-			<li class="span6">
-				<img class="thumbnail" src="<%=photo1%>"/>
-			</li>
-			<li class="span2">
-				<img class="thumbnail" src="<%=photo2%>"/>
-			</li>
-			<li class="span2">
-				<img class="thumbnail" src="<%=photo3%>"/>
-			</li>
-			<li class="span2">
-				<img class="thumbnail" src="<%=photo4%>"/>
-			</li>
-		</ul>
+	<div class="col-md-6"> <!-- Thumbnails -->
+		<div class="thumbnail">
+			<img class="img-responsive" src="<%=photo1%>"/>
+		</div>
+		<div class="row">
+			<div class="col-md-4">
+				<div class="thumbnail">
+					<img class="img-responsive" src="<%=photo2%>"/>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="thumbnail">
+					<img class="img-responsive" src="<%=photo3%>"/>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="thumbnail">
+					<img class="img-responsive" src="<%=photo4%>"/>
+				</div>
+			</div>
+		</div>
 	</div>
 
-	<div class="span6">
+	<div class="col-md-6">
 		<div class="row">
-			<div class="span3"> <!-- Description -->
+			<div class="col-md-6"> <!-- Description -->
 				<fieldset>
 					<legend>Description</legend>
 
@@ -147,7 +153,7 @@ var colorRadio = 'red';
 				</fieldset>
 			</div>
 
-			<div class="span3"> <!-- Mechanics -->
+			<div class="col-md-6"> <!-- Mechanics -->
 				<fieldset>
 					<legend>Mechanics</legend>
 
@@ -177,7 +183,7 @@ var colorRadio = 'red';
 		</div>
 
 		<div class="row">
-			<div class="span3"> <!-- Security -->
+			<div class="col-md-6"> <!-- Security -->
 				<fieldset>
 					<legend>Security</legend>
 
@@ -211,7 +217,7 @@ var colorRadio = 'red';
 				</fieldset>
 			</div>
 
-			<div class="span3"> <!-- Luxuries -->
+			<div class="col-md-6"> <!-- Luxuries -->
 				<fieldset>
 					<legend>Luxuries</legend>
 
@@ -245,20 +251,16 @@ var colorRadio = 'red';
 		</div>
 
 		<div class="row">
-			<div class="span3"> <!-- Safety -->
+			<div class="col-md-12"> <!-- Safety -->
 				<fieldset>
 					<legend>Safety</legend>
-
-					<p>
-						<strong>Air bags:</strong>
-						<%=vehicle.safety.airBags%>
-					</p>
+					<p><strong>Air bags:</strong><%=vehicle.safety.airBags%></p>
 				</fieldset>
 			</div>
 		</div>
 
 		<div class="row">
-			<div class="span6"> <!-- Comments -->
+			<div class="col-md-12"> <!-- Comments -->
 				<fieldset>
 					<legend>Comments from seller</legend>
 					<p><%=vehicle.comments%></p>
@@ -269,50 +271,42 @@ var colorRadio = 'red';
 </div>
 
 <div class="row">
-	<div class="span6">
+	<div class="col-md-6">
 		<fieldset>
 			<legend>Seller <small><%=seller.type%></small></legend>
 
 			<div id="dealership" style="display: <%=dealerDisplay%>">
-				<p><i class="icon-briefcase"></i>&nbsp;<strong><%=seller.dealershipName %></strong></p>
+				<span class="glyphicon glyphicon-home"> <strong><%=seller.dealershipName %></strong></span>
 				<div class="row">
-					<div class="span3">
-						<p><i class="icon-road"></i>&nbsp;<%=seller.address.street%></p>
-						<p><i class="icon-road"></i>&nbsp;<%=seller.address.suburb%></p>
-						<p><i class="icon-map-marker"></i>&nbsp;<%=seller.address.town%></p>
-						<p><i class="icon-map-marker"></i>&nbsp;<%=seller.address.province%></p>
+					<div class="col-md-6">
+						<span class="glyphicon glyphicon-road"> <%=seller.address.street%>, <%=seller.address.suburb%></span>
+						<span class="glyphicon glyphicon-map-marker"> <%=seller.address.town%>, <%=seller.address.province%></span>
 					</div>
-					<div class="span3">
-						<p><i class="icon-user"></i>&nbsp;<%=seller.contactPerson.firstname%>&nbsp;<%=seller.contactPerson.surname%></p>
-					<% for (var i = 0; i < seller.contactNumbers.length; i++) { %>
-						<p><i class="icon-home"></i>&nbsp; <%=seller.contactNumbers[i]%></p>
-					<% } %>
+					<div class="col-md-6">
+						<span class="glyphicon glyphicon-user"> <%=seller.contactPerson.firstname%> <%=seller.contactPerson.surname%></span><br>
+						<span class="glyphicon glyphicon-earphone"> <%=seller.contactNumbers[0]%></span><br>
+						<span class="glyphicon glyphicon-phone"> <%=seller.contactNumbers[1]%></span><br>
 					</div>
 				</div>
 			</div>
 
 			<div id="privateSeller" style="display: <%=privateSellerDisplay%>">
 				<div class="row">
-					<div class="span3">
-						<p><i class="icon-user"></i>&nbsp;<%=seller.contactPerson.firstname%>&nbsp;<%=seller.contactPerson.surname%></p>
-						<p>
-							<i class="icon-map-marker"></i>&nbsp;
-							<%=seller.address.town%>,
-							<%=seller.address.province %>
-						</p>
+					<div class="col-md-6">
+						<span class="glyphicon glyphicon-user"> <%=seller.contactPerson.firstname%> <%=seller.contactPerson.surname%></span>
+						<span class="glyphicon glyphicon-map-marker"><%=seller.address.town%>, <%=seller.address.province %></span>
 					</div>
 
-					<div class="span3">
-					<% for (var i = 0; i < seller.contactNumbers.length; i++) { %>
-						<p><i class="icon-home"></i>&nbsp; <%=seller.contactNumbers[i]%></p>
-					<% } %>
+					<div class="col-md-6">
+						<span class="glyphicon glyphicon-earphone"> <%=seller.contactNumbers[0]%></span><br>
+						<span class="glyphicon glyphicon-phone"> <%=seller.contactNumbers[1]%></span><br>
 					</div>
 				</div>
 			</div>
 		</fieldset>
 	</div>
 
-	<div class="span6">
+	<div class="col-md-6">
 		<form id="sendEmail" method="post" action="/vehicles/<%=vehicle._id%>/email-seller">
 			<fieldset>
 				<legend>Email seller</legend>
@@ -323,27 +317,25 @@ var colorRadio = 'red';
 					<%=emailFeedback.message%>
 				</div>
 
-				<div id="divBuyerName" class="control-group">
-					<label class="control-label" for="buyerName">Your name:</label>
-					<div class="controls">
-						<input type="text" id="buyerName" name="buyer[name]" />
-						<span id="spanBuyerName" class="help-inline"></span>
-					</div>
+				<div id="divBuyerName" class="form-group">
+					<label for="buyerName" class="control-label">Your name</label>
+					<input type="text" name="buyer[name]" id="buyerName" class="form-control">
+					<span id="spanBuyerName" class="help-inline"></span>
 				</div>
 
-				<label>Your email address:</label>
-				<input type="email" required id="buyerEmailAddress" name="buyer[emailAddress]" />
+				<div class="form-group">
+					<label for="buyerEmailAddress" class="control-label">Your email address</label>
+					<input type="email" name="buyer[emailAddress]" required id="buyerEmailAddress"  class="form-control">
+				</div>
 
-				<div id="divBuyerMessage" class="control-group">
-					<label class="control-label" for="buyerMessage">Message:</label>
-					<div class="controls">
-						<textarea name="buyer[message]" id="buyerMessage" class="span6"></textarea>
-						<span id="spanBuyerMessage" class="help-inline"></span>
-					</div>
+				<div id="divBuyerMessage" class="form-group">
+					<label for="buyerMessage" class="control-label">Message</label>
+					<textarea name="buyer[message]" id="buyerMessage" class="form-control"></textarea>
+					<span id="spanBuyerMessage" class="help-block"></span>
 				</div>
 
 				<button type="submit" class="btn btn-success">Send</button>
-				<button type="button" id="clearButton" class="btn">Clear</button>
+				<button type="button" id="clearButton" class="btn btn-default">Clear</button>
 
 				<input type="hidden" name="seller[emailAddress]" value="<%=user.emailAddress%>">
 				<input type="hidden" name="vehicle[_id]" value="<%=vehicle._id%>">
@@ -351,7 +343,6 @@ var colorRadio = 'red';
 		</form>
 	</div>
 </div>
-<div class="form-actions" style="display:<%=formActionsDisplay%>">
-	<a href="/vehicles/<%=vehicle._id%>/edit" class="btn btn-primary">Edit</a>
-	<a href="/vehicles/<%=vehicle._id%>/remove" class="btn btn-danger">Delete</a>
-</div>
+<hr>
+<a href="/vehicles/<%=vehicle._id%>/edit" class="btn btn-primary">Edit</a>
+<a href="/vehicles/<%=vehicle._id%>/remove" class="btn btn-danger">Delete</a>
