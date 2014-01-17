@@ -2,16 +2,15 @@
 
 'use strict';
 
-/*
- * Component: orders
- *
- * File: models/orders/orders.js
- *
- * Purpose: Defines the Mongoose model for order objects.
+/**
+ * @file models/orders.js
+ * @summary Component: Order Placement. Defines the Mongoose model for order objects.
  */
 
+/* Import external modules. */
 var mongoose = require('mongoose');
 
+/* Model */
 var orderSchema = mongoose.Schema({
 	seller: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -29,13 +28,9 @@ var orderSchema = mongoose.Schema({
 		},
 		date: {
 			type: Date,
-			default: Date.now 
+			default: Date.now
 		}
 	}
 });
 
-var Order = mongoose.model('Order', orderSchema);
-
-module.exports =  {
-	Order: Order
-};
+module.exports =  mongoose.model('Order', orderSchema);
