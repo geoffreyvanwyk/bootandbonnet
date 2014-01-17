@@ -857,7 +857,7 @@ var vehicles = module.exports = {
 				console.log(err);
 				main.showErrorPage(request, response);
 			} else {
-				response.render('list-seller-vehicles-page', {
+				response.render('seller-vehicles-page', {
 					vehicleDeleted: request.session.vehicleDeleted || {
 						message: '',
 						alertDisplay: 'none'
