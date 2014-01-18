@@ -121,7 +121,6 @@ var orders = module.exports = {
 			if (err) {
 				handleErrors(err, request, response);
 			} else {
-				console.log('The total cost is: '.concat(totalCost));
 				response.render('bank-account-details-page', {
 					amountDue: totalCost,
 					referenceNumber: order._id,
