@@ -39,7 +39,7 @@ var handleErrors = function (err, request, response) {
 				message: err.message,
 				emailAlertType: 'error'
 			};
-			password.showForgotForm(request, response); 
+			password.showForgotForm(request, response);
 			break;
 		case 'Key does not match hash of the email address. Please try again.':
 			request.session.passwordForgot = {
@@ -47,7 +47,7 @@ var handleErrors = function (err, request, response) {
 				message: err.message,
 				emailAlertType: 'error'
 			};
-			password.showForgotForm(request, response); 
+			password.showForgotForm(request, response);
 			break;
 		default:
 			response.redirect(302, '/error');
@@ -268,7 +268,8 @@ var password = module.exports = {
 			if (err) {
 				handleErrors(err, request, response);
 			} else {
-				login.showForm(request, response);
+				request.session.isPasswordReset = true;
+				response.redirect(302, '/login');
 			}
 		});
 	}

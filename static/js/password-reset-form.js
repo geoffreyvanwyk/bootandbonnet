@@ -17,22 +17,22 @@ window.onload = function() {
 	function setValidationState(control, state, message) {
 		var textNode = document.createTextNode(message);
 		var spanElement = document.getElementById("span".concat(control));
-		document.getElementById("div".concat(control)).className = "control-group ".concat(state);
+		document.getElementById("div".concat(control)).className = "form-group ".concat(state);
 		spanElement.textContent = "";
 		spanElement.appendChild(textNode);
 	}
 
 	passwordBox.onfocus = function() {
 		if (!isPasswordValid()) {
-			setValidationState("Password", "info", "Minimum 10 characters.");
+			setValidationState("Password", "has-warning", "Minimum 10 characters.");
 		}
 	};
 
 	passwordBox.onkeyup = function() {
 		if (isPasswordValid()) {
-			setValidationState("Password", "success", "Good!");
+			setValidationState("Password", "has-success", "Good!");
 		} else {
-			setValidationState("Password", "info", "Minimum 10 characters.");
+			setValidationState("Password", "has-warning", "Minimum 10 characters.");
 		}
 
 		if (confirmPasswordBox.value.length > 0) {
@@ -42,7 +42,7 @@ window.onload = function() {
 
 	passwordBox.onblur = function() {
 		if (passwordBox.value.length !== 0 && !isPasswordValid()) {
-			setValidationState("Password", "error", "Too short! Minimum 10 characters.");
+			setValidationState("Password", "has-error", "Too short! Minimum 10 characters.");
 		} else if (!isPasswordValid()) {
 			setValidationState("Password", "", "");
 		}
@@ -52,7 +52,7 @@ window.onload = function() {
 		if (!isPasswordValid() || confirmPasswordBox.value.length === 0) {
 			setValidationState("ConfirmPassword", "", "");
 		} else if (!isPasswordConfirmed()) {
-			setValidationState("ConfirmPassword", "info", "The passwords do not match yet.");
+			setValidationState("ConfirmPassword", "has-warning", "The passwords do not match yet.");
 		}
 	};
 
@@ -60,9 +60,9 @@ window.onload = function() {
 		if (!isPasswordValid()) {
 			setValidationState("ConfirmPassword", "", "");
 		} else if (!isPasswordConfirmed()) {
-			setValidationState("ConfirmPassword", "info", "The passwords do not match yet.");
+			setValidationState("ConfirmPassword", "has-warning", "The passwords do not match yet.");
 		} else {
-			setValidationState("ConfirmPassword", "success", "The passwords match!");
+			setValidationState("ConfirmPassword", "has-success", "The passwords match!");
 		}
 	};
 
@@ -70,7 +70,7 @@ window.onload = function() {
 		if (!isPasswordValid()) {
 			setValidationState("ConfirmPassword", "", "");
 		} else if (!isPasswordConfirmed()) {
-			setValidationState("ConfirmPassword", "error", "The passwords do not match!");
+			setValidationState("ConfirmPassword", "has-error", "The passwords do not match!");
 		}
 	};
 
