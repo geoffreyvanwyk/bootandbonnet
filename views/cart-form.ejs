@@ -1,11 +1,11 @@
-<% layout('../../views/layout') -%>
-<% script('../../static/js/orders/cart-form.js') -%>
+<% layout('../views/layout') -%>
+<% script('../../static/js/cart-form.js') -%>
 
 <div class="page-header">
 	<h2>Cart</h2>
 </div>
 
-<form id="items" action="/order/add" method="post">
+<form id="items" action="/orders/add" method="post">
 	<table class="table">
 		<thead>
 			<th>Item</th>
@@ -15,12 +15,12 @@
 		<tbody>
 		<% for (var i = 0; i < items.length; i++) { var item = JSON.parse(items[i]); %>
 			<input	type="hidden" name="item<%=i%>[_id]" value="<%=item._id%>" >
-			<input	type="hidden" name="item<%=i%>[cost]" value="" class="cardog-cost" 
+			<input	type="hidden" name="item<%=i%>[cost]" value="" class="bootandbonnet-cost"
 					data-custom="<%=item._id%>"	>
 			<tr>
 				<td><%=item.type.make%>&nbsp;<%=item.type.model%>&nbsp;<%=item.type.year%></td>
 				<td>
-					<select	name="item<%=i%>[weeks]" class="cardog-weeks span1" data-custom="<%=item._id%>"	>
+					<select	name="item<%=i%>[weeks]" class="bootandbonnet-weeks span1" data-custom="<%=item._id%>"	>
 						<option>1</option>
 						<option>2</option>
 						<option>3</option>
@@ -29,7 +29,7 @@
 						<option>6</option>
 					</select>
 				</td>
-				<td	class="cardog-cost" data-custom="<%=item._id%>"	></td>
+				<td	class="bootandbonnet-cost" data-custom="<%=item._id%>"	></td>
 			</tr>
 		<% } %>
 			<tr>
@@ -39,7 +39,5 @@
 		</tbody>
 	</table>
 
-	<div class="form-actions">
-		<button type="submit" class="btn btn-success">Checkout</button>
-	</div>
+	<button type="submit" class="btn btn-success">Checkout</button>
 </form>

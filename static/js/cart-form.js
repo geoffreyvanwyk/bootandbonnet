@@ -5,7 +5,7 @@
 $(window).on({
 	load: function () {
 		'use strict';
-		
+
 		/**
 		 * Calculates the total cost of all items in the cart.
 		 *
@@ -14,7 +14,7 @@ $(window).on({
 		function totalCost() {
 			var total = 0;
 
-			$('td.cardog-cost').each(function () {
+			$('td.bootandbonnet-cost').each(function () {
 				total += Number($(this).text());
 			});
 
@@ -22,14 +22,14 @@ $(window).on({
 		}
 
 		/**
-		 * Calculates the cost for one item in the cart (based on the number of weeks selected), updates 
+		 * Calculates the cost for one item in the cart (based on the number of weeks selected), updates
 		 * the value in the corresponding table cell, then updates the total cost.
 		 *
 		 * @param	{object}		select	The select element displaying the number of weeks.
 		 * @returns	{undefined}
 		 */
 		function calculateItemCost(select) {
-				$('td.cardog-cost[data-custom="'
+				$('td.bootandbonnet-cost[data-custom="'
 					.concat($(select).attr('data-custom'))
 					.concat('"]'))
 					.attr('value', $(select).val() * 70)
@@ -37,7 +37,7 @@ $(window).on({
 						return $(this).attr('value');
 				});
 
-				$('input.cardog-cost[data-custom="'
+				$('input.bootandbonnet-cost[data-custom="'
 					.concat($(select).attr('data-custom'))
 					.concat('"]'))
 					.val($(select).val() * 70);
@@ -45,13 +45,13 @@ $(window).on({
 				$('#total').text(totalCost);
 		}
 
-		$('.cardog-weeks').on({
+		$('.bootandbonnet-weeks').on({
 			change: function () {
 				calculateItemCost(this);
 			}
 		});
 
-		$('.cardog-weeks').each(function () {
+		$('.bootandbonnet-weeks').each(function () {
 			calculateItemCost(this);
 		});
 	}
