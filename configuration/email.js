@@ -9,7 +9,7 @@ var email = require('emailjs');
 
 var server = email.server.connect({
 	user: 'geoffrey.van.wyk@gmail.com',
-	password: 'z71tZuQZVWUOIXvAMrBo',
+	password: 'tZwpdfhiUznB2NXw9NON',
 	host: 'smtp.gmail.com',
 	ssl: true
 });
