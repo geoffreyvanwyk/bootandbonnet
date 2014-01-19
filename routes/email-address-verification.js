@@ -56,7 +56,7 @@ var handleErrors = function (err, request, response) {
 		default:
 			main.showErrorPage(request, response);
 			break;
-	};
+	}
 };
 
 /**
@@ -181,12 +181,12 @@ var verify = module.exports = {
 					return callback(err);
 				}
 				if (!user) {
-					var err = new Error('No user associated with that email address.');
-					return callback(err);
+					var error = new Error('No user associated with that email address.');
+					return callback(error);
 				}
 				return callback(null);
 			});
-		}
+		};
 
 		var verifyKey = function (callback) {
 			bcrypt.compare(emailAddress, key, function(err, isMatch) {
@@ -194,8 +194,8 @@ var verify = module.exports = {
 					return callback(err);
 				}
 				if (!isMatch) {
-					var err = new Error('Key does not match hash of email address.');
-					return callback(err);
+					var error = new Error('Key does not match hash of email address.');
+					return callback(error);
 				}
 				updateUser(callback);
 			});
