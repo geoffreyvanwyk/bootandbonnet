@@ -478,6 +478,7 @@ var vehicles = module.exports = {
 					vehicle: vehicle,
 					seller: seller,
 					user: user,
+					sellerType: seller.dealershipName === '' ? 'private' : 'dealership',
 					dealerDisplay: seller.dealershipName === '' ? 'none' : '',
 					privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
 					emailFeedback: request.session.emailFeedback || {
