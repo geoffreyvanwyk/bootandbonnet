@@ -151,8 +151,11 @@ app.map(app, {
 		},
 		'/reset': {
 			get: password.showResetForm,
-			post: password.reset
-		}
+			post: password.reset,
+			'/email-sent': {
+				get: password.showEmailSentPage
+			}
+		},
 	}
 });
 

@@ -175,9 +175,7 @@ var password = module.exports = {
 			if (err) {
 				handleErrors(err, request, response);
 			} else {
-				response.render('password-reset-email-sent-page', {
-					isLoggedIn: !!request.session.user
-				});
+				response.redirect(302, '/password/reset/email-sent');
 			}
 		});
 	},
@@ -209,6 +207,20 @@ var password = module.exports = {
 					isLoggedIn: !!request.session.user
 				});
 			}
+		});
+	},
+	/**
+	 * @summary Responds to HTTP GET /password/reset/email-sent. Displays the password-reset-email-sent 
+	 * page.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns {undefined}
+	 */
+	showEmailSentPage: function (request, response) {
+		response.render('password-reset-email-sent-page', {
+			isLoggedIn: !!request.session.user
 		});
 	},
 	/**
