@@ -837,43 +837,58 @@ var vehicles = module.exports = {
 		}
 	},
 	/**
-	* @summary Responds to HTTP GET /vehicles/:vehicleId/photos/:photoId. Sends a photo to the browser.
-	*
-	* @param {object} request An HTTP request object received from the express.get() method.
-	* @param {object} response An HTTP response object received from the express.get() method.
-	*
-	* @returns {undefined}
-	*/
+	  * @summary Responds to HTTP GET /vehicles/:vehicleId/photos/:photoId. Sends a photo to the browser.
+	  *
+	  * @param {object} request An HTTP request object received from the express.get() method.
+	  * @param {object} response An HTTP response object received from the express.get() method.
+	  *
+	  * @returns {undefined}
+	  */
 	sendPhoto: function (request, response) {
 		response.sendfile(path.join(__dirname, '..', 'uploads/img/vehicles',
 								request.params.vehicleId, request.params.photoId));
 	},
+	/**
+	  * @summary Responds to HTTP GET
+	  * 
+	  * @param {object} request An HTTP request object received from the express.get() method.
+	  * @param {object} response An HTTP response object received from the express.get() method.
+	  *
+	  * @returns {undefined}
+	  */
 	listSellerVehicles: function (request, response) {
-		var seller;
+		var seller = request.session.seller;
 
-		seller = request.session.seller;
-
-		Vehicle.find({seller: seller._id}, function (err, vehicles) {
+		var renderPage = function (vehicles, callback) {
+			response.render('seller-vehicles-page', {
+				vehicleDeleted: request.session.vehicleDeleted || {
+					message: '',
+					alertDisplay: 'none'
+				},
+				seller: seller,
+				isLoggedIn: true,
+				vehicles: vehicles
+			}, function (err, html) {
+				if (err) {
+					return callback(err);
+				}
+				request.session.vehicleDeleted = null;
+				response.send(html);
+			});
+		};
+		
+		var findVehicle = function (callback) {
+			Vehicle.find({seller: seller._id}, function (err, vehicles) {
+				if (err) {
+					return callback(err);
+				}
+				renderPage(vehicles, callback);
+			});
+		};
+		
+		findVehicle(function (err) {
 			if (err) {
-				console.log(err);
-				main.showErrorPage(request, response);
-			} else {
-				response.render('seller-vehicles-page', {
-					vehicleDeleted: request.session.vehicleDeleted || {
-						message: '',
-						alertDisplay: 'none'
-					},
-					seller: request.session.seller,
-					isLoggedIn: true,
-					vehicles: vehicles
-				}, function (err, html) {
-					request.session.vehicleDeleted = null;
-					if (err) {
-						handleErrors(err, request, response);
-					} else {
-						response.send(html);
-					}
-				});
+				handleErrors(err, request, response);
 			}
 		});
 	}
