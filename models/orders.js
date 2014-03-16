@@ -15,22 +15,19 @@ var orderSchema = mongoose.Schema({
 	seller: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Seller',
-		required: true
+		required: true,
 	},
-	payment: {
-		method: {
-			type: String,
-			required: true
-		},
-		paid: {
-			type: Boolean,
-			default: false
-		},
-		date: {
-			type: Date,
-			default: Date.now
-		}
-	}
+	paymentMethod: {
+		type: String,
+		required: true,
+	},
+	datePlaced: {
+		type: Date,
+		default: Date.now,
+	},
+	datePaid: {
+		type: Date,
+	},
 });
 
 module.exports =  mongoose.model('Order', orderSchema);
