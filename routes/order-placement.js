@@ -104,9 +104,7 @@ var orders = module.exports = {
 		function createOrder(callback) {
 			var order = new Order({
 				seller: request.session.seller._id,
-				payment: {
-					method: 'Direct deposit'
-				}
+				paymentMethod: 'Direct deposit'
 			});
 
 			order.save(function (err, order) {
@@ -121,13 +119,27 @@ var orders = module.exports = {
 			if (err) {
 				handleErrors(err, request, response);
 			} else {
-				response.render('bank-account-details-page', {
-					amountDue: totalCost,
-					referenceNumber: order._id,
-					seller: request.session.seller,
-					isLoggedIn: true
-				});
+				response.redirect(302, '/orders/bank-details?'
+					.concat('amountDue=').concat(totalCost)
+					.concat('&referenceNumber=').concat(encodeURIComponent(order._id))
+				);
 			}
+		});
+	},
+	/**
+	 * @summary Responds to HTTP GET /orders/bank-details. Displays the bank-account-details page.
+	 *
+	 * @param	{object}	request		An HTTP request object received from the express.post() method.
+	 * @param	{object}	response	An HTTP response object received from the express.post() method.
+	 *
+	 * @returns	{undefined}
+	 */
+	showBankDetails: function (request, response) {
+		response.render('bank-account-details-page', {
+			amountDue: request.query.amountDue,
+			referenceNumber: decodeURIComponent(request.query.referenceNumber), 
+			seller: request.session.seller,
+			isLoggedIn: true
 		});
 	},
 	/**

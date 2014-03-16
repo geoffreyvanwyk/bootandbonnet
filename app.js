@@ -138,6 +138,9 @@ app.map(app, {
 			'/remove': {
 				get: orders.remove
 			}
+		},
+		'/bank-details': {
+			get: orders.showBankDetails
 		}
 	},
 	'/login': {
