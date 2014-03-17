@@ -21,7 +21,7 @@ var async = require('async') // For asynchronous iteration.
 /* Routes */
 ,	orders = module.exports = {
 	/**
-	 * @summary Responds to HTTP GET /orders/add.
+	 * @summary Responds to HTTP GET /orders/place.
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
@@ -36,14 +36,14 @@ var async = require('async') // For asynchronous iteration.
 		});
 	},
 	/**
-	 * @summary Responds to HTTP POST /orders/add.
+	 * @summary Responds to HTTP POST /orders/place.
 	 *
-	 * @param	{object}	request		An HTTP request object received from the express.post() method.
-	 * @param	{object}	response	An HTTP response object received from the express.post() method.
+	 * @param {object} request An HTTP request object received from the express.post() method.
+	 * @param {object} response An HTTP response object received from the express.post() method.
 	 * 
-	 * @returns	{undefined}
+	 * @returns {undefined}
 	 */
-	checkout: function checkout(request, response) {
+	place: function place(request, response) {
 		function findVehicle(vehicleId, callback) {
 			Vehicle.findById(vehicleId, function cbVehicleFindById(err, vehicle) {
 				if (err) {
@@ -139,6 +139,16 @@ var async = require('async') // For asynchronous iteration.
 		});
 	},
 	/**
+	 * @summary Responds to HTTP GET /orders/:orderId/pay.
+	 *
+	 * @param {object} request An HTTP request object received from the express.post() method.
+	 * @param {object} response An HTTP response object received from the express.post() method.
+	 *
+	 * @returns {undefined}
+	 */
+	pay: function pay(request, response) {
+	},
+	/**
 	 * @summary Responds to HTTP GET /orders/banking-details. Displays the bank-account-details page.
 	 *
 	 * @param {object} request An HTTP request object received from the express.post() method.
@@ -154,16 +164,6 @@ var async = require('async') // For asynchronous iteration.
 			isLoggedIn: true
 		});
 	},
-	/**
-	 * @summary Responds to HTTP GET /orders/:orderId/pay.
-	 *
-	 * @param {object} request An HTTP request object received from the express.post() method.
-	 * @param {object} response An HTTP response object received from the express.post() method.
-	 *
-	 * @returns {undefined}
-	 */
-	payOrder: function payOrder(request, response) {
-	}
 };
 
 /**

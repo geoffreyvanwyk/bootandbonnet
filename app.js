@@ -140,9 +140,9 @@ app.map(app, {
 		}
 	},
 	'/orders': {
-		'/add': {
+		'/place': {
 			get: orders.showCart,
-			post: orders.checkout
+			post: orders.place
 		},
 		'/:orderId': {
 			'/view': {
@@ -151,6 +151,9 @@ app.map(app, {
 			'/edit': {
 				get: orders.showCart,
 				post: orders.edit
+			},
+			'/pay': {
+				post: orders.pay
 			},
 			'/remove': {
 				get: orders.remove
