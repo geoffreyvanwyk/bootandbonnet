@@ -65,10 +65,27 @@ app.map(app, {
 	'/error': {
 		get: main.showErrorPage
 	},
-	'/user': {
+	'/users': {
 		'/:userId': {
 			'/verify-email-address': {
 				get: email.verifyEmailAddress
+			}
+		},
+		'/login': {
+			get: login.showForm,
+			post: login.authenticate
+		},
+		'/password': {
+			'/forgot': {
+				get: password.showForgotForm,
+				post: password.sendLink
+			},
+			'/reset': {
+				get: password.showResetForm,
+				post: password.reset,
+				'/email-sent': {
+					get: password.showEmailSentPage
+				}
 			}
 		}
 	},
@@ -139,26 +156,9 @@ app.map(app, {
 				get: orders.remove
 			}
 		},
-		'/bank-details': {
+		'/banking-details': {
 			get: orders.showBankDetails
 		}
-	},
-	'/login': {
-		get: login.showForm,
-		post: login.authenticate
-	},
-	'/password': {
-		'/forgot': {
-			get: password.showForgotForm,
-			post: password.sendLink
-		},
-		'/reset': {
-			get: password.showResetForm,
-			post: password.reset,
-			'/email-sent': {
-				get: password.showEmailSentPage
-			}
-		},
 	}
 });
 

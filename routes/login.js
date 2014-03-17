@@ -21,7 +21,8 @@ var main = require('../routes/main');
  * @summary Handles all the errors of the functions in this module.
  *
  * @param {object} err The error object passed from the other functions.
- * @param {object} user A user object consisting of the email address and password entered into the login form.
+ * @param {object} user A user object consisting of the email address and password entered into the login 
+ * form.
  *
  * @returns {undefined}
  */
@@ -79,31 +80,31 @@ var isLoggedIn = function (request, response) {
 
 var login = module.exports = {
 	/**
-	 * @summary Responds to HTTP GET /login. Displays the login-form.
+	 * @summary Responds to HTTP GET /users/login. Displays the login-form.
 	 *
 	 * @description Preconditions:
 	 * (1) The user must not be logged-in (function isLoggedIn).
 	 *
-	 * There is no reason for a logged-in user to see the log-in form. In the user interface, there is no way for a
-	 * logged-in user to request the login-form, but a logged-in user might attempt to request it directly via the
-	 * browser's location bar.
+	 * There is no reason for a logged-in user to see the log-in form. In the user interface, there is no way 
+	 * for a logged-in user to request the login-form, but a logged-in user might attempt to request it 
+	 * directly via the browser's location bar.
 	 *
 	 * Postconditions:
 	 * (1) The views/login-form.ejs is displayed.
 	 *
-	 * (2) After a user has reset his password, the login form is shown to him, with a banner message across the top
-	 * of the form, telling him that the password reset was successful, and that he may log-in again. If the
-	 * isPasswordReset parameter is true, the banner is displayed. The isPasswordReset argument is passed by the
-	 * resetPassword function of the password-reset module.
+	 * (2) After a user has reset his password, the login form is shown to him, with a banner message across 
+	 * the top of the form, telling him that the password reset was successful, and that he may log-in again. 
+	 * If the isPasswordReset parameter is true, the banner is displayed. The isPasswordReset argument is 
+	 * passed by the resetPassword function of the password-reset module.
 	 *
 	 * Error handling:
 	 * (1) If the user is logged-in, the function displays the error-page, because there is no reason for a
 	 * logged-in user to see the login-form (function isLoggedIn()).
 	 *
-	 * (2) If a log-in attempt fails, in other words, if the user enters an email address that is not in the database,
-	 * or if the password is wrong, the login-form is displayed again, but this time with appropriate error messages. If
-	 * the loginErrors parameter is not null or undefined, it means that a log-in attempt has failed. The
-	 * loginErrors argument is passed by the authenticate function.
+	 * (2) If a log-in attempt fails, in other words, if the user enters an email address that is not in the 
+	 * database, or if the password is wrong, the login-form is displayed again, but this time with 
+	 * appropriate error messages. If the loginErrors parameter is not null or undefined, it means that a 
+	 * log-in attempt has failed. The loginErrors argument is passed by the authenticate function.
 	 *
 	 * @param {object} request An HTTP request object received from the express.get() method.
 	 * @param {object} response An HTTP response object received from the express.get() method.
@@ -135,15 +136,15 @@ var login = module.exports = {
 		}
 	},
 	/**
-	 * @summary Responds to HTTP POST /login. Authenticates the user, logs-in the user, then displays the home
-	 * page.
+	 * @summary Responds to HTTP POST /users/login. Authenticates the user, logs-in the user, then displays 
+	 * the home page.
 	 *
 	 * @description Preconditions:
 	 * (1) The user is not logged-in (function isLoggedIn()).
 	 *
 	 * Postconditions:
-	 * (1) The authenticated user (and seller) is logged-in by setting the session cookies (request.session.user;
-	 * request.session.seller).
+	 * (1) The authenticated user (and seller) is logged-in by setting the session cookies 
+	 * (request.session.user; request.session.seller).
 	 * (2) The home page is displayed.
 	 *
 	 * Algorithm:
@@ -151,8 +152,8 @@ var login = module.exports = {
 	 * 1) Use the findUser() closure function to check whether there is any user in the users database
 	 * collection with the email address entered into the login form.
 	 *
-	 * 2) If there is such a user, use the comparePassword() closure function to hash the password entered into the
-	 * login form, then compare the hash with the passwordHash of the user from the database.
+	 * 2) If there is such a user, use the comparePassword() closure function to hash the password entered 
+	 * into the login form, then compare the hash with the passwordHash of the user from the database.
 	 *
 	 * 3) If the hashes are the same, use the findSeller() closure function to retrieve the seller object
 	 * associated with the user, if any.
@@ -161,8 +162,8 @@ var login = module.exports = {
 	 * (1) If the user is logged-in, the function displays the error-page, because there is no reason for a
 	 * logged-in user to see the login-form (function isLoggedIn()).
 	 *
-	 * (2) If the email address does not exist in the database, or if the password is wrong, the handleErrors() function
-	 * is called to redisplay the login-form with the errors.
+	 * (2) If the email address does not exist in the database, or if the password is wrong, the 
+	 * handleErrors() function is called to redisplay the login-form with the errors.
 	 *
 	 * @param {object} request An HTTP request object received from the express.post() method.
 	 * @param {object} response An HTTP response object received from the express.post() method.
