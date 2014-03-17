@@ -53,41 +53,25 @@ var async = require('async') // For asynchronous iteration.
 			});
 		}
 		
-		function saveVehicle(vehicle, item, callback) {
+		function saveVehicle(vehicle, callback) {
 			vehicle.save(function cbVehicleSave(err) {
 				if (err) {
 					return callback(err);
 				}
-				return callback(null, item);
+				return callback(null);
 			});
 		}
 		
-		function updateVehicle(vehicleId, item, callback) {
+		function updateVehicle(vehicleId, callback) {
 			findVehicle(vehicleId, function cbFindVehicle(err, vehicle) {
 				if (err) {
 					return callback(err);
 				}
 				vehicle.advertisement.pending = true;
-				saveVehicle(vehicle, item, callback);
+				saveVehicle(vehicle, callback);
 			});
 		}
 		
-		function createItem(order, cartItem, callback) {
-			var orderItem = new Item({
-				order: order._id,
-				vehicle: cartItem._id,
-				weeks: cartItem.weeks,
-				cost: cartItem.cost
-			});
-
-			orderItem.save(function cbOrderItemSave(err, item) {
-				if (err) {
-					return callback(err);
-				}
-				updateVehicle(cartItem._id, item, callback);
-			});
-		}
-
 		function attachItemsToOrder(order, callback) {
 			var cartItem 
 			,	cartItemsObject = request.body
@@ -101,14 +85,25 @@ var async = require('async') // For asynchronous iteration.
 				}
 			}
 
-			async.forEach(cartItems, function createItems(cartItem, callback1) {
-				createItem(order, cartItem, function (err, item) {
+			async.forEach(cartItems, function createItem(cartItem, callback1) {
+				var orderItem = new Item({
+					order: order._id,
+					vehicle: cartItem._id,
+					weeks: cartItem.weeks,
+					cost: cartItem.cost
+				});
+
+				orderItem.save(function cbOrderItemSave(err, item) {
 					if (err) {
 						return callback(err);
 					}
-					callback1();
+					updateVehicle(cartItem._id, callback1);
 				});
-			}, function cbCreateItems() {
+				
+			}, function cbCreateItem(err) {
+				if (err) {
+					return callback(err);
+				}
 				return callback(null, order, totalCost);
 			});
 		}
@@ -133,7 +128,7 @@ var async = require('async') // For asynchronous iteration.
 			} else {
 				response.redirect(302, '/orders/banking-details?'
 					.concat('amountDue=').concat(totalCost)
-					.concat('&referenceNumber=').concat(encodeURIComponent(order._id))
+					.concat('&referenceNumber=').concat(order._id)
 				);
 			}
 		});
@@ -159,7 +154,7 @@ var async = require('async') // For asynchronous iteration.
 	showBankDetails: function showBankDetails(request, response) {
 		response.render('bank-account-details-page', {
 			amountDue: request.query.amountDue,
-			referenceNumber: decodeURIComponent(request.query.referenceNumber), 
+			referenceNumber: request.query.referenceNumber, 
 			seller: request.session.seller,
 			isLoggedIn: true
 		});
