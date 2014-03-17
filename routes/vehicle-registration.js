@@ -872,7 +872,7 @@ var vehicles = module.exports = {
 	listSellerVehicles: function (request, response) {
 		var seller = request.session.seller;
 
-		var renderPage = function (vehicles, callback) {
+		function renderPage(vehicles, callback) {
 			response.render('seller-vehicles-page', {
 				vehicleDeleted: request.session.vehicleDeleted || {
 					message: '',
@@ -890,7 +890,7 @@ var vehicles = module.exports = {
 			});
 		};
 		
-		var findVehicles = function (callback) {
+		function findVehicles(callback) {
 			Vehicle.find({seller: seller._id}, function cbVehicleFind(err, vehicles) {
 				if (err) {
 					return callback(err);

@@ -137,9 +137,15 @@ var vehicleSchema = mongoose.Schema({
 		type: String,
 		default: ''
 	},
-	expiryDate: { // Date on which advertisement of this vehicle expires.
-		type: Date,
-		default: Date.now
+	advertisement: {
+		expiryDate: { // Date on which advertisement of this vehicle expires.
+			type: Date,
+			default: Date.now
+		},
+		pending: { // Is vehicle an item on an unpaid order?
+			type: Boolean,
+			default: false
+		}
 	},
 	seller: {
 		type: mongoose.Schema.Types.ObjectId,
