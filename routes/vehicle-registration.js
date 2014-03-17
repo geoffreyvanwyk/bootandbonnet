@@ -4,8 +4,8 @@
 
 /**
  * @file routes/vehicles/registration.js
- * @summary Component: Vehicle Registration. Contains routes for handling registration of new vehicles and modification
- * of existing vehicles.
+ * @summary Component: Vehicle Registration. Contains routes for handling registration of new vehicles and 
+ * modification of existing vehicles.
  */
 
 /* Import external modules. */
@@ -80,8 +80,8 @@ var handleErrors = function (err, request, response) {
 };
 
 /**
- * @summary Returns all the make documents makes database collection. Each make document also include the models of that
- * make.
+ * @summary Returns all the make documents makes database collection. Each make document also include the 
+ * models of that make.
  *
  * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
  * @param {ojbect} lookups The lookup values for colors, fuel types, transmission types, etc.
@@ -99,8 +99,8 @@ var getMakes = function (vehicle, lookups, callback) {
 };
 
 /**
- * @summary Returns all the lookup values for colors, fuel types, transmission types, etc. from the lookups database
- * collection.
+ * @summary Returns all the lookup values for colors, fuel types, transmission types, etc. from the lookups 
+ * database collection.
  *
  * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
  * @param {function} callback A callback function.
@@ -117,10 +117,12 @@ var getLookups = function (vehicle, callback) {
 };
 
 /**
- * @summary Returns true, if a seller is logged-in; otherwise, it displays an error message, then returns false.
+ * @summary Returns true, if a seller is logged-in; otherwise, it displays an error message, then returns 
+ * false.
  *
  * @param {object} request An HTTP request object received from the express.get() or express.post() method.
- * @param {object} response An HTTP response object received from the express.get() or express.post() method.
+ * @param {object} response An HTTP response object received from the express.get() or express.post() 
+ * method.
  *
  * @returns {boolean}
  */
@@ -373,37 +375,38 @@ var vehicles = module.exports = {
 		}
 	},
 	/**
-	* @summary Responds to HTTP GET /vehicles/:vehicleId/view. Displays the views/vehicle-profile-page.ejs.
-	*
-	* @description Preconditions:
-	* (1) The user must be authorized to view the profile (function checkAuthorization).
-	*
-	* Postconditions:
-	* (1) If a seller is logged-in, and the vehicle belongs to him/her, edit and delete buttons should also be
-	* displayed.
-	*
-	* Algorithm:
-	* (1) The vehicle referenced by the id in the url (:vehicleId) is first retrieved from the database (function
-	* findVehicle).
-	* (2) The the checkAuthorization function checks whether the user is authorized to view the vehicle profile.
-	* (3) Then the seller, who owns the vehicle, is retrieved from the database, based on the vehicle's seller property
-	*  (function findSeller).
-	* (4) Then the user associated with the seller is retrieved from the database, based on the seller's user property
-	* (function findUser).
-	*
-	* The seller needs to be retrieved to display the seller's contact numbers and address. The user needs to be
-	* retrieved, because the email address is necessary for the contact form.
-	*
-	* Error handling:
-	* (1) If a vehicle's advertisement period has expired, and the user is not the owner, an error message should be
-	* displayed.
-	* (2) All errors are handled by the handleErrors function.
-	*
-	* @param {object} request An HTTP request object received from the express.get() method.
-	* @param {object} response An HTTP response object received from the express.get() method.
-	*
-	* @returns {undefined}
-	*/
+	 * @summary Responds to HTTP GET /vehicles/:vehicleId/view. Displays the views/vehicle-profile-page.ejs.
+	 *
+	 * @description Preconditions:
+	 * (1) The user must be authorized to view the profile (function checkAuthorization).
+	 *
+	 * Postconditions:
+	 * (1) If a seller is logged-in, and the vehicle belongs to him/her, edit and delete buttons should also 
+	 * be displayed.
+	 *
+	 * Algorithm:
+	 * (1) The vehicle referenced by the id in the url (:vehicleId) is first retrieved from the database 
+	 * (function findVehicle).
+	 * (2) The the checkAuthorization function checks whether the user is authorized to view the vehicle 
+	 * profile.
+	 * (3) Then the seller, who owns the vehicle, is retrieved from the database, based on the vehicle's 
+	 * seller property (function findSeller).
+	 * (4) Then the user associated with the seller is retrieved from the database, based on the seller's  
+	 * user property (function findUser).
+	 *
+	 * The seller needs to be retrieved to display the seller's contact numbers and address. The user needs 
+	 * to be retrieved, because the email address is necessary for the contact form.
+	 *
+	 * Error handling:
+	 * (1) If a vehicle's advertisement period has expired, and the user is not the owner, an error message 
+	 * should be displayed.
+	 * (2) All errors are handled by the handleErrors function.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns {undefined}
+	 */
 	show: function (request, response) {
 		var findUser = function (vehicle, seller, isOwnVehicle, callback) {
 			User.findById(seller.user, function (err, user) {
@@ -500,8 +503,8 @@ var vehicles = module.exports = {
 		});
 	},
 	/**
-	 * @summary Responds to HTTP GET /vehicles/:vehicleId/edit. Displays views/vehicle-registration-form.ejs with the
-	 * requested vehicle's details prefilled.
+	 * @summary Responds to HTTP GET /vehicles/:vehicleId/edit. Displays views/vehicle-registration-form.ejs 
+	 * with the requested vehicle's details prefilled.
 	 *
 	 * @description Preconditions:
 	 * (1) The seller must be logged-in (function isLoggedIn).
@@ -509,7 +512,8 @@ var vehicles = module.exports = {
 	 *
 	 * Algorithm:
 	 * (1) The vehicle (:vehicleId) is retrieved from the vehicles database collection (function findVehicle).
-	 * (2) The id of the vehicle's seller is compared with the id of the logged-in user (function checkOwnership).
+	 * (2) The id of the vehicle's seller is compared with the id of the logged-in user (function 
+	 * checkOwnership).
 	 * (3) If the vehicle belongs to the logged-in seller, the edit form is displayed.
 	 *
 	 * Error handling:
@@ -570,8 +574,8 @@ var vehicles = module.exports = {
 		}
 	},
 	/**
-	* @summary Responds to HTTP POST /vehicles/:vehicleId/edit. Edits the requested vehicle's profile, then displays it
-	* (views/vehicle-profile-page.ejs).
+	* @summary Responds to HTTP POST /vehicles/:vehicleId/edit. Edits the requested vehicle's profile, then 
+	* displays it (views/vehicle-profile-page.ejs).
 	*
 	* @description Preconditions:
 	* (1) The seller must be logged-in (function isLoggedIn).
@@ -754,42 +758,44 @@ var vehicles = module.exports = {
 		}
 	},
 	/**
-	* @summary Responds to HTTP GET /vehicles/:vehicleId/remove. Removes the vehicle's profile, then displays the
-	* logged-in seller's list of vehicles.
-	*
-	* @description Preconditions:
-	* (1) The seller must be logged-in (function isLoggedIn).
-	* (2) The vehicle must belong to the logged-in seller (function checkOwnership).
-	*
-	* Postconditions:
-	* (1) The vehicle's photos must also be deleted from the server.
-	*
-	* Algorithm:
-	* (1) The vehicle (:vehicleId) is retrieved from the vehicles database collection (function findVehicle).
-	* (2) The id of the vehicle's seller is compared with the id of the logged-in user (function checkOwnership).
-	* (3) If the vehicle belongs to the logged-in seller, the vehicle's is deleted (function deleteVehicle).
-	* (4) Then the vehicle's photos are deleted from the server (function deletePhotos).
-	*
-	* Error handling:
-	* (1) Appropriate error messages are displayed under the following conditions:
-	* -- If the user is not logged-in.
-	* -- If a vehicle with the requested id does not exist.
-	* -- If the logged-in seller is not the owner of the vehicle.
-	* (2) All errors are handled by the handleErrors function.
-	*
-	* @param {object} request An HTTP request object received from the express.get() method.
-	* @param {object} response An HTTP response object received from the express.get() method.
-	*
-	* @returns {undefined}
-	*/
+	 * @summary Responds to HTTP GET /vehicles/:vehicleId/remove. Removes the vehicle's profile, then 
+	 * displays the logged-in seller's list of vehicles.
+	 *
+	 * @description Preconditions:
+	 * (1) The seller must be logged-in (function isLoggedIn).
+	 * (2) The vehicle must belong to the logged-in seller (function checkOwnership).
+	 *
+	 * Postconditions:
+	 * (1) The vehicle's photos must also be deleted from the server.
+	 *
+	 * Algorithm:
+	 * (1) The vehicle (:vehicleId) is retrieved from the vehicles database collection (function findVehicle).
+	 * (2) The id of the vehicle's seller is compared with the id of the logged-in user (function 
+	 * checkOwnership).
+	 * (3) If the vehicle belongs to the logged-in seller, the vehicle's is deleted (function deleteVehicle).
+	 * (4) Then the vehicle's photos are deleted from the server (function deletePhotos).
+	 *
+	 * Error handling:
+	 * (1) Appropriate error messages are displayed under the following conditions:
+	 * -- If the user is not logged-in.
+	 * -- If a vehicle with the requested id does not exist.
+	 * -- If the logged-in seller is not the owner of the vehicle.
+	 * (2) All errors are handled by the handleErrors function.
+	 *
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns {undefined}
+	 */
 	remove: function (request, response) {
 		if (isLoggedIn('remove', request, response)) {
 			var deletePhotos = function (callback) {
-				rimraf(path.join(__dirname, '..', 'uploads/img/vehicles', request.params.vehicleId), function (err) {
-					if (err) {
-						return callback(err);
-					}
-					return callback(null);
+				rimraf(path.join(__dirname, '..', 'uploads/img/vehicles', request.params.vehicleId), 
+					function (err) {
+						if (err) {
+							return callback(err);
+						}
+						return callback(null);
 				});
 			};
 
@@ -831,31 +837,38 @@ var vehicles = module.exports = {
 						message: 'The vehicle has been successfully deleted.',
 						alertDisplay: ''
 					};
-					response.redirect(302, path.join('/sellers', request.session.seller._id, 'vehicles'));
+					response.redirect(302, 
+						'/sellers/'
+						.concat(request.session.seller._id)
+						.concat('/vehicles')
+					);
 				}
 			});
 		}
 	},
 	/**
-	  * @summary Responds to HTTP GET /vehicles/:vehicleId/photos/:photoId. Sends a photo to the browser.
-	  *
-	  * @param {object} request An HTTP request object received from the express.get() method.
-	  * @param {object} response An HTTP response object received from the express.get() method.
-	  *
-	  * @returns {undefined}
-	  */
+	 * @summary Responds to HTTP GET /vehicles/:vehicleId/photos/:photoId. Sends a photo to the browser.
+	 *
+     * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns {undefined}
+	 */
 	sendPhoto: function (request, response) {
-		response.sendfile(path.join(__dirname, '..', 'uploads/img/vehicles',
-								request.params.vehicleId, request.params.photoId));
+		response.sendfile(
+			path.join(
+				__dirname, '..', 'uploads/img/vehicles', request.params.vehicleId, request.params.photoId
+		));
 	},
 	/**
-	  * @summary Responds to HTTP GET
-	  * 
-	  * @param {object} request An HTTP request object received from the express.get() method.
-	  * @param {object} response An HTTP response object received from the express.get() method.
-	  *
-	  * @returns {undefined}
-	  */
+	 * @summary Responds to HTTP GET /sellers/:sellerId/vehicles. Displays list of logged-in seller's 
+	 * vehicles.
+	 * 
+	 * @param {object} request An HTTP request object received from the express.get() method.
+	 * @param {object} response An HTTP response object received from the express.get() method.
+	 *
+	 * @returns {undefined}
+	 */
 	listSellerVehicles: function (request, response) {
 		var seller = request.session.seller;
 
@@ -868,7 +881,7 @@ var vehicles = module.exports = {
 				seller: seller,
 				isLoggedIn: true,
 				vehicles: vehicles
-			}, function (err, html) {
+			}, function cbRenderPage(err, html) {
 				if (err) {
 					return callback(err);
 				}
@@ -877,8 +890,8 @@ var vehicles = module.exports = {
 			});
 		};
 		
-		var findVehicle = function (callback) {
-			Vehicle.find({seller: seller._id}, function (err, vehicles) {
+		var findVehicles = function (callback) {
+			Vehicle.find({seller: seller._id}, function cbVehicleFind(err, vehicles) {
 				if (err) {
 					return callback(err);
 				}
@@ -886,7 +899,7 @@ var vehicles = module.exports = {
 			});
 		};
 		
-		findVehicle(function (err) {
+		findVehicles(function cbFindVehicles(err) {
 			if (err) {
 				handleErrors(err, request, response);
 			}
