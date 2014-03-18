@@ -9,25 +9,25 @@
  */
 
 /* Import external modules. */
-var engine = require('ejs-locals');
-var express = require('express');
+var engine = require('ejs-locals')
+,	express = require('express');
 
 /* Import built-in modules. */
-var http = require('http');
-var path = require('path');
+var http = require('http')
+,	path = require('path');
 
 /* Import libraries. */
 var map = require('./library/route-map').map;
 
 /* Import routes. */
-var email = require('./routes/email-address-verification');
-var login = require('./routes/login');
-var main = require('./routes/main');
-var orders = require('./routes/order-placement');
-var password = require('./routes/password-reset');
-var search = require('./routes/search');
-var sellers = require('./routes/seller-registration');
-var vehicles = require('./routes/vehicle-registration');
+var email = require('./routes/email-address-verification')
+,	login = require('./routes/login')
+,	main = require('./routes/main')
+,	orders = require('./routes/order-placement')
+,	password = require('./routes/password-reset')
+,	search = require('./routes/search')
+,	sellers = require('./routes/seller-registration')
+,	vehicles = require('./routes/vehicle-registration');
 
 /* Import configurations. */
 var databaseServer = require('./configuration/database').mongodb;
@@ -146,7 +146,7 @@ app.map(app, {
 		},
 		'/:orderId': {
 			'/view': {
-				get: orders.showCart
+				get: orders.show
 			},
 			'/edit': {
 				get: orders.showCart,

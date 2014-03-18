@@ -1,4 +1,6 @@
 /*jshint node: true */
+/*jshint laxcomma: true */
+/*jshint asi: true */
 
 'use strict';
 
@@ -9,135 +11,28 @@
  */
 
 /* Import external modules. */
-var async = require('async'); // For asynchronous iteration.
-var rimraf = require('rimraf');
+var async = require('async') // For asynchronous iteration.
+,	rimraf = require('rimraf')
 
 /* Import built-in modules. */
-var fs = require('fs'); // For uploading photos.
-var path = require('path'); // For concatenating file paths.
+var fs = require('fs') // For uploading photos.
+,	path = require('path') // For concatenating file paths.
 
 /* Import libraries. */
-var sanitize = require('../library/sanitize-wrapper').sanitize; // For removing scripts from user input.
+var sanitize = require('../library/sanitize-wrapper').sanitize // For removing scripts from user input.
 
 /* Import models. */
-var Lookups = require('../models/lookups');
-var Make = require('../models/makes');
-var Seller = require('../models/sellers');
-var User = require('../models/users');
-var Vehicle = require('../models/vehicles');
+var Lookups = require('../models/lookups')
+,	Make = require('../models/makes')
+,	Seller = require('../models/sellers')
+,	User = require('../models/users')
+,	Vehicle = require('../models/vehicles')
 
 /* Import routes. */
-var main = require('./main');
-var sellers = require('./seller-registration');
+var main = require('./main')
+,	sellers = require('./seller-registration')
 
-/**
- * @summary Handles all the errors in this module.
- *
- * @param {object} err An error object.
- * @param {object} request An HTTP request object received from the express.get() method.
- * @param {object} response An HTTP response object received from the express.get() method.
- *
- * @returns {undefined}
- */
-var handleErrors = function (err, request, response) {
-	console.log('==================== BEGIN ERROR MESSAGE ====================');
-	console.log(err);
-	console.log('==================== END ERROR MESSAGE ======================');
-
-	switch (err.message) {
-		case 'You are not logged-in.':
-			request.session.specialError = {
-				message: err.message,
-				action: err.action,
-				alertDisplay: ''
-			};
-			response.redirect(302, '/sellers/add');
-			break;
-		case 'You can only delete your own vehicles.':
-			request.session.specialError = err.message;
-			response.redirect(302, '/error');
-			break;
-		case 'A vehicle with the requested id does not exist.':
-			request.session.specialError = err.message;
-			response.redirect(302, '/error');
-			break;
-		case 'A seller with the requested id does not exist.':
-			request.session.specialError = err.message;
-			response.redirect(302, '/error');
-			break;
-		case 'A user with the requested id does not exist.':
-			request.session.specialError = err.message;
-			response.redirect(302, '/error');
-			break;
-		case "The vehicle's advertisement period has expired.":
-			request.session.specialError = err.message;
-			response.redirect(302, '/error');
-			break;
-		default:
-			response.redirect(302, '/error');
-			break;
-	}
-};
-
-/**
- * @summary Returns all the make documents makes database collection. Each make document also include the 
- * models of that make.
- *
- * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
- * @param {ojbect} lookups The lookup values for colors, fuel types, transmission types, etc.
- * @param {function} callback A callback function.
- *
- * @returns {undefined}
- */
-var getMakes = function (vehicle, lookups, callback) {
-	Make.find(function (err, makes) {
-		if (err) {
-			return callback(err);
-		}
-		return callback(null, vehicle, makes, lookups);
-	});
-};
-
-/**
- * @summary Returns all the lookup values for colors, fuel types, transmission types, etc. from the lookups 
- * database collection.
- *
- * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
- * @param {function} callback A callback function.
- *
- * @returns {undefined}
- */
-var getLookups = function (vehicle, callback) {
-	Lookups.find(function (err, lookups) {
-		if (err) {
-			return callback(err);
-		}
-		getMakes(vehicle, lookups, callback);
-	});
-};
-
-/**
- * @summary Returns true, if a seller is logged-in; otherwise, it displays an error message, then returns 
- * false.
- *
- * @param {object} request An HTTP request object received from the express.get() or express.post() method.
- * @param {object} response An HTTP response object received from the express.get() or express.post() 
- * method.
- *
- * @returns {boolean}
- */
-var isLoggedIn = function (action, request, response) {
-	var displayError = function () {
-		var error = new Error('You are not logged-in.');
-		error.action = action;
-		handleErrors(error, request, response);
-		return false;
-	};
-
-	return !!request.session.seller || displayError();
-};
-
-/* Routes */
+/* Exported routes and functions. */
 var vehicles = module.exports = {
 	/**
 	 * @summary Responds to HTTP GET /vehicles/add. Displays views/vehicle-registration-form.ejs.
@@ -156,11 +51,11 @@ var vehicles = module.exports = {
 	 */
 	showRegistrationForm: function (request, response) {
 		if (isLoggedIn('add', request, response)) {
-			var currentDateObject = new Date(Date.now());
+			var currentDateObject = new Date(Date.now())
 
 			getLookups(null, function (err, vehicle, makes, lookups) {
 				if (err) {
-					handleErrors(err, request, response);
+					handleErrors(err, request, response)
 				} else {
 					response.render('vehicle-registration-form', {
 						action: '/vehicles/add',
@@ -217,9 +112,9 @@ var vehicles = module.exports = {
 						transmissions: lookups[0].transmissions,
 						thisYear: currentDateObject.getFullYear(),
 						isLoggedIn: true
-					});
+					})
 				}
-			});
+			})
 		}
 	},
 	/**
@@ -239,69 +134,69 @@ var vehicles = module.exports = {
 	 * @returns	{undefined}
 	 */
 	add: function (request, response) {
-		if (isLoggedIn('add', request, response)) {
-			var movePhotos = function (vehicle, files, vehicleDir, webDir, callback) {
-				var newPath, oldPath;
+		function movePhotos(vehicle, files, vehicleDir, webDir, callback) {
+			var counter
+			,	file
+			,	newPath
+			,	oldPath
+			,	photos = []
 
-				var photos = [];
-
-				for (var file in files) {
-					if (files.hasOwnProperty(file)) {
-						if (files[file].size > 0) {
-							photos.push(files[file]);
-						} else {
-							fs.unlinkSync(files[file].path);
-						}
+			for (file in files) {
+				if (files.hasOwnProperty(file)) {
+					if (files[file].size > 0) {
+						photos.push(files[file])
+					} else {
+						fs.unlinkSync(files[file].path)
 					}
 				}
+			}
 
-				var counter = vehicle.photos.length;
+			counter = vehicle.photos.length
 
-				async.forEach(photos, function (photo, callback1) {
-					counter = counter + 1;
-					oldPath = photo.path;
-					newPath = path.join(vehicleDir, counter.toString());
-					vehicle.photos.push(path.join(webDir, counter.toString()));
+			async.forEach(photos, function rename(photo, callback1) {
+				counter = counter + 1
+				oldPath = photo.path
+				newPath = path.join(vehicleDir, counter.toString())
+				vehicle.photos.push(path.join(webDir, counter.toString()))
 
-					fs.rename(oldPath, newPath, function (err) {
-						if (err) {
-							return callback(err);
-						}
-						callback1();
-					});
-
-				}, function () {
-					return callback(null, vehicle);
-				});
-			};
-
-			var makeDirectory = function (vehicle, files, vehicleDir, webDir, callback) {
-				fs.mkdir(vehicleDir, '0755', function (err) {
+				fs.rename(oldPath, newPath, function cbFSrename(err) {
 					if (err) {
-						return callback(err);
+						return callback(err)
 					}
-					movePhotos(vehicle, files, vehicleDir, webDir, callback);
+					callback1()
 				});
-			};
 
-			var checkDirectory = function (vehicle, files, callback) {
-				var webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
-				var vehicleDir = path.join(__dirname, '..', webDir);
+			}, function cbRename() {
+				return callback(null, vehicle)
+			})
+		}
 
-				fs.exists(vehicleDir, function (exists) {
-					if (exists) {
-						movePhotos(vehicle, files, vehicleDir, webDir, callback);
-					} else {
-						makeDirectory(vehicle, files, vehicleDir, webDir, callback);
-					}
-				});
-			};
+		function makeDirectory(vehicle, files, vehicleDir, webDir, callback) {
+			fs.mkdir(vehicleDir, '0755', function cbFSmkdir(err) {
+				if (err) {
+					return callback(err)
+				}
+				movePhotos(vehicle, files, vehicleDir, webDir, callback)
+			})
+		}
 
-			var instantiateVehicle = function (callback) {
-				var ssnSeller = request.session.seller;
-				var frmVehicle = request.body.vehicle;
+		function checkDirectory(vehicle, files, callback) {
+			var webDir = path.join('/uploads/img/vehicles', vehicle._id.toString())
+			,	vehicleDir = path.join(__dirname, '..', webDir)
 
-				var vehicle = new Vehicle({
+			fs.exists(vehicleDir, function cbFSexists(exists) {
+				if (exists) {
+					movePhotos(vehicle, files, vehicleDir, webDir, callback)
+				} else {
+					makeDirectory(vehicle, files, vehicleDir, webDir, callback)
+				}
+			})
+		}
+
+		function instantiateVehicle(callback) {
+			var ssnSeller = request.session.seller
+			,	frmVehicle = request.body.vehicle
+			,	vehicle = new Vehicle({
 					market: sanitize(frmVehicle.market),
 					type: {
 						make: sanitize(frmVehicle.type.make),
@@ -342,36 +237,37 @@ var vehicles = module.exports = {
 					photos: [],
 					comments: sanitize(frmVehicle.comments),
 					seller: ssnSeller._id
-				});
+				})
 
-				checkDirectory(vehicle, request.files, callback);
-			};
+			checkDirectory(vehicle, request.files, callback)
+		}
 
-			var insertVehicle = function (vehicle, callback) {
-				vehicle.save(function (err, vehicle) {
-					if (err) {
-						return callback(err);
-					}
-					return callback(null, vehicle);
-				});
-			};
-
-			var createVehicle = function (callback) {
-				instantiateVehicle(function (err, vehicle) {
-					if (err) {
-						return callback(err);
-					}
-					insertVehicle(vehicle, callback);
-				});
-			};
-
-			createVehicle(function (err, vehicle) {
+		function insertVehicle(vehicle, callback) {
+			vehicle.save(function cbVehicleSave(err, vehicle) {
 				if (err) {
-					handleErrors(err, request, response);
-				} else {
-					response.redirect(302, path.join('/vehicles', vehicle._id.toString(), 'view'));
+					return callback(err)
 				}
-			});
+				return callback(null, vehicle)
+			})
+		}
+
+		function createVehicle(callback) {
+			instantiateVehicle(function cbInstantiateVehicle(err, vehicle) {
+				if (err) {
+					return callback(err)
+				}
+				insertVehicle(vehicle, callback)
+			})
+		}
+		
+		if (isLoggedIn('add', request, response)) {
+			createVehicle(function cbCreateVehicle(err, vehicle) {
+				if (err) {
+					handleErrors(err, request, response)
+				} else {
+					response.redirect(302, path.join('/vehicles', vehicle._id.toString(), 'view'))
+				}
+			})
 		}
 	},
 	/**
@@ -408,31 +304,55 @@ var vehicles = module.exports = {
 	 * @returns {undefined}
 	 */
 	show: function (request, response) {
-		var findUser = function (vehicle, seller, isOwnVehicle, callback) {
-			User.findById(seller.user, function (err, user) {
+		function renderPage(vehicle, seller, user, isOwnVehicle, callback) {
+			response.render('vehicle-profile-page', {
+				vehicle: vehicle,
+				seller: seller,
+				user: user,
+				sellerType: seller.dealershipName === '' ? 'private' : 'dealership',
+				dealerDisplay: seller.dealershipName === '' ? 'none' : '',
+				privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
+				emailFeedback: request.session.emailFeedback || {
+					alertType: '',
+					alertDisplay: 'none',
+					message: ''
+				},
+				formActionsDisplay: isOwnVehicle ? '' : 'none',
+				isLoggedIn: !!request.session.seller
+			}, function cbResponseRender(err, html) {
 				if (err) {
-					return callback(err);
+					return callback(err)
+				}
+				request.session.emailFeedback = null
+				response.send(html)
+			})
+		}
+		
+		function findUser(vehicle, seller, isOwnVehicle, callback) {
+			User.findById(seller.user, function cbUserFindById(err, user) {
+				if (err) {
+					return callback(err)
 				}
 				if (!user) {
-					var error = new Error('A user with the requested id does not exist.');
-					return callback(error);
+					var error = new Error('A user with the requested id does not exist.')
+					return callback(error)
 				}
-				return callback(null, vehicle, seller, user, isOwnVehicle);
-			});
-		};
+				renderPage(vehicle, seller, user, isOwnVehicle, callback)
+			})
+		}
 
-		var findSeller = function (vehicle, isOwnVehicle, callback) {
-			Seller.findById(vehicle.seller, function (err, seller) {
+		function findSeller(vehicle, isOwnVehicle, callback) {
+			Seller.findById(vehicle.seller, function cbSellerFindById(err, seller) {
 				if (err) {
-					return callback(err);
+					return callback(err)
 				}
 				if (!seller) {
-					var error = new Error('A seller with the requested id does not exist.');
-					return callback(error);
+					var error = new Error('A seller with the requested id does not exist.')
+					return callback(error)
 				}
-				findUser(vehicle, seller, isOwnVehicle, callback);
-			});
-		};
+				findUser(vehicle, seller, isOwnVehicle, callback)
+			})
+		}
 
 		/**
 		 * @summary Checks whether the user is authorized to view the vehicle profile.
@@ -446,61 +366,38 @@ var vehicles = module.exports = {
 		 *
 		 * @returns {undefined}
 		 */
-		var checkAuthorization = function (vehicle, callback) {
-			var currentDate = new Date(Date.now());
-			var isExpired = vehicle.expiryDate < currentDate;
-			var isOwnVehicle = request.session.seller && request.session.seller._id == vehicle.seller;
-			var isAuthorized = !isExpired || isOwnVehicle;
+		function checkAuthorization(vehicle, callback) {
+			var currentDate = new Date(Date.now())
+			,	isExpired = vehicle.expiryDate < currentDate
+			,	isOwnVehicle = request.session.seller && request.session.seller._id == vehicle.seller
+			,	isAuthorized = !isExpired || isOwnVehicle
 
 			if (!isAuthorized) {
-				var error = new Error("The vehicle's advertisement period has expired.");
-				return callback(error);
+				var error = new Error("The vehicle's advertisement period has expired.")
+				return callback(error)
 			}
 
-			findSeller(vehicle, isOwnVehicle, callback);
-		};
+			findSeller(vehicle, isOwnVehicle, callback)
+		}
 
-		var findVehicle = function (callback) {
-			Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
+		function findVehicle(callback) {
+			Vehicle.findById(request.params.vehicleId, function cbVehicleFindById(err, vehicle) {
 				if (err) {
-					return callback(err);
+					return callback(err)
 				}
 				if (!vehicle) {
-					var error = new Error('A vehicle with the requested id does not exist.');
-					return callback(error);
+					var error = new Error('A vehicle with the requested id does not exist.')
+					return callback(error)
 				}
-				checkAuthorization(vehicle, callback);
-			});
-		};
+				checkAuthorization(vehicle, callback)
+			})
+		}
 
-		findVehicle(function (err, vehicle, seller, user, isOwnVehicle) {
+		findVehicle(function cbFindVehicle(err, vehicle, seller, user, isOwnVehicle) {
 			if (err) {
-				handleErrors(err, request, response);
-			} else {
-				response.render('vehicle-profile-page', {
-					vehicle: vehicle,
-					seller: seller,
-					user: user,
-					sellerType: seller.dealershipName === '' ? 'private' : 'dealership',
-					dealerDisplay: seller.dealershipName === '' ? 'none' : '',
-					privateSellerDisplay: seller.dealershipName === '' ? '' : 'none',
-					emailFeedback: request.session.emailFeedback || {
-						alertType: '',
-						alertDisplay: 'none',
-						message: ''
-					},
-					formActionsDisplay: isOwnVehicle ? '' : 'none',
-					isLoggedIn: !!request.session.seller
-				}, function (err, html) {
-					if (err) {
-						handleErrors(err, request, response);
-					} else {
-						request.session.emailFeedback = null;
-						response.send(html);
-					}
-				});
+				handleErrors(err, request, response)
 			}
-		});
+		})
 	},
 	/**
 	 * @summary Responds to HTTP GET /vehicles/:vehicleId/edit. Displays views/vehicle-registration-form.ejs 
@@ -529,31 +426,31 @@ var vehicles = module.exports = {
 	 * @returns	{undefined}
 	 */
 	showEditForm: function (request, response) {
-		if (isLoggedIn('edit', request, response)) {
-			var currentDate = new Date(Date.now());
+		function checkOwnership(vehicle, callback) {
+			if (vehicle.seller.toString() !== request.session.seller._id.toString()) {
+				return callback(new Error('You can only edit your own vehicles.'))
+			}
+			getLookups(vehicle, callback)
+		}
 
-			var checkOwnership = function (vehicle, callback) {
-				if (vehicle.seller.toString() !== request.session.seller._id.toString()) {
-					return callback(new Error('You can only edit your own vehicles.'));
-				}
-				getLookups(vehicle, callback);
-			};
-
-			var findVehicle = function (vehicleId, callback) {
-				Vehicle.findById(vehicleId, function (err, vehicle) {
-					if (err) {
-						return callback(err);
-					}
-					if (!vehicle) {
-						return callback(new Error('A vehicle with the requested id does not exist.'));
-					}
-					checkOwnership(vehicle, callback);
-				});
-			};
-
-			findVehicle(request.params.vehicleId, function (err, vehicle, makes, lookups) {
+		function findVehicle(vehicleId, callback) {
+			Vehicle.findById(vehicleId, function cbVehicleFindById(err, vehicle) {
 				if (err) {
-					handleErrors(err, request, response);
+					return callback(err)
+				}
+				if (!vehicle) {
+					return callback(new Error('A vehicle with the requested id does not exist.'))
+				}
+				checkOwnership(vehicle, callback)
+			})
+		}
+		
+		if (isLoggedIn('edit', request, response)) {
+			var currentDate = new Date(Date.now())
+
+			findVehicle(request.params.vehicleId, function cbFindVehicle(err, vehicle, makes, lookups) {
+				if (err) {
+					handleErrors(err, request, response)
 				} else {
 					response.render('vehicle-registration-form', {
 						action: '/vehicles/'.concat(vehicle._id.toString()).concat('/edit'),
@@ -568,9 +465,9 @@ var vehicles = module.exports = {
 						thisYear: currentDate.getFullYear(),
 						seller: request.session.seller,
 						isLoggedIn: true
-					});
+					})
 				}
-			});
+			})
 		}
 	},
 	/**
@@ -594,167 +491,167 @@ var vehicles = module.exports = {
 	* @returns {undefined}
 	*/
 	edit: function (request, response) {
-		if (isLoggedIn('edit', request, response)) {
-			var frmVehicle = request.body.vehicle;
-			var deletedPhotos = JSON.parse(request.body.deletedPhotos);
-
-			var updateVehicle = function (vehicle, callback) {
-				vehicle.save(function (err, vehicle) {
-					if (err) {
-						return callback(err);
-					}
-					return callback(null, vehicle);
-				});
-			};
-
-			var movePhotos = function (vehicle, files, vehicleDir, webDir, callback) {
-				var photos = [];
-
-				for (var file in files) {
-					if (files.hasOwnProperty(file)) {
-						if (files[file].size > 0) {
-							files[file].name = file;
-							photos.push(files[file]);
-						} else {
-							fs.unlinkSync(files[file].path);
-						}
-					}
-				}
-
-				async.forEach(photos, function (photo, callback1) {
-					if (photo.name === 'photo1') {
-						fs.rename(photo.path, path.join(vehicleDir, '1'), function (err) {
-							if (err) {
-								return callback(err);
-							}
-							vehicle.photos.splice(0, 1, path.join(webDir, '1'));
-							callback1();
-						});
-					} else if (photo.name === 'photo2') {
-						fs.rename(photo.path, path.join(vehicleDir, '2'), function (err) {
-							if (err) {
-								return callback(err);
-							}
-							vehicle.photos.splice(1, 1, path.join(webDir, '2'));
-							callback1();
-						});
-					} else if (photo.name === 'photo3') {
-						fs.rename(photo.path, path.join(vehicleDir, '3'), function (err) {
-							if (err) {
-								return callback(err);
-							}
-							vehicle.photos.splice(2, 1, path.join(webDir, '3'));
-							callback1();
-						});
-					} else if (photo.name === 'photo4') {
-						fs.rename(photo.path, path.join(vehicleDir, '4'), function (err) {
-							if (err) {
-								return callback(err);
-							}
-							vehicle.photos.splice(3, 1, path.join(webDir, '4'));
-							callback1();
-						});
-					}
-				}, function () {
-					async.forEach(deletedPhotos, function (deletedPhoto, callback2) {
-						fs.unlink(path.join(vehicleDir, deletedPhoto), function (err) {
-							if (err) {
-								return callback(err);
-							}
-							vehicle.photos.splice(deletedPhoto - 1, 1, '');
-							callback2();
-						});
-					}, function () {
-						updateVehicle(vehicle, callback);
-					});
-				});
-			};
-
-			var makeDirectory = function (vehicle, files, vehicleDir, webDir, callback) {
-				fs.mkdir(vehicleDir, '0755', function (err) {
-					if (err) {
-						return callback(err);
-					}
-					movePhotos(vehicle, files, vehicleDir, webDir, callback);
-				});
-			};
-
-			var checkDirectory = function (vehicle, files, callback) {
-				var webDir = path.join('/uploads/img/vehicles', vehicle._id.toString());
-				var vehicleDir = path.join(__dirname, '..', webDir);
-
-				fs.exists(vehicleDir, function (exists) {
-					if (exists) {
-						movePhotos(vehicle, files, vehicleDir, webDir, callback);
-					} else {
-						makeDirectory(vehicle, files, vehicleDir, webDir, callback);
-					}
-				});
-			};
-
-			var setNewValues = function (vehicle, callback) {
-				vehicle.market = sanitize(frmVehicle.market);
-				vehicle.type = {
-					make: sanitize(frmVehicle.type.make),
-					model: sanitize(frmVehicle.type.model),
-					year: sanitize(frmVehicle.type.year)
-				};
-				vehicle.description = {
-					mileage: sanitize(frmVehicle.description.mileage),
-					color: sanitize(frmVehicle.description.color),
-					fullServiceHistory: sanitize(frmVehicle.description.fullServiceHistory)
-				};
-				vehicle.mechanics = {
-					engineCapacity: sanitize(frmVehicle.mechanics.engineCapacity),
-					fuel: sanitize(frmVehicle.mechanics.fuel),
-					transmission: sanitize(frmVehicle.mechanics.transmission),
-					absBrakes: sanitize(frmVehicle.absBrakes),
-					powerSteering: sanitize(frmVehicle.mechanics.powerSteering)
-				};
-				vehicle.luxuries = {
-					airConditioning: sanitize(frmVehicle.luxuries.airConditioning),
-					electricWindows: sanitize(frmVehicle.luxuries.electricWindows),
-					radio: sanitize(frmVehicle.luxuries.radio),
-					cdPlayer: sanitize(frmVehicle.luxuries.cdPlayer)
-				};
-				vehicle.security = {
-					alarm: sanitize(frmVehicle.security.alarm),
-					centralLocking: sanitize(frmVehicle.security.centralLocking),
-					immobilizer: sanitize(frmVehicle.security.immobilizer),
-					gearLock: sanitize(frmVehicle.security.gearLock)
-				};
-				vehicle.safety = {
-					airBags: sanitize(frmVehicle.safety.airBags)
-				};
-				vehicle.price = {
-					value: sanitize(frmVehicle.price.value),
-					negotiable: sanitize(frmVehicle.price.negotiable)
-				};
-				vehicle.comments = sanitize(frmVehicle.comments);
-
-				checkDirectory(vehicle, request.files, callback);
-			};
-
-			var findVehicle = function (vehicleId, callback) {
-				Vehicle.findById(vehicleId, function (err, vehicle) {
-					if (err) {
-						return callback(err);
-					}
-					if (!vehicle) {
-						var error = new Error('No vehicle with that id exists.');
-						return callback(err);
-					}
-					setNewValues(vehicle, callback);
-				});
-			};
-
-			findVehicle(request.params.vehicleId, function (err, vehicle) {
+		function updateVehicle(vehicle, callback) {
+			vehicle.save(function cbVehicleSave(err, vehicle) {
 				if (err) {
-					handleErrors(err, request, response);
-				} else {
-					response.redirect(302, '/vehicles/'.concat(vehicle._id.toString()).concat('/view'));
+					return callback(err)
 				}
-			});
+				return callback(null, vehicle)
+			})
+		}
+
+		function movePhotos(vehicle, files, vehicleDir, webDir, callback) {
+			var file
+			,	photos = []
+
+			for (file in files) {
+				if (files.hasOwnProperty(file)) {
+					if (files[file].size > 0) {
+						files[file].name = file
+						photos.push(files[file])
+					} else {
+						fs.unlinkSync(files[file].path)
+					}
+				}
+			}
+
+			async.forEach(photos, function (photo, callback1) {
+				if (photo.name === 'photo1') {
+					fs.rename(photo.path, path.join(vehicleDir, '1'), function (err) {
+						if (err) {
+							return callback(err)
+						}
+						vehicle.photos.splice(0, 1, path.join(webDir, '1'))
+						callback1()
+					});
+				} else if (photo.name === 'photo2') {
+					fs.rename(photo.path, path.join(vehicleDir, '2'), function (err) {
+						if (err) {
+							return callback(err)
+						}
+						vehicle.photos.splice(1, 1, path.join(webDir, '2'))
+						callback1()
+					});
+				} else if (photo.name === 'photo3') {
+					fs.rename(photo.path, path.join(vehicleDir, '3'), function (err) {
+						if (err) {
+							return callback(err)
+						}
+						vehicle.photos.splice(2, 1, path.join(webDir, '3'))
+						callback1()
+					});
+				} else if (photo.name === 'photo4') {
+					fs.rename(photo.path, path.join(vehicleDir, '4'), function (err) {
+						if (err) {
+							return callback(err)
+						}
+						vehicle.photos.splice(3, 1, path.join(webDir, '4'))
+						callback1()
+					});
+				}
+			}, function () {
+				async.forEach(deletedPhotos, function (deletedPhoto, callback2) {
+					fs.unlink(path.join(vehicleDir, deletedPhoto), function (err) {
+						if (err) {
+							return callback(err)
+						}
+						vehicle.photos.splice(deletedPhoto - 1, 1, '')
+						callback2()
+					});
+				}, function () {
+					updateVehicle(vehicle, callback)
+				})
+			})
+		}
+
+		function makeDirectory(vehicle, files, vehicleDir, webDir, callback) {
+			fs.mkdir(vehicleDir, '0755', function cbFSmkdir(err) {
+				if (err) {
+					return callback(err)
+				}
+				movePhotos(vehicle, files, vehicleDir, webDir, callback)
+			})
+		}
+
+		function checkDirectory(vehicle, files, callback) {
+			var webDir = path.join('/uploads/img/vehicles', vehicle._id.toString())
+			,	vehicleDir = path.join(__dirname, '..', webDir)
+
+			fs.exists(vehicleDir, function cbFSexists(exists) {
+				if (exists) {
+					movePhotos(vehicle, files, vehicleDir, webDir, callback)
+				} else {
+					makeDirectory(vehicle, files, vehicleDir, webDir, callback)
+				}
+			})
+		}
+
+		function setNewValues(vehicle, callback) {
+			vehicle.market = sanitize(frmVehicle.market);
+			vehicle.type = {
+				make: sanitize(frmVehicle.type.make),
+				model: sanitize(frmVehicle.type.model),
+				year: sanitize(frmVehicle.type.year)
+			}
+			vehicle.description = {
+				mileage: sanitize(frmVehicle.description.mileage),
+				color: sanitize(frmVehicle.description.color),
+				fullServiceHistory: sanitize(frmVehicle.description.fullServiceHistory)
+			}
+			vehicle.mechanics = {
+				engineCapacity: sanitize(frmVehicle.mechanics.engineCapacity),
+				fuel: sanitize(frmVehicle.mechanics.fuel),
+				transmission: sanitize(frmVehicle.mechanics.transmission),
+				absBrakes: sanitize(frmVehicle.absBrakes),
+				powerSteering: sanitize(frmVehicle.mechanics.powerSteering)
+			}
+			vehicle.luxuries = {
+				airConditioning: sanitize(frmVehicle.luxuries.airConditioning),
+				electricWindows: sanitize(frmVehicle.luxuries.electricWindows),
+				radio: sanitize(frmVehicle.luxuries.radio),
+				cdPlayer: sanitize(frmVehicle.luxuries.cdPlayer)
+			}
+			vehicle.security = {
+				alarm: sanitize(frmVehicle.security.alarm),
+				centralLocking: sanitize(frmVehicle.security.centralLocking),
+				immobilizer: sanitize(frmVehicle.security.immobilizer),
+				gearLock: sanitize(frmVehicle.security.gearLock)
+			}
+			vehicle.safety = {
+				airBags: sanitize(frmVehicle.safety.airBags)
+			}
+			vehicle.price = {
+				value: sanitize(frmVehicle.price.value),
+				negotiable: sanitize(frmVehicle.price.negotiable)
+			}
+			vehicle.comments = sanitize(frmVehicle.comments)
+
+			checkDirectory(vehicle, request.files, callback)
+		}
+
+		function findVehicle(vehicleId, callback) {
+			Vehicle.findById(vehicleId, function cbVehicleFindById(err, vehicle) {
+				if (err) {
+					return callback(err)
+				}
+				if (!vehicle) {
+					return callback(new Error('No vehicle with that id exists.'))
+				}
+				setNewValues(vehicle, callback)
+			})
+		}
+		
+		if (isLoggedIn('edit', request, response)) {
+			var frmVehicle = request.body.vehicle
+			,	deletedPhotos = JSON.parse(request.body.deletedPhotos)
+
+			findVehicle(request.params.vehicleId, function cbFindVehicle(err, vehicle) {
+				if (err) {
+					handleErrors(err, request, response)
+				} else {
+					response.redirect(302, '/vehicles/'.concat(vehicle._id.toString()).concat('/view'))
+				}
+			})
 		}
 	},
 	/**
@@ -788,62 +685,60 @@ var vehicles = module.exports = {
 	 * @returns {undefined}
 	 */
 	remove: function (request, response) {
-		if (isLoggedIn('remove', request, response)) {
-			var deletePhotos = function (callback) {
-				rimraf(path.join(__dirname, '..', 'uploads/img/vehicles', request.params.vehicleId), 
-					function (err) {
-						if (err) {
-							return callback(err);
-						}
-						return callback(null);
-				});
-			};
-
-			var deleteVehicle = function (vehicle, callback) {
-				vehicle.remove(function (err) {
+		function deletePhotos(callback) {
+			rimraf(path.join(__dirname, '..', 'uploads/img/vehicles', request.params.vehicleId), 
+				function cbRimraf(err) {
 					if (err) {
-						return callback(err);
+						return callback(err)
 					}
-					deletePhotos(callback);
-				});
-			};
+					return callback(null)
+			})
+		}
 
-			var checkOwnership = function (vehicle, callback) {
-				if (vehicle.seller.toString() !== request.session.seller._id.toString()) {
-					var error = new Error('You can only delete your own vehicles.');
-					return callback(error);
-				}
-				deleteVehicle(vehicle, callback);
-			};
-
-			var findVehicle = function (callback) {
-				Vehicle.findById(request.params.vehicleId, function (err, vehicle) {
-					if (err) {
-						return callback(err);
-					}
-					if (!vehicle) {
-						var error = new Error('A vehicle with the requested id does not exist.');
-						return callback(error);
-					}
-					checkOwnership(vehicle, callback);
-				});
-			};
-
-			findVehicle(function (err) {
+		function deleteVehicle(vehicle, callback) {
+			vehicle.remove(function cbVehicleRemove(err) {
 				if (err) {
-					handleErrors(err, request, response);
+					return callback(err)
+				}
+				deletePhotos(callback)
+			})
+		}
+
+		function checkOwnership(vehicle, callback) {
+			if (vehicle.seller.toString() !== request.session.seller._id.toString()) {
+				return callback(new Error('You can only delete your own vehicles.'))
+			}
+			deleteVehicle(vehicle, callback)
+		}
+
+		function findVehicle(callback) {
+			Vehicle.findById(request.params.vehicleId, function cbVehicleFindById(err, vehicle) {
+				if (err) {
+					return callback(err)
+				}
+				if (!vehicle) {
+					return callback(new Error('A vehicle with the requested id does not exist.'))
+				}
+				checkOwnership(vehicle, callback)
+			})
+		}
+		
+		if (isLoggedIn('remove', request, response)) {
+			findVehicle(function cbFindVehicle(err) {
+				if (err) {
+					handleErrors(err, request, response)
 				} else {
 					request.session.vehicleDeleted = {
 						message: 'The vehicle has been successfully deleted.',
 						alertDisplay: ''
-					};
+					}
 					response.redirect(302, 
 						'/sellers/'
 						.concat(request.session.seller._id)
 						.concat('/vehicles')
-					);
+					)
 				}
-			});
+			})
 		}
 	},
 	/**
@@ -870,7 +765,7 @@ var vehicles = module.exports = {
 	 * @returns {undefined}
 	 */
 	listSellerVehicles: function (request, response) {
-		var seller = request.session.seller;
+		var seller = request.session.seller
 
 		function renderPage(vehicles, callback) {
 			response.render('seller-vehicles-page', {
@@ -881,28 +776,137 @@ var vehicles = module.exports = {
 				seller: seller,
 				isLoggedIn: true,
 				vehicles: vehicles
-			}, function cbRenderPage(err, html) {
+			}, function cbResponseRender(err, html) {
 				if (err) {
-					return callback(err);
+					return callback(err)
 				}
-				request.session.vehicleDeleted = null;
-				response.send(html);
-			});
-		};
+				request.session.vehicleDeleted = null
+				response.send(html)
+			})
+		}
 		
 		function findVehicles(callback) {
 			Vehicle.find({seller: seller._id}, function cbVehicleFind(err, vehicles) {
 				if (err) {
-					return callback(err);
+					return callback(err)
 				}
-				renderPage(vehicles, callback);
-			});
-		};
+				renderPage(vehicles, callback)
+			})
+		}
 		
 		findVehicles(function cbFindVehicles(err) {
 			if (err) {
-				handleErrors(err, request, response);
+				handleErrors(err, request, response)
 			}
-		});
+		})
 	}
-};
+}
+
+/* Private functions. */
+
+/**
+ * @summary Handles all the errors in this module.
+ *
+ * @param {object} err An error object.
+ * @param {object} request An HTTP request object received from the express.get() method.
+ * @param {object} response An HTTP response object received from the express.get() method.
+ *
+ * @returns {undefined}
+ */
+function handleErrors(err, request, response) {
+	console.log('==================== BEGIN ERROR MESSAGE ====================');
+	console.log(err);
+	console.log('==================== END ERROR MESSAGE ======================');
+
+	switch (err.message) {
+		case 'You are not logged-in.':
+			request.session.specialError = {
+				message: err.message,
+				action: err.action,
+				alertDisplay: ''
+			};
+			response.redirect(302, '/sellers/add');
+			break;
+		case 'You can only delete your own vehicles.':
+			request.session.specialError = err.message;
+			response.redirect(302, '/error');
+			break;
+		case 'A vehicle with the requested id does not exist.':
+			request.session.specialError = err.message;
+			response.redirect(302, '/error');
+			break;
+		case 'A seller with the requested id does not exist.':
+			request.session.specialError = err.message;
+			response.redirect(302, '/error');
+			break;
+		case 'A user with the requested id does not exist.':
+			request.session.specialError = err.message;
+			response.redirect(302, '/error');
+			break;
+		case "The vehicle's advertisement period has expired.":
+			request.session.specialError = err.message;
+			response.redirect(302, '/error');
+			break;
+		default:
+			response.redirect(302, '/error');
+			break;
+	}
+}
+
+/**
+ * @summary Returns all the make documents makes database collection. Each make document also include the 
+ * models of that make.
+ *
+ * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
+ * @param {ojbect} lookups The lookup values for colors, fuel types, transmission types, etc.
+ * @param {function} callback A callback function.
+ *
+ * @returns {undefined}
+ */
+function getMakes(vehicle, lookups, callback) {
+	Make.find(function (err, makes) {
+		if (err) {
+			return callback(err);
+		}
+		return callback(null, vehicle, makes, lookups);
+	});
+}
+
+/**
+ * @summary Returns all the lookup values for colors, fuel types, transmission types, etc. from the lookups 
+ * database collection.
+ *
+ * @param {object} vehicle The vehicle object passed by the vehicles.showEditForm method.
+ * @param {function} callback A callback function.
+ *
+ * @returns {undefined}
+ */
+function getLookups(vehicle, callback) {
+	Lookups.find(function (err, lookups) {
+		if (err) {
+			return callback(err);
+		}
+		getMakes(vehicle, lookups, callback);
+	});
+}
+
+/**
+ * @summary Returns true, if a seller is logged-in; otherwise, it displays an error message, then returns 
+ * false.
+ *
+ * @param {object} request An HTTP request object received from the express.get() or express.post() method.
+ * @param {object} response An HTTP response object received from the express.get() or express.post() 
+ * method.
+ *
+ * @returns {boolean}
+ */
+function isLoggedIn(action, request, response) {
+	var displayError = function () {
+		var error = new Error('You are not logged-in.');
+		error.action = action;
+		handleErrors(error, request, response);
+		return false;
+	};
+
+	return !!request.session.seller || displayError();
+}

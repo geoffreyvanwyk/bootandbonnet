@@ -1,4 +1,5 @@
 /*jshint node: true */
+/*jshint laxcomma: true */
 
 'use strict';
 
@@ -8,18 +9,18 @@
  */
 
 /* Import external modules. */
-var async = require('async') // For asynchronous iteration.
+var async = require('async'); // For asynchronous iteration.
 
 /* Import models */
-,	Order = require('../models/orders')
+var	Order = require('../models/orders')
 ,	Item = require('../models/items')
-,	Vehicle = require('../models/vehicles')
+,	Vehicle = require('../models/vehicles');
 
 /* Import routes */
-,	main = require('./main')
+var	main = require('./main');
 
 /* Routes */
-,	orders = module.exports = {
+var	orders = module.exports = {
 	/**
 	 * @summary Responds to HTTP GET /orders/place.
 	 *
@@ -76,7 +77,7 @@ var async = require('async') // For asynchronous iteration.
 			var cartItem 
 			,	cartItemsObject = request.body
 			,	cartItems = []
-			,	totalCost = 0
+			,	totalCost = 0;
 
 			for (cartItem in cartItemsObject) {
 				if (cartItemsObject.hasOwnProperty(cartItem)) {
@@ -134,6 +135,56 @@ var async = require('async') // For asynchronous iteration.
 		});
 	},
 	/**
+	 * @summary Responds to HTTP GET /orders/:orderId/view. Displays an individual order.
+	 *
+	 * @param {object} request An HTTP request object received from the express.post() method.
+	 * @param {object} response An HTTP response object received from the express.post() method.
+	 *
+	 * @returns {undefined}
+	 */
+	show: function show(request, response) {
+		var orderId = request.params.orderId;
+		
+		function expandVehicles(order, items, callback) {
+			async.forEach(items, function expandVehicle(item, callback1) {
+				item.populate('vehicle').exec();
+				callback1();
+			}, function cbExpandVehicle() {
+				return callback(null, order, items);
+			});
+		}
+		
+		function findItems(order, callback) {
+			Item.find({order: orderId}, function cbItemFind(err, items) {
+				if (err) {
+					return callback(err);
+				}
+				expandVehicles(order, items, callback);
+			});
+		}
+		
+		function findOrder(callback) {
+			Order.findById(orderId, function cbOrderFindById(err, order) {
+				if (err) {
+					return callback(err);
+				}
+				findItems(order, callback);
+			});
+		}
+		
+		findOrder(function cbFindOrder(err, order, items) {
+			if (err) {
+				handleErrors(err, request, response);
+			} else {
+				response.render('order-page', {
+					order: order,
+					items: items,
+					isLoggedIn: true
+				});
+			}
+		});
+	},
+	/**
 	 * @summary Responds to HTTP GET /orders/:orderId/pay.
 	 *
 	 * @param {object} request An HTTP request object received from the express.post() method.
@@ -142,6 +193,18 @@ var async = require('async') // For asynchronous iteration.
 	 * @returns {undefined}
 	 */
 	pay: function pay(request, response) {
+	},
+	/**
+	 * @summary Responds to HTTP GET /sellers/:sellerId/orders. List the orders placed by the logged-in 
+	 * seller.
+	 *
+	 * @param {object} request An HTTP request object received from the express.post() method.
+	 * @param {object} response An HTTP response object received from the express.post() method.
+	 *
+	 * @returns {undefined}
+	 */
+	listSellerOrders: function listSellerOrders(request, response) {
+		var seller;
 	},
 	/**
 	 * @summary Responds to HTTP GET /orders/banking-details. Displays the bank-account-details page.
