@@ -1,8 +1,4 @@
-/*jshint node: true */
-/*jshint laxcomma: true */
-/*jshint asi: true */
-
-'use strict';
+'use strict'
 
 /**
  * @file routes/vehicles/registration.js
@@ -768,7 +764,7 @@ var vehicles = module.exports = {
 		var seller = request.session.seller
 
 		function renderPage(vehicles, callback) {
-			response.render('seller-vehicles-page', {
+			response.render('seller-vehicles-list', {
 				vehicleDeleted: request.session.vehicleDeleted || {
 					message: '',
 					alertDisplay: 'none'

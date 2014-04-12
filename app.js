@@ -10,14 +10,14 @@
 
 /* Import external modules. */
 var engine = require('ejs-locals')
-,	express = require('express');
+,	express = require('express')
 
 /* Import built-in modules. */
 var http = require('http')
-,	path = require('path');
+,	path = require('path')
 
 /* Import libraries. */
-var map = require('./library/route-map').map;
+var map = require('./library/route-map').map
 
 /* Import routes. */
 var email = require('./routes/email-address-verification')
@@ -27,7 +27,7 @@ var email = require('./routes/email-address-verification')
 ,	password = require('./routes/password-reset')
 ,	search = require('./routes/search')
 ,	sellers = require('./routes/seller-registration')
-,	vehicles = require('./routes/vehicle-registration');
+,	vehicles = require('./routes/vehicle-registration')
 
 /* Import configurations. */
 var databaseServer = require('./configuration/database').mongodb;
@@ -109,7 +109,7 @@ app.map(app, {
 				get: vehicles.listSellerVehicles
 			},
 			'/orders': {
-				get: orders.list
+				get: orders.listSellerOrders
 			}
 		}
 	},

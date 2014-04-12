@@ -1,7 +1,7 @@
 <% layout('../views/layout') -%>
-<% script('../../static/js/seller-vehicles-page.js') -%>
+<% script('../../static/js/seller-vehicles-list.js') -%>
 
-<div id="vehicleDeletedAlert" class="alert alert-success"	style="display: <%=vehicleDeleted.alertDisplay%>">
+<div id="vehicleDeletedAlert" class="alert alert-success"	style="display:<%=vehicleDeleted.alertDisplay%>">
 	<button type="button" class="close" data-dismiss="alert">&times;</button>
 	<%=vehicleDeleted.message%>
 </div>
@@ -12,107 +12,117 @@
 
 <form id="items" action="/orders/add" method="get">
 	<h2>Advertised</h2>
-	<table class="table">
-		<thead>
-			<tr>
-				<th>#</th>
-				<th>Make</th>
-				<th>Model</th>
-				<th>Year</th>
-				<th>Price</th>
-				<th>Expires</th>
-				<th>View</th>
-			</tr>
-		</thead>
-		<tbody>
-			<% for (var i = 0; i < vehicles.length; i++) { 
-				if (vehicles[i].advertisement.expiryDate >= Date.now()) {
-			%>
-			<tr>
-				<td><%=i+1%></td>
-				<td><%=vehicles[i].type.make %></td>
-				<td><%=vehicles[i].type.model %></td>
-				<td><%=vehicles[i].type.year %></td>
-				<td><%=vehicles[i].price.value %></td>
-				<td><%=vehicle[i].advertisement.expiryDate %></td>
-				<td><a href="/vehicles/<%=vehicles[i]._id%>/view" class="btn btn-default">View</a></td>
-			</tr>
-			<% } // end if 
-			} // end for
-			%>
-		</tbody>
-	</table>
+	
+		<table class="table">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Make</th>
+					<th>Model</th>
+					<th>Year</th>
+					<th>Price</th>
+					<th>Expires</th>
+					<th>View</th>
+				</tr>
+			</thead>
+			
+			<tbody>
+				<% for (var i = 0; i < vehicles.length; i++) { 
+					if (vehicles[i].advertisement.expiryDate >= Date.now()) {
+				%>
+				
+				<tr>
+					<td><%=i+1%></td>
+					<td><%=vehicles[i].type.make %></td>
+					<td><%=vehicles[i].type.model %></td>
+					<td><%=vehicles[i].type.year %></td>
+					<td><%=vehicles[i].price.value %></td>
+					<td><%=vehicle[i].advertisement.expiryDate %></td>
+					<td><a href="/vehicles/<%=vehicles[i]._id%>/view" class="btn btn-default">View</a></td>
+				</tr>
+				
+				<% } // end if 
+				} // end for
+				%>
+			</tbody>
+		</table>
 
 	<h2>Order Pending</h2>
-	<table class="table">
-		<thead>
-			<tr>
-				<th>#</th>
-				<th>Make</th>
-				<th>Model</th>
-				<th>Year</th>
-				<th>Price</th>
-				<th>Expires</th>
-				<th>View</th>
-			</tr>
-		</thead>
-		<tbody>
-			<% for (var i = 0; i < vehicles.length; i++) { 
-				if (vehicles[i].advertisement.pending) {
-			%>
-			<tr>
-				<td><%=i+1%></td>
-				<td><%=vehicles[i].type.make %></td>
-				<td><%=vehicles[i].type.model %></td>
-				<td><%=vehicles[i].type.year %></td>
-				<td><%=vehicles[i].price.value %></td>
-				<td>Pending</td>
-				<td><a href="/vehicles/<%=vehicles[i]._id%>/view" class="btn btn-default">View</a></td>
-			</tr>
-			<% } // end if 
-			} // end for
-			%>
-		</tbody>
-	</table>
+	
+		<table class="table">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Make</th>
+					<th>Model</th>
+					<th>Year</th>
+					<th>Price</th>
+					<th>Expires</th>
+					<th>View</th>
+				</tr>
+			</thead>
+			<tbody>
+				<% for (var i = 0; i < vehicles.length; i++) { 
+					if (vehicles[i].advertisement.pending) {
+				%>
+				<tr>
+					<td><%=i+1%></td>
+					<td><%=vehicles[i].type.make %></td>
+					<td><%=vehicles[i].type.model %></td>
+					<td><%=vehicles[i].type.year %></td>
+					<td><%=vehicles[i].price.value %></td>
+					<td>Pending</td>
+					<td><a href="/vehicles/<%=vehicles[i]._id%>/view" class="btn btn-default">View</a></td>
+				</tr>
+				<% } // end if 
+				} // end for
+				%>
+			</tbody>
+		</table>
 	
 	<h2>Not Advertised</h2>
-	<table class="table">
-		<thead>
-			<tr>
-				<th>#</th>
-				<th>Make</th>
-				<th>Model</th>
-				<th>Year</th>
-				<th>Price</th>
-				<th>Expires</th>
-				<th>View</th>
-			</tr>
-		</thead>
-		<tbody>
-			<% for (var i = 0; i < vehicles.length; i++) { 
-				 if (vehicles[i].advertisement.expiryDate < Date.now() && 
-					!vehicles[i].advertisement.pending) { 
-					var vehicle = JSON.stringify(vehicles[i]); 
-			%>
-			<tr>
-				<td><%=i+1%></td>
-				<td><%=vehicles[i].type.make %></td>
-				<td><%=vehicles[i].type.model %></td>
-				<td><%=vehicles[i].type.year %></td>
-				<td><%=vehicles[i].price.value %></td>
-				<td><button type="button" name="<%=vehicles[i]._id%>"
-							class="bootandbonnet-btn-advertise btn btn-success"
-							value="<%=vehicle%>">
-						Advertise</button></td>
-				<td><a href="/vehicles/<%=vehicles[i]._id%>/view" class="btn btn-default">View</a></td>
-			</tr>
-			<% } // end if 
-			} // end for
-			%>
-		</tbody>
+	
+		<table class="table">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Make</th>
+					<th>Model</th>
+					<th>Year</th>
+					<th>Price</th>
+					<th>Expires</th>
+					<th>View</th>
+				</tr>
+			</thead>
+			
+			<tbody>
+				<% for (var i = 0; i < vehicles.length; i++) { 
+					if (vehicles[i].advertisement.expiryDate < Date.now() && 
+						!vehicles[i].advertisement.pending) { 
+						var vehicle = JSON.stringify(vehicles[i]); 
+				%>
+				
+				<tr>
+					<td><%=i+1%></td>
+					<td><%=vehicles[i].type.make %></td>
+					<td><%=vehicles[i].type.model %></td>
+					<td><%=vehicles[i].type.year %></td>
+					<td><%=vehicles[i].price.value %></td>
+					<td><button type="button" name="<%=vehicles[i]._id%>"
+								class="bootandbonnet-btn-advertise btn btn-success"
+								value="<%=vehicle%>">
+							Advertise</button></td>
+					<td><a href="/vehicles/<%=vehicles[i]._id%>/view" class="btn btn-default">View</a></td>
+				</tr>
+				
+				<% } // end if 
+				} // end for
+				%>
+			</tbody>
 	</table>
 	
 	<a href="/vehicles/add" class="btn btn-primary">Add Vehicle</a>
+	
 	<span class="btn-group">
 		<button id="viewCart" type="submit" class="btn btn-info">View Cart</button>
 		<button id="nrOfItems" type="button" class="btn btn-info">0</button>

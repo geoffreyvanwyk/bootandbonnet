@@ -28,6 +28,9 @@ var orderSchema = mongoose.Schema({
 	datePaid: {
 		type: Date,
 	},
+	cost: {
+		type: Number
+	}
 });
 
 module.exports =  mongoose.model('Order', orderSchema);
